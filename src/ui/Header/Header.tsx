@@ -4,24 +4,23 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 
 const Header = () => {
-   const TOPBAR_HEIGHT = 44;
+   const TOPBAR_HEIGHT = 15;
 
    const [scrolled, setScrolled] = useState(false);
 
    useEffect(() => {
-      // Check scroll on mount
       const onScroll = () => {
          setScrolled(window.scrollY > TOPBAR_HEIGHT);
       };
 
-      onScroll(); // run immediately on mount in case page is already scrolled
+      onScroll();
 
       window.addEventListener("scroll", onScroll);
       return () => window.removeEventListener("scroll", onScroll);
    }, []);
 
    return (
-      <header className={`lg:px-10 px-5 h-17.5 flex items-center border-b justify-between border-b-gray-200 fixed w-full z-50 bg-white transition-all duration-75 ${scrolled ? "top-0" : "top-11"}`}>
+      <header className={`lg:px-10 px-5 h-17.5 flex items-center border-b justify-between border-b-gray-200 fixed w-full z-50 bg-white transition-all duration-75 ${scrolled ? "top-0!" : "top-11"}`}>
          <TextAlignJustify className="lg:hidden min-[500px]:w-auto w-[6vw] min-[500px]:hidden flex" />
          <div className="flex items-center gap-10">
             <TextAlignJustify className="lg:hidden hidden min-[500px]:w-auto w-[6vw] min-[500px]:flex" />
