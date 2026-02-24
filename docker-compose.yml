@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  nextjs-app:
+    build: .
+    container_name: nextjs-pinacleluxe-webfront
+    image: hassan523/pinacleluxe-webfront
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./:/app                 # Local code
+      - /app/node_modules       # Preserve container node_modules
+    environment:
+      - NODE_ENV=development
+    working_dir: /app
+    command: npm run dev

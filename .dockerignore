@@ -1,0 +1,8 @@
+# Ignore node modules (installed inside container)
+node_modules
+npm-debug.log
+yarn-error.log
+
+.env
+.vscode
+.idea
