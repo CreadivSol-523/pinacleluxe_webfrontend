@@ -52,6 +52,20 @@ body {
   font-weight: 600;
 }
 
+/* Fonts */
+.fontInterRegular {
+  font-family: "InterRegular" !important;
+  font-weight: 400 !important;
+}
+.fontInterMedium {
+  font-family: "InterMedium" !important;
+  font-weight: 500 !important;
+}
+.fontInterSemiBold {
+  font-family: "InterSemiBold" !important;
+  font-weight: 600 !important;
+}
+
 /* Typography */
 h1 {
   scroll-margin: 5rem;
@@ -140,6 +154,7 @@ small {
 li {
   font-family: "InterRegular";
   font-weight: 400;
+  cursor: pointer;
 }
 
 @theme inline {
