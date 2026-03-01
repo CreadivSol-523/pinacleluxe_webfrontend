@@ -19,7 +19,6 @@ export default function Home() {
             <VideoSection />
             <ReferSection />
             <CarouselSection />
-            <Footer />
          </div>
       </MainLayout>
    );

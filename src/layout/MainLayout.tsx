@@ -1,4 +1,5 @@
 "use client";
+import Footer from "@/ui/Footer/Footer";
 import Header from "@/ui/Header/Header";
 import TopBar from "@/ui/TopBar/TopBar";
 import React, { ReactNode, useEffect, useState } from "react";
@@ -34,6 +35,7 @@ const MainLayout = ({ children }: MainLayoutType) => {
             <Header />
          </div>
          <div>{children}</div>
+         <Footer />
       </main>
    );
 };
