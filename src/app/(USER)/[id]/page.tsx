@@ -10,9 +10,7 @@ const page = () => {
                <h2 className="uppercase">Enjoy our feature products</h2>
                <p>Created for those who value quality, enjoy limited offers on thoughtfully crafted pieces.</p>
             </div>
-            <div>
-               
-            </div>
+            <div></div>
          </div>
          {/* <section className=" my-10!">
             <div className="grid max-[600px]:grid-cols-1! max-[850px]:grid-cols-2! md:grid-cols-3 lg:grid-cols-4 lg:gap-2 gap-10">
