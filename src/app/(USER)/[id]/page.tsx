@@ -22,7 +22,7 @@ const page = () => {
                      <ProductCard key={i} />
                   ))}
                </div>
-               <Image src={"/Dummy/PersonImage.png"} width={800} height={1000} alt="profile icon" className=" cursor-pointer col-span-2 w-full 2xl:h-[93.4%] xl:h-[91%] lg:h-[90%]" />
+               <Image src={"/Dummy/PersonImage.png"} width={800} height={1000} alt="Center Person Image" className=" col-span-2 w-full 2xl:h-[93.4%] xl:h-[91%] lg:h-[90%]" />
                <div className="flex gap-y-21.25 lg:flex-col lg:gap-x-0 gap-x-4">
                   {[1, 2].map((_, i) => (
                      <ProductCard key={i} />
