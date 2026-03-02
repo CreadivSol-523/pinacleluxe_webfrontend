@@ -26,7 +26,9 @@ const Header = () => {
             <TextAlignJustify className="lg:hidden hidden min-[500px]:w-auto w-[6vw] min-[500px]:flex" />
             <Image src={"/Common/Logo.png"} width={200} height={200} alt="logo image here" className="lg:w-50 min-[500px]:w-48 w-[40vw] h-auto" />
             <ul className="items-center gap-6 lg:flex hidden">
-               <li className="cursor-pointer text-textBlack">Shop</li>
+               <li className="cursor-pointer text-textBlack">
+                  <a href="/shop">Shop</a>
+               </li>
                <li className="cursor-pointer text-[#6B4613]">New Arrivals</li>
                <li className="cursor-pointer text-[#840D0D]">Archive Sale</li>
             </ul>
