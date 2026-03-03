@@ -4,7 +4,7 @@ import React from "react";
 const PrivacyPolicy = () => {
    return (
       <MainLayout>
-         <div className=" flex flex-col gap-12  py-17.5 px-72">
+         <div className=" flex flex-col gap-12  py-17.5 xl:px-72 sm:px-12 px-5">
             <div className="w-full flex flex-col items-center justify-center gap-2">
                <h2>Privacy policy</h2>
                <p>Effective date: 16 July 2026</p>
