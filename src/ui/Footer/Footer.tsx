@@ -1,5 +1,6 @@
 import { Copyright } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import React from "react";
 
 const Footer = () => {
@@ -34,7 +35,11 @@ const Footer = () => {
                   <div className="flex flex-col gap-2.5 max-md:place-self-start max-sm:place-self-start! ">
                      <strong className="fontInterSemiBold">LEGAL</strong>
                      <ul className="flex flex-col gap-1.5">
-                        <li>Privacy Policy</li>
+                        <li>
+                           <Link href={"/privacy-policy"} className="hover:underline">
+                              Privacy Policy
+                           </Link>
+                        </li>
                         <li>Terms & Conditions</li>
                         <li>Refund Policy</li>
                      </ul>

@@ -3,7 +3,7 @@ import { TextAlignJustify } from "lucide-react";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 
-const Header = () => {
+const Header = ({ setIsSidebarOpen }: { setIsSidebarOpen: (isOpen: boolean) => void }) => {
    const TOPBAR_HEIGHT = 15;
 
    const [scrolled, setScrolled] = useState(false);
@@ -34,13 +34,13 @@ const Header = () => {
             </ul>
          </div>
          <div className="flex items-center sm:gap-6 gap-3">
-            <span className="lg:border-b border-0 border-[#B0B0B0]  pb-1 mt-1! min-[500px]:flex hidden">
+            <span className="lg:border-b border-0 border-[#B0B0B0]  pb-1 mt-1! min-[500px]:flex hidden cursor-pointer">
                <input type="text" className="outline-none text-[14px] text-textBlack lg:flex hidden" placeholder="Search" />
                <Image src={"/Icons/SearchIcon.svg"} width={16} height={16} alt="profile icon" className="lg:w-4 sm:w-4.5 w-[3.2vw]" />
             </span>
-            <Image src={"/Icons/ProfileIcon.svg"} width={20} height={20} alt="profile icon" className="sm:w-5 w-[3.2vw] min-w-4" />
-            <Image src={"/Icons/HeartIcon.svg"} width={20} height={20} alt="profile icon" className="sm:w-5 w-[3.2vw] min-w-4" />
-            <span className="flex items-center gap-1.5">
+            <Image src={"/Icons/ProfileIcon.svg"} width={20} height={20} alt="profile icon" className="sm:w-5 w-[3.2vw] min-w-4 cursor-pointer" />
+            <Image src={"/Icons/HeartIcon.svg"} width={20} height={20} alt="profile icon" className="sm:w-5 w-[3.2vw] min-w-4 cursor-pointer" />
+            <span className="flex items-center gap-1.5 cursor-pointer" onClick={() => setIsSidebarOpen(true)}>
                <Image src={"/Icons/BagIcon.svg"} width={20} height={20} alt="profile icon" className="sm:w-5 w-[3.2vw] min-w-4" />0
             </span>
          </div>
