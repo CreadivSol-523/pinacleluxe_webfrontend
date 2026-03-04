@@ -15,8 +15,16 @@ const Footer = () => {
                   <div className="flex flex-col gap-2.5 max-lg:place-self-start max-sm:place-self-start! ">
                      <strong className="fontInterSemiBold">MORE FROM PINACLE LUXE</strong>
                      <ul className="flex flex-col gap-1.5">
-                        <li>About</li>
-                        <li>Our Story</li>
+                        <li>
+                           <Link href={"/about-us"} className="hover:underline">
+                              About
+                           </Link>
+                        </li>
+                        <li>
+                           <Link href={"/our-stories"} className="hover:underline">
+                              Our Story
+                           </Link>
+                        </li>
                         <li>Design Philosophy</li>
                         <li>Careers (Coming Soon)</li>
                         <li>Sustainability (Coming Soon)</li>
@@ -25,8 +33,16 @@ const Footer = () => {
                   <div className="flex flex-col gap-2.5 max-md:place-self-start max-md:pl-18 max-sm:place-self-start! max-sm:pl-0">
                      <strong className="fontInterSemiBold">CUSTOMER CARE</strong>
                      <ul className="flex flex-col gap-1.5">
-                        <li>Contact Us</li>
-                        <li>FAQs</li>
+                        <li>
+                           <Link href={"/contact-us"} className="hover:underline">
+                              Contact Us
+                           </Link>
+                        </li>
+                        <li>
+                           <Link href={"/frequently-asked-questions"} className="hover:underline">
+                              FAQs
+                           </Link>
+                        </li>
                         <li>Shipping & Delivery</li>
                         <li>Returns & Exchanges</li>
                         <li>Order Tracking</li>
