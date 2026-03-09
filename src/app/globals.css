@@ -30,6 +30,7 @@ body {
   /* Static Heading or Text Colors   */
   --color-headingColor: #323334;
   --color-textBlack: #323334;
+  --color-lightText:"#5E5F60"
   --color-iconColor: #3A3A3A;
 }
 
@@ -105,7 +106,7 @@ h3 {
 
 h4 {
   scroll-margin: 5rem;
-  font-size: clamp(1rem, 5vw, 1rem);
+  font-size: clamp(0.8rem, 2.5vw, 1rem);
   text-wrap: balance;
   font-family: "InterMedium";
   font-weight: 500;

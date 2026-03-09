@@ -11,9 +11,10 @@ export default function RootLayout({
 }: Readonly<{
    children: React.ReactNode;
 }>) {
+   // className="min-h-screen overflow-x-hidden"
    return (
       <html lang="en">
-         <body className="min-h-screen overflow-x-hidden">{children}</body>
+         <body>{children}</body>
       </html>
    );
 }

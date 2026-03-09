@@ -1,9 +1,11 @@
 "use client";
 import { TextAlignJustify } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import React, { useEffect, useState } from "react";
 
 const Header = ({ setIsSidebarOpen }: { setIsSidebarOpen: (isOpen: boolean) => void }) => {
+   const [isNavbar, setIsNavbar] = useState(false);
    const TOPBAR_HEIGHT = 15;
 
    const [scrolled, setScrolled] = useState(false);
@@ -20,13 +22,13 @@ const Header = ({ setIsSidebarOpen }: { setIsSidebarOpen: (isOpen: boolean) => v
    }, []);
 
    return (
-      <header className={`lg:px-10 px-5 h-17.5 flex items-center border-b justify-between border-b-gray-200 fixed w-full z-50 bg-white transition-all duration-75 ${scrolled ? "top-0!" : "top-11"}`}>
-         <TextAlignJustify className="lg:hidden min-[500px]:w-auto w-[6vw] min-[500px]:hidden flex" />
+      <header onMouseLeave={() => setIsNavbar(false)} className={`lg:px-10 px-5 h-17.5 flex items-center border-b justify-between border-b-gray-200 fixed w-full z-50 bg-white transition-all duration-75 ${scrolled ? "top-0!" : "top-11"}`}>
+         <TextAlignJustify className="xl:hidden min-[500px]:w-auto w-[6vw] min-[500px]:hidden flex" />
          <div className="flex items-center gap-10">
-            <TextAlignJustify className="lg:hidden hidden min-[500px]:w-auto w-[6vw] min-[500px]:flex" />
+            <TextAlignJustify className="xl:hidden hidden min-[500px]:w-auto w-[6vw] min-[500px]:flex" />
             <Image src={"/Common/Logo.png"} width={200} height={200} alt="logo image here" className="lg:w-50 min-[500px]:w-48 w-[40vw] h-auto" />
-            <ul className="items-center gap-6 lg:flex hidden">
-               <li className="cursor-pointer text-textBlack">
+            <ul className="items-center gap-6 xl:flex hidden">
+               <li className="cursor-pointer text-textBlack" onMouseEnter={() => setIsNavbar(true)}>
                   <a href="/shop">Shop</a>
                </li>
                <li className="cursor-pointer text-[#6B4613]">New Arrivals</li>
@@ -44,6 +46,52 @@ const Header = ({ setIsSidebarOpen }: { setIsSidebarOpen: (isOpen: boolean) => v
                <Image src={"/Icons/BagIcon.svg"} width={20} height={20} alt="profile icon" className="sm:w-5 w-[3.2vw] min-w-4" />0
             </span>
          </div>
+         <nav onMouseEnter={() => setIsNavbar(true)} className={`max-xl:hidden h-120 bg-white absolute w-full top-17.5 left-0 lg:px-10 px-5 flex gap-10 py-10 transition-all duration-300  ${isNavbar ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
+            <div className=" flex gap-10 w-full">
+               <Image src={"/Common/Logo.png"} width={200} height={200} alt="logo image here" className="lg:w-50 min-[500px]:w-48 w-[40vw] h-auto opacity-0" />
+               <div className="flex justify-between w-full">
+                  <div className="flex gap-10">
+                     <div className="flex flex-col gap-4 max-md:place-self-start max-md:pl-18 max-sm:place-self-start! max-sm:pl-0">
+                        <strong className="fontInterSemiBold text-headingColor">Categories</strong>
+                        <ul className="flex flex-col gap-2">
+                           <li>
+                              <Link href={"/contact-us"} className="hover:underline">
+                                 Contact Us
+                              </Link>
+                           </li>
+                           <li>
+                              <Link href={"/frequently-asked-questions"} className="hover:underline">
+                                 FAQs
+                              </Link>
+                           </li>
+                           <li>Shipping & Delivery</li>
+                           <li>Returns & Exchanges</li>
+                           <li>Order Tracking</li>
+                        </ul>
+                     </div>
+                     <div className="flex flex-col gap-4 max-md:place-self-start max-md:pl-18 max-sm:place-self-start! max-sm:pl-0">
+                        <strong className="fontInterSemiBold text-headingColor">Categories</strong>
+                        <ul className="flex flex-col gap-2">
+                           <li>
+                              <Link href={"/contact-us"} className="hover:underline">
+                                 Contact Us
+                              </Link>
+                           </li>
+                           <li>
+                              <Link href={"/frequently-asked-questions"} className="hover:underline">
+                                 FAQs
+                              </Link>
+                           </li>
+                           <li>Shipping & Delivery</li>
+                           <li>Returns & Exchanges</li>
+                           <li>Order Tracking</li>
+                        </ul>
+                     </div>
+                  </div>
+                  <Image src={"/Dummy/Product/ProductImg2.png"} width={400} height={200} alt="logo image here" className="lg:w-72 min-[500px]:w-52 w-[40vw] h-full " />
+               </div>
+            </div>
+         </nav>
       </header>
    );
 };
