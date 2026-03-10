@@ -1,10 +1,11 @@
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import Image from "next/image";
+import Link from "next/link";
 import React from "react";
 
 const ProductCard = () => {
    return (
-      <div className="group cursor-pointer  overflow-hidden   relative">
+      <Link href={"/product/dan"} className="group cursor-pointer  overflow-hidden   relative">
          <div className="w-full h-full relative flex flex-col gap-3">
             <div className="relative ">
                <Image width={500} height={800} src={"/Dummy/Product/ProductImg.png"} alt="Category Image Here" className="object-fill max-[600px]:w-full" />
@@ -35,7 +36,7 @@ const ProductCard = () => {
                </div>
             </div>
          </div>
-      </div>
+      </Link>
    );
 };
 

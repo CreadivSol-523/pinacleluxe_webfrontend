@@ -1,23 +1,23 @@
 @import "tailwindcss";
-@import "shadcn/tailwind.css";
+/* @import "shadcn/tailwind.css"; */
 
 @custom-variant dark (&:is(.dark *));
 
 html,
 body {
   max-width: 100vw;
-  overflow-x: hidden;
-  /* scroll-behavior: smooth; */
+  /* overflow-x: hidden !important; */
+  scroll-behavior: smooth;
   /* overflow-y: scroll; */
-  /* -ms-overflow-style: none; */
-  /* scrollbar-width: none; */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
   /* height: 100dvh; */
 }
 
 * {
-  scroll-behavior: smooth;
-  box-sizing: border-box;
-  margin: 0;
+  /* scroll-behavior: smooth; */
+  /* box-sizing: border-box; */
+  /* margin: 0; */
 }
 
 /* Custom Colors */
@@ -26,7 +26,6 @@ body {
   --color-primaryBG: #141414;
   --color-staticSecondaryBG: #F8F3F0;
   --color-BtnBlack: #141414;
-
   /* Static Heading or Text Colors   */
   --color-headingColor: #323334;
   --color-textBlack: #323334;

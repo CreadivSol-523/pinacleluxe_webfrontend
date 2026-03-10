@@ -15,7 +15,7 @@ const MainLayout = ({ children, isHeader = true, isFooter = true }: MainLayoutTy
    const [isCartOpen, setIsCartOpen] = useState(false);
 
    return (
-      <main className="overflow-hidden!">
+      <main>
          <div onClick={() => setIsCartOpen(false)} className={isCartOpen ? "fixed w-full h-full z-60! bg-black/20 transition-all duration-500" : "fixed w-full h-full z-60! bg-transparent transition-all duration-500 pointer-events-none"}>
             <div onClick={(e) => e.stopPropagation()}>
                <Cart isOpen={isCartOpen} setIsSidebarOpen={setIsCartOpen} />

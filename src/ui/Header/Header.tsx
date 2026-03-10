@@ -29,7 +29,7 @@ const Header = ({ setIsSidebarOpen }: { setIsSidebarOpen: (isOpen: boolean) => v
             <Image src={"/Common/Logo.png"} width={200} height={200} alt="logo image here" className="lg:w-50 min-[500px]:w-48 w-[40vw] h-auto" />
             <ul className="items-center gap-6 xl:flex hidden">
                <li className="cursor-pointer text-textBlack" onMouseEnter={() => setIsNavbar(true)}>
-                  <a href="/shop">Shop</a>
+                  <a href="/collection/shop">Shop</a>
                </li>
                <li className="cursor-pointer text-[#6B4613]">New Arrivals</li>
                <li className="cursor-pointer text-[#840D0D]">Archive Sale</li>
