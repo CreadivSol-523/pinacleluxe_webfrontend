@@ -7,6 +7,7 @@ import MainLayout from "@/layout/MainLayout";
 import { ChevronDown, Minus, Plus } from "lucide-react";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import Image from "next/image";
+import { products } from "../../../../DummyData/Products.json";
 import React, { useState } from "react";
 
 const page = () => {
@@ -41,7 +42,7 @@ const page = () => {
       <MainLayout>
          <div className="flex flex-col gap-17.5 lg:px-10 px-5 py-17.5">
             <section className="  flex relative items-start gap-12 ">
-               <div className="flex flex-col gap-2  sticky top-30 h-[calc(100vh-150px)] overflow-scroll [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+               <div className="flex flex-col gap-2  sticky top-30 h--[calc(100vh-150px)] overflow-scroll [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                   <Image src={"/Dummy/Product/ProductImg2.png"} width={100} height={120} alt="Product side image" />
                   <Image src={"/Dummy/Product/ProductImg2.png"} width={100} height={120} alt="Product side image" />
                   <Image src={"/Dummy/Product/ProductImg2.png"} width={100} height={120} alt="Product side image" />
@@ -141,8 +142,8 @@ const page = () => {
             <section className="flex flex-col gap-17.5 items-center">
                <h2 className="uppercase">you may be intrested in</h2>
                <div className="grid max-[600px]:grid-cols-1! max-[850px]:grid-cols-2! md:grid-cols-3 lg:grid-cols-4 lg:gap-x-2 gap-x-4  gap-y-21.25">
-                  {[1, 2, 3, 4].map((_, i) => (
-                     <ProductCard key={i} />
+                  {products.slice(0, 4).map((item, i) => (
+                     <ProductCard key={i} data={item} />
                   ))}
                </div>
                <Pagination>
@@ -173,8 +174,9 @@ const page = () => {
                <h2 className="uppercase">you may be intrested in</h2>
 
                <div className="grid max-[600px]:grid-cols-1! max-[850px]:grid-cols-2! md:grid-cols-3 lg:grid-cols-4 lg:gap-x-2 gap-x-4  gap-y-21.25">
-                  {[1, 2, 3, 4].map((_, i) => (
-                     <ProductCard key={i} />
+                  {products.slice(0, 4).map((item, i) => (
+                     // <ProductCard key={i} badge={item.badge} images={item.images} gallery={item.gallery} material={item.material} colors={item.colors} discountPrice={item.discountPrice} name={item?.name} price={item.price} slug={item.slug} />
+                     <ProductCard key={i} data={item} />
                   ))}
                </div>
                <Pagination>
