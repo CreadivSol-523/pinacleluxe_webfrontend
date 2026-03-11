@@ -14,6 +14,21 @@ type MainLayoutType = {
 const MainLayout = ({ children, isHeader = true, isFooter = true }: MainLayoutType) => {
    const [isCartOpen, setIsCartOpen] = useState(false);
 
+   useEffect(() => {
+      if (isCartOpen) {
+         // Disable scroll
+         document.body.style.overflow = "hidden";
+      } else {
+         // Enable scroll
+         document.body.style.overflow = "auto";
+      }
+
+      // Clean up in case component unmounts
+      return () => {
+         document.body.style.overflow = "auto";
+      };
+   }, [isCartOpen]);
+
    return (
       <main>
          <div onClick={() => setIsCartOpen(false)} className={isCartOpen ? "fixed w-full h-full z-60! bg-black/20 transition-all duration-500" : "fixed w-full h-full z-60! bg-transparent transition-all duration-500 pointer-events-none"}>
@@ -22,7 +37,7 @@ const MainLayout = ({ children, isHeader = true, isFooter = true }: MainLayoutTy
             </div>
          </div>
          {isHeader ? (
-            <div className="h-28.5">
+            <div className={`h-28.5 relative  ${isCartOpen ? "z-50 " : "z-60 delay-500"}`}>
                <TopBar />
                <Header setIsSidebarOpen={setIsCartOpen} />
             </div>

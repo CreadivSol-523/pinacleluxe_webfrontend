@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { CartStore, Product } from "./StorageTypes";
 
 export const useCartStore = create<CartStore>()(
@@ -9,13 +9,13 @@ export const useCartStore = create<CartStore>()(
 
          addToCart: (product: Product, quantity: number = 1) => {
             const { items } = get();
-            const existing = items.find((item) => item.id === product.id);
+            const existing = items.find((item) => item.id === product.id && item.color === product.color && item.material === product.material);
 
             if (existing) {
                const newQuantity = existing.quantity + quantity;
                if (newQuantity > product.stock) return; // stock exceed na ho
                set({
-                  items: items.map((item) => (item.id === product.id ? { ...item, quantity: newQuantity } : item)),
+                  items: items.map((item) => (item.id === product.id && item.color === product.color && item.material === product.material ? { ...item, quantity: newQuantity } : item)),
                });
             } else {
                const safeQuantity = Math.min(quantity, product.stock); // stock se zyada nahi
@@ -23,8 +23,10 @@ export const useCartStore = create<CartStore>()(
             }
          },
 
-         removeFromCart: (productId: string) => {
-            set({ items: get().items.filter((item) => item.id !== productId) });
+         removeFromCart: (productId: string, color: string, material: string) => {
+            set({
+               items: get().items.filter((item) => !(item.id === productId && item.color === color && item.material === material)),
+            });
          },
 
          updateQuantity: (productId: string, quantity: number) => {
@@ -45,11 +47,17 @@ export const useCartStore = create<CartStore>()(
 
          isInCart: (productId: string) => get().items.some((item) => item.id === productId),
 
+         getCartItem: (productId: string) => get().items.find((item) => item.id === productId),
+
          getQuantity: (productId: string) => {
             const item = get().items.find((item) => item.id === productId);
             return item ? item.quantity : 0;
          },
       }),
-      { name: "cart-storage" },
+      {
+         name: "cart-storage",
+         storage: createJSONStorage(() => localStorage),
+         skipHydration: true,
+      },
    ),
 );

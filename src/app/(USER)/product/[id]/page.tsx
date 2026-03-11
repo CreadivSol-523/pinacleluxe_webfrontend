@@ -175,7 +175,6 @@ const page = () => {
 
                <div className="grid max-[600px]:grid-cols-1! max-[850px]:grid-cols-2! md:grid-cols-3 lg:grid-cols-4 lg:gap-x-2 gap-x-4  gap-y-21.25">
                   {products.slice(0, 4).map((item, i) => (
-                     // <ProductCard key={i} badge={item.badge} images={item.images} gallery={item.gallery} material={item.material} colors={item.colors} discountPrice={item.discountPrice} name={item?.name} price={item.price} slug={item.slug} />
                      <ProductCard key={i} data={item} />
                   ))}
                </div>

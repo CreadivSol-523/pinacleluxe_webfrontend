@@ -11,8 +11,13 @@ export interface Product {
    discount?: number;
    badge?: string;
    stock?: number;
-   colors?: string[];
+   colors?: ProductColor[];
    material: string[];
    images: string[];
    gallery: string[];
+}
+
+export interface ProductColor {
+   hex: string;
+   image: string;
 }

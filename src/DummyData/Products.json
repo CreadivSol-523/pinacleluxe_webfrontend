@@ -9,7 +9,24 @@
          "discount": 80,
          "badge": "Hot Sellers",
          "stock": 2,
-         "colors": ["#4B3621", "#A0522D", "#D2B48C"],
+         "colors": [
+            {
+               "hex": "#8E4B2E",
+               "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"
+            },
+            {
+               "hex": "#A9746E",
+               "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
+            },
+            {
+               "hex": "#5A3E36",
+               "image": "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"
+            },
+            {
+               "hex": "#6F4E37",
+               "image": "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"
+            }
+         ],
          "material": ["leather", "cotton", "canvas"],
          "images": ["/Dummy/Product/ProductImg.png"],
          "gallery": ["/Dummy/Product/ProductImg2.png", "https://images.unsplash.com/photo-1584917865442-de89df76afd3", "https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb", "https://images.unsplash.com/photo-1591561954557-26941169b49e"]
@@ -23,7 +40,24 @@
          "discount": 70,
          "badge": "Trending",
          "stock": 18,
-         "colors": ["#C68642", "#8B4513", "#654321", "#A9746E", "#B5651D"],
+         "colors": [
+            {
+               "hex": "#8E4B2E",
+               "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"
+            },
+            {
+               "hex": "#A9746E",
+               "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
+            },
+            {
+               "hex": "#5A3E36",
+               "image": "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"
+            },
+            {
+               "hex": "#6F4E37",
+               "image": "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"
+            }
+         ],
          "material": ["canvas", "linen", "wool", "denim", "nylon"],
          "images": ["/Dummy/Product/ProductImg.png"],
          "gallery": ["/Dummy/Product/ProductImg2.png", "https://images.unsplash.com/photo-1594223274512-ad4803739b7c", "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1", "https://images.unsplash.com/photo-1591348278863-a8fb3887e2aa"]
@@ -37,7 +71,24 @@
          "discount": 65,
          "badge": "New Arrival",
          "stock": 40,
-         "colors": ["#C19A6B", "#CD853F", "#6B4423"],
+         "colors": [
+            {
+               "hex": "#8E4B2E",
+               "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"
+            },
+            {
+               "hex": "#A9746E",
+               "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
+            },
+            {
+               "hex": "#5A3E36",
+               "image": "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"
+            },
+            {
+               "hex": "#6F4E37",
+               "image": "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"
+            }
+         ],
          "material": ["nylon", "polyester", "leather"],
          "images": ["/Dummy/Product/ProductImg.png"],
          "gallery": ["/Dummy/Product/ProductImg2.png", "https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb", "https://images.unsplash.com/photo-1584917865442-de89df76afd3", "https://images.unsplash.com/photo-1591561954557-26941169b49e"]
@@ -51,7 +102,24 @@
          "discount": 60,
          "badge": "Best Seller",
          "stock": 12,
-         "colors": ["#E0C097", "#734222", "#7B3F00", "#805533"],
+         "colors": [
+            {
+               "hex": "#8E4B2E",
+               "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"
+            },
+            {
+               "hex": "#A9746E",
+               "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
+            },
+            {
+               "hex": "#5A3E36",
+               "image": "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"
+            },
+            {
+               "hex": "#6F4E37",
+               "image": "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"
+            }
+         ],
          "material": ["wool", "linen", "faux leather", "polyester"],
          "images": ["/Dummy/Product/ProductImg.png"],
          "gallery": ["/Dummy/Product/ProductImg2.png", "https://images.unsplash.com/photo-1594223274512-ad4803739b7c", "https://images.unsplash.com/photo-1548036328-c9fa89d128fa", "https://images.unsplash.com/photo-1591348278863-a8fb3887e2aa"]
@@ -65,7 +133,24 @@
          "discount": 55,
          "badge": "Popular",
          "stock": 30,
-         "colors": ["#5C4033", "#996633", "#D2691E"],
+         "colors": [
+            {
+               "hex": "#8E4B2E",
+               "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"
+            },
+            {
+               "hex": "#A9746E",
+               "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
+            },
+            {
+               "hex": "#5A3E36",
+               "image": "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"
+            },
+            {
+               "hex": "#6F4E37",
+               "image": "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"
+            }
+         ],
          "material": ["leather", "denim", "cotton"],
          "images": ["/Dummy/Product/ProductImg.png"],
          "gallery": ["/Dummy/Product/ProductImg2.png", "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1", "https://images.unsplash.com/photo-1548036328-c9fa89d128fa", "https://images.unsplash.com/photo-1605733513597-a8f8341084e6"]
@@ -80,7 +165,24 @@
          "discount": 50,
          "badge": "Limited",
          "stock": 10,
-         "colors": ["#8E4B2E", "#5A3E36", "#6F4E37", "#B08B4F"],
+         "colors": [
+            {
+               "hex": "#8E4B2E",
+               "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"
+            },
+            {
+               "hex": "#A9746E",
+               "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
+            },
+            {
+               "hex": "#5A3E36",
+               "image": "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"
+            },
+            {
+               "hex": "#6F4E37",
+               "image": "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"
+            }
+         ],
          "material": ["cotton", "canvas", "nylon", "leather"],
          "images": ["/Dummy/Product/ProductImg.png"],
          "gallery": ["/Dummy/Product/ProductImg2.png", "https://images.unsplash.com/photo-1584917865442-de89df76afd3", "https://images.unsplash.com/photo-1591561954557-26941169b49e", "https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb"]
@@ -95,7 +197,24 @@
          "discount": 50,
          "badge": "Sale",
          "stock": 45,
-         "colors": ["#A9746E", "#734222", "#4B3621"],
+         "colors": [
+            {
+               "hex": "#8E4B2E",
+               "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"
+            },
+            {
+               "hex": "#A9746E",
+               "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
+            },
+            {
+               "hex": "#5A3E36",
+               "image": "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"
+            },
+            {
+               "hex": "#6F4E37",
+               "image": "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"
+            }
+         ],
          "material": ["denim", "linen", "suede"],
          "images": ["/Dummy/Product/ProductImg.png"],
          "gallery": ["/Dummy/Product/ProductImg2.png", "https://images.unsplash.com/photo-1548036328-c9fa89d128fa", "https://images.unsplash.com/photo-1584917865442-de89df76afd3", "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1"]
@@ -110,7 +229,24 @@
          "discount": 51,
          "badge": "Trending",
          "stock": 22,
-         "colors": ["#CD853F", "#B5651D", "#996633", "#C68642", "#805533"],
+         "colors": [
+            {
+               "hex": "#8E4B2E",
+               "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"
+            },
+            {
+               "hex": "#A9746E",
+               "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
+            },
+            {
+               "hex": "#5A3E36",
+               "image": "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"
+            },
+            {
+               "hex": "#6F4E37",
+               "image": "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"
+            }
+         ],
          "material": ["wool", "polyester", "denim", "canvas", "cotton"],
          "images": ["/Dummy/Product/ProductImg.png"],
          "gallery": ["/Dummy/Product/ProductImg2.png", "https://images.unsplash.com/photo-1509762774605-f07235a08f1f", "https://images.unsplash.com/photo-1520975916090-3105956dac38", "https://images.unsplash.com/photo-1514477917009-389c76a86b68"]
@@ -125,7 +261,24 @@
          "discount": 50,
          "badge": "Popular",
          "stock": 50,
-         "colors": ["#7F4E1E", "#D2A679", "#E0C097"],
+         "colors": [
+            {
+               "hex": "#8E4B2E",
+               "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"
+            },
+            {
+               "hex": "#A9746E",
+               "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
+            },
+            {
+               "hex": "#5A3E36",
+               "image": "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"
+            },
+            {
+               "hex": "#6F4E37",
+               "image": "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"
+            }
+         ],
          "material": ["polyester", "faux leather", "wool"],
          "images": ["/Dummy/Product/ProductImg.png"],
          "gallery": ["/Dummy/Product/ProductImg2.png", "https://images.unsplash.com/photo-1509762774605-f07235a08f1f", "https://images.unsplash.com/photo-1553062407-98eeb64c6a62", "https://images.unsplash.com/photo-1514477917009-389c76a86b68"]
@@ -140,7 +293,24 @@
          "discount": 52,
          "badge": "Best Seller",
          "stock": 15,
-         "colors": ["#6B4423", "#5C4033", "#A0522D"],
+         "colors": [
+            {
+               "hex": "#8E4B2E",
+               "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"
+            },
+            {
+               "hex": "#A9746E",
+               "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
+            },
+            {
+               "hex": "#5A3E36",
+               "image": "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"
+            },
+            {
+               "hex": "#6F4E37",
+               "image": "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"
+            }
+         ],
          "material": ["denim", "cotton", "nylon"],
          "images": ["/Dummy/Product/ProductImg.png"],
          "gallery": ["/Dummy/Product/ProductImg2.png", "https://images.unsplash.com/photo-1520975916090-3105956dac38", "https://images.unsplash.com/photo-1553062407-98eeb64c6a62", "https://images.unsplash.com/photo-1514477917009-389c76a86b68"]
@@ -155,7 +325,24 @@
          "discount": 51,
          "badge": "New Arrival",
          "stock": 35,
-         "colors": ["#C19A6B", "#D2691E", "#7B3F00", "#CFA18D"],
+         "colors": [
+            {
+               "hex": "#8E4B2E",
+               "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"
+            },
+            {
+               "hex": "#A9746E",
+               "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
+            },
+            {
+               "hex": "#5A3E36",
+               "image": "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"
+            },
+            {
+               "hex": "#6F4E37",
+               "image": "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"
+            }
+         ],
          "material": ["cotton", "suede", "faux leather", "canvas"],
          "images": ["/Dummy/Product/ProductImg.png"],
          "gallery": ["/Dummy/Product/ProductImg2.png", "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1", "https://images.unsplash.com/photo-1594223274512-ad4803739b7c", "https://images.unsplash.com/photo-1548036328-c9fa89d128fa"]
@@ -170,7 +357,24 @@
          "discount": 52,
          "badge": "Trending",
          "stock": 20,
-         "colors": ["#B08B4F", "#8E4B2E", "#A9746E"],
+         "colors": [
+            {
+               "hex": "#8E4B2E",
+               "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"
+            },
+            {
+               "hex": "#A9746E",
+               "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
+            },
+            {
+               "hex": "#5A3E36",
+               "image": "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"
+            },
+            {
+               "hex": "#6F4E37",
+               "image": "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"
+            }
+         ],
          "material": ["leather", "cotton", "polyester"],
          "images": ["/Dummy/Product/ProductImg.png"],
          "gallery": ["/Dummy/Product/ProductImg2.png", "https://images.unsplash.com/photo-1553062407-98eeb64c6a62", "https://images.unsplash.com/photo-1509762774605-f07235a08f1f", "https://images.unsplash.com/photo-1520975916090-3105956dac38"]
@@ -185,7 +389,24 @@
          "discount": 51,
          "badge": "Sale",
          "stock": 44,
-         "colors": ["#5A3E36", "#6F4E37", "#B5651D", "#CD853F"],
+         "colors": [
+            {
+               "hex": "#8E4B2E",
+               "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"
+            },
+            {
+               "hex": "#A9746E",
+               "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
+            },
+            {
+               "hex": "#5A3E36",
+               "image": "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"
+            },
+            {
+               "hex": "#6F4E37",
+               "image": "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"
+            }
+         ],
          "material": ["nylon", "denim", "polyester", "wool"],
          "images": ["/Dummy/Product/ProductImg.png"],
          "gallery": ["/Dummy/Product/ProductImg2.png", "https://images.unsplash.com/photo-1591561954557-26941169b49e", "https://images.unsplash.com/photo-1584917865442-de89df76afd3", "https://images.unsplash.com/photo-1548036328-c9fa89d128fa"]
@@ -200,7 +421,24 @@
          "discount": 50,
          "badge": "Premium",
          "stock": 9,
-         "colors": ["#734222", "#4B3621", "#D2B48C"],
+         "colors": [
+            {
+               "hex": "#8E4B2E",
+               "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"
+            },
+            {
+               "hex": "#A9746E",
+               "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
+            },
+            {
+               "hex": "#5A3E36",
+               "image": "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"
+            },
+            {
+               "hex": "#6F4E37",
+               "image": "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"
+            }
+         ],
          "material": ["linen", "leather", "canvas"],
          "images": ["/Dummy/Product/ProductImg.png"],
          "gallery": ["/Dummy/Product/ProductImg2.png", "https://images.unsplash.com/photo-1591561954557-26941169b49e", "https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb", "https://images.unsplash.com/photo-1548036328-c9fa89d128fa"]
@@ -215,7 +453,24 @@
          "discount": 56,
          "badge": "Popular",
          "stock": 27,
-         "colors": ["#C68642", "#8B4513", "#654321", "#A9746E"],
+         "colors": [
+            {
+               "hex": "#8E4B2E",
+               "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"
+            },
+            {
+               "hex": "#A9746E",
+               "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
+            },
+            {
+               "hex": "#5A3E36",
+               "image": "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"
+            },
+            {
+               "hex": "#6F4E37",
+               "image": "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"
+            }
+         ],
          "material": ["canvas", "linen", "wool", "denim"],
          "images": ["/Dummy/Product/ProductImg.png"],
          "gallery": ["/Dummy/Product/ProductImg2.png", "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1", "https://images.unsplash.com/photo-1591348278863-a8fb3887e2aa", "https://images.unsplash.com/photo-1581605405669-fcdf81165afa"]
@@ -230,7 +485,24 @@
          "discount": 51,
          "badge": "Trending",
          "stock": 21,
-         "colors": ["#B5651D", "#C19A6B", "#CD853F"],
+         "colors": [
+            {
+               "hex": "#8E4B2E",
+               "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"
+            },
+            {
+               "hex": "#A9746E",
+               "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
+            },
+            {
+               "hex": "#5A3E36",
+               "image": "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"
+            },
+            {
+               "hex": "#6F4E37",
+               "image": "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"
+            }
+         ],
          "material": ["nylon", "polyester", "cotton"],
          "images": ["/Dummy/Product/ProductImg.png"],
          "gallery": ["/Dummy/Product/ProductImg2.png", "https://images.unsplash.com/photo-1514477917009-389c76a86b68", "https://images.unsplash.com/photo-1509762774605-f07235a08f1f", "https://images.unsplash.com/photo-1520975916090-3105956dac38"]
@@ -245,7 +517,24 @@
          "discount": 60,
          "badge": "Sale",
          "stock": 60,
-         "colors": ["#6B4423", "#E0C097", "#734222", "#7B3F00", "#805533"],
+         "colors": [
+            {
+               "hex": "#8E4B2E",
+               "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"
+            },
+            {
+               "hex": "#A9746E",
+               "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
+            },
+            {
+               "hex": "#5A3E36",
+               "image": "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"
+            },
+            {
+               "hex": "#6F4E37",
+               "image": "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"
+            }
+         ],
          "material": ["leather", "wool", "linen", "faux leather", "polyester"],
          "images": ["/Dummy/Product/ProductImg.png"],
          "gallery": ["/Dummy/Product/ProductImg2.png", "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1", "https://images.unsplash.com/photo-1591348278863-a8fb3887e2aa", "https://images.unsplash.com/photo-1594223274512-ad4803739b7c"]
@@ -260,7 +549,24 @@
          "discount": 52,
          "badge": "Hot",
          "stock": 33,
-         "colors": ["#5C4033", "#996633", "#D2691E"],
+         "colors": [
+            {
+               "hex": "#8E4B2E",
+               "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"
+            },
+            {
+               "hex": "#A9746E",
+               "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
+            },
+            {
+               "hex": "#5A3E36",
+               "image": "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"
+            },
+            {
+               "hex": "#6F4E37",
+               "image": "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"
+            }
+         ],
          "material": ["leather", "denim", "cotton"],
          "images": ["/Dummy/Product/ProductImg.png"],
          "gallery": ["/Dummy/Product/ProductImg2.png", "https://images.unsplash.com/photo-1591348278863-a8fb3887e2aa", "https://images.unsplash.com/photo-1548036328-c9fa89d128fa", "https://images.unsplash.com/photo-1581605405669-fcdf81165afa"]
@@ -275,7 +581,24 @@
          "discount": 53,
          "badge": "New",
          "stock": 38,
-         "colors": ["#8E4B2E", "#5A3E36", "#6F4E37"],
+         "colors": [
+            {
+               "hex": "#8E4B2E",
+               "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"
+            },
+            {
+               "hex": "#A9746E",
+               "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
+            },
+            {
+               "hex": "#5A3E36",
+               "image": "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"
+            },
+            {
+               "hex": "#6F4E37",
+               "image": "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"
+            }
+         ],
          "material": ["cotton", "canvas", "nylon"],
          "images": ["/Dummy/Product/ProductImg.png"],
          "gallery": ["/Dummy/Product/ProductImg2.png", "https://images.unsplash.com/photo-1584917865442-de89df76afd3", "https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb", "https://images.unsplash.com/photo-1548036328-c9fa89d128fa"]
@@ -290,7 +613,24 @@
          "discount": 48,
          "badge": "Premium",
          "stock": 8,
-         "colors": ["#B08B4F", "#A9746E", "#734222", "#4B3621"],
+         "colors": [
+            {
+               "hex": "#8E4B2E",
+               "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"
+            },
+            {
+               "hex": "#A9746E",
+               "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
+            },
+            {
+               "hex": "#5A3E36",
+               "image": "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"
+            },
+            {
+               "hex": "#6F4E37",
+               "image": "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"
+            }
+         ],
          "material": ["leather", "denim", "linen", "suede"],
          "images": ["/Dummy/Product/ProductImg.png"],
          "gallery": ["/Dummy/Product/ProductImg2.png", "https://images.unsplash.com/photo-1584917865442-de89df76afd3", "https://images.unsplash.com/photo-1591561954557-26941169b49e", "https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb"]
@@ -305,7 +645,24 @@
          "discount": 57,
          "badge": "Popular",
          "stock": 47,
-         "colors": ["#CD853F", "#B5651D", "#996633"],
+         "colors": [
+            {
+               "hex": "#8E4B2E",
+               "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"
+            },
+            {
+               "hex": "#A9746E",
+               "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
+            },
+            {
+               "hex": "#5A3E36",
+               "image": "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"
+            },
+            {
+               "hex": "#6F4E37",
+               "image": "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"
+            }
+         ],
          "material": ["wool", "polyester", "denim"],
          "images": ["/Dummy/Product/ProductImg.png"],
          "gallery": ["/Dummy/Product/ProductImg2.png", "https://images.unsplash.com/photo-1509762774605-f07235a08f1f", "https://images.unsplash.com/photo-1553062407-98eeb64c6a62", "https://images.unsplash.com/photo-1514477917009-389c76a86b68"]
@@ -320,7 +677,24 @@
          "discount": 54,
          "badge": "Sale",
          "stock": 52,
-         "colors": ["#805533", "#7F4E1E", "#D2A679", "#E0C097"],
+         "colors": [
+            {
+               "hex": "#8E4B2E",
+               "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"
+            },
+            {
+               "hex": "#A9746E",
+               "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
+            },
+            {
+               "hex": "#5A3E36",
+               "image": "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"
+            },
+            {
+               "hex": "#6F4E37",
+               "image": "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"
+            }
+         ],
          "material": ["polyester", "leather", "faux leather", "wool"],
          "images": ["/Dummy/Product/ProductImg.png"],
          "gallery": ["/Dummy/Product/ProductImg2.png", "https://images.unsplash.com/photo-1520975916090-3105956dac38", "https://images.unsplash.com/photo-1553062407-98eeb64c6a62", "https://images.unsplash.com/photo-1514477917009-389c76a86b68"]
@@ -335,7 +709,24 @@
          "discount": 51,
          "badge": "Best Seller",
          "stock": 17,
-         "colors": ["#6B4423", "#5C4033", "#A0522D", "#C19A6B", "#D2691E"],
+         "colors": [
+            {
+               "hex": "#8E4B2E",
+               "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"
+            },
+            {
+               "hex": "#A9746E",
+               "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
+            },
+            {
+               "hex": "#5A3E36",
+               "image": "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"
+            },
+            {
+               "hex": "#6F4E37",
+               "image": "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"
+            }
+         ],
          "material": ["denim", "cotton", "nylon", "cotton", "suede"],
          "images": ["/Dummy/Product/ProductImg.png"],
          "gallery": ["/Dummy/Product/ProductImg2.png", "https://images.unsplash.com/photo-1514477917009-389c76a86b68", "https://images.unsplash.com/photo-1509762774605-f07235a08f1f", "https://images.unsplash.com/photo-1520975916090-3105956dac38"]
@@ -350,7 +741,24 @@
          "discount": 57,
          "badge": "Hot",
          "stock": 70,
-         "colors": ["#7B3F00", "#CFA18D", "#B08B4F"],
+         "colors": [
+            {
+               "hex": "#8E4B2E",
+               "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"
+            },
+            {
+               "hex": "#A9746E",
+               "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
+            },
+            {
+               "hex": "#5A3E36",
+               "image": "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"
+            },
+            {
+               "hex": "#6F4E37",
+               "image": "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"
+            }
+         ],
          "material": ["faux leather", "canvas", "leather"],
          "images": ["/Dummy/Product/ProductImg.png"],
          "gallery": ["/Dummy/Product/ProductImg2.png", "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1", "https://images.unsplash.com/photo-1594223274512-ad4803739b7c", "https://images.unsplash.com/photo-1548036328-c9fa89d128fa"]
@@ -365,7 +773,24 @@
          "discount": 51,
          "badge": "Premium",
          "stock": 13,
-         "colors": ["#8E4B2E", "#A9746E", "#5A3E36", "#6F4E37"],
+         "colors": [
+            {
+               "hex": "#8E4B2E",
+               "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"
+            },
+            {
+               "hex": "#A9746E",
+               "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
+            },
+            {
+               "hex": "#5A3E36",
+               "image": "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"
+            },
+            {
+               "hex": "#6F4E37",
+               "image": "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"
+            }
+         ],
          "material": ["cotton", "polyester", "nylon", "denim"],
          "images": ["/Dummy/Product/ProductImg.png"],
          "gallery": ["/Dummy/Product/ProductImg2.png", "https://images.unsplash.com/photo-1594223274512-ad4803739b7c", "https://images.unsplash.com/photo-1548036328-c9fa89d128fa", "https://images.unsplash.com/photo-1581605405669-fcdf81165afa"]

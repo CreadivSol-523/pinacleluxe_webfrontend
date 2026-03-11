@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 import Modal from "./Modal";
 import Image from "next/image";
 import { Minus, Plus } from "lucide-react";
@@ -7,13 +7,21 @@ import { ModalType } from "@/Types/Modal/ModalType";
 import { useCartStore } from "@/Storage/UseCartStore";
 
 const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) => {
-   const [selectedColor, setSelectedColor] = useState<string>(selectedProduct?.colors?.[0] || "");
+   const [selectedColor, setSelectedColor] = useState<string>(selectedProduct?.colors?.[0].hex || "");
    const [selectedMaterials, setSelectedMaterials] = useState<string>(selectedProduct?.material?.[0] || "");
    const [quantity, setQuantity] = useState(1);
 
-   const items = useCartStore((state) => state.items);
+   const { isInCart, addToCart, getCartItem } = useCartStore();
+   const isInCartData = isInCart(selectedProduct?.id || "");
 
-   const { removeFromCart, updateQuantity, addToCart } = useCartStore();
+   const onProductChange = useEffectEvent(() => {
+      setSelectedColor(selectedProduct?.colors?.[0].hex || "");
+      setSelectedMaterials(selectedProduct?.material?.[0] || "");
+   });
+
+   useEffect(() => {
+      onProductChange();
+   }, [selectedProduct]);
 
    return (
       <Modal
@@ -51,12 +59,12 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                      <p className="text-headingColor">Color - Green</p>
                      <div className="flex items-center  gap-2">
                         {selectedProduct?.colors?.map((item, i) =>
-                           selectedColor === item ? (
-                              <div className="w-6 h-6 border-2 border-gray-500 cursor-pointer  rounded-full flex items-center justify-center" key={item}>
-                                 <div className={`w-4 h-4 rounded-full bg-[${item}]`} style={{ background: item }} />
+                           selectedColor === item.hex ? (
+                              <div className="w-6 h-6 border-2 border-gray-500 cursor-pointer  rounded-full flex items-center justify-center" key={item.hex}>
+                                 <div className={`w-4 h-4 rounded-full bg-[${item.hex}]`} style={{ background: item.hex }} />
                               </div>
                            ) : (
-                              <div onClick={() => setSelectedColor(item)} className={`w-6 h-6 cursor-pointer rounded-full ${item}`} style={{ background: item }} key={i} />
+                              <div onClick={() => setSelectedColor(item.hex)} className={`w-6 h-6 cursor-pointer rounded-full ${item.hex}`} style={{ background: item.hex }} key={i} />
                            ),
                         )}
                      </div>
@@ -81,7 +89,7 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                   <Button
                      name="Add To Bag"
                      className="w-full"
-                     onClick={() =>
+                     onClick={() => {
                         addToCart(
                            {
                               id: selectedProduct?.id || "",
@@ -93,8 +101,9 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                               stock: selectedProduct?.stock || 0,
                            },
                            quantity,
-                        )
-                     }
+                        );
+                        setOpenModal(false);
+                     }}
                   />
                </div>
             </div>

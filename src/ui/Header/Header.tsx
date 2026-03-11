@@ -1,4 +1,5 @@
 "use client";
+import { useCartStore } from "@/Storage/UseCartStore";
 import { TextAlignJustify } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -23,22 +24,21 @@ const Header = ({ setIsSidebarOpen }: { setIsSidebarOpen: (isOpen: boolean) => v
 
    useEffect(() => {
       if (isNavbar) {
-         // Disable scroll
          document.body.style.overflow = "hidden";
       } else {
-         // Enable scroll
          document.body.style.overflow = "auto";
       }
 
-      // Clean up in case component unmounts
       return () => {
          document.body.style.overflow = "auto";
       };
    }, [isNavbar]);
 
+   const totalCartItems = useCartStore((state) => state.items.length);
+
    return (
       <>
-         <header onMouseLeave={() => setIsNavbar(false)} className={`lg:px-10 px-5 h-17.5 flex items-center border-b justify-between border-b-gray-200 fixed w-full  bg-white transition-all duration-75 z-60 ${scrolled ? "top-0!" : "top-11"}`}>
+         <header onMouseLeave={() => setIsNavbar(false)} className={`lg:px-10 px-5 h-17.5 flex z-60! items-center border-b justify-between border-b-gray-200 fixed w-full  bg-white transition-all duration-75  ${scrolled ? "top-0!" : "top-11"}`}>
             <TextAlignJustify className="xl:hidden min-[500px]:w-auto w-[6vw] min-[500px]:hidden flex" />
             <div className="flex items-center gap-10">
                <TextAlignJustify className="xl:hidden hidden min-[500px]:w-auto w-[6vw] min-[500px]:flex" />
@@ -59,7 +59,8 @@ const Header = ({ setIsSidebarOpen }: { setIsSidebarOpen: (isOpen: boolean) => v
                <Image src={"/Icons/ProfileIcon.svg"} width={20} height={20} alt="profile icon" className="sm:w-5 w-[3.2vw] min-w-4 cursor-pointer" />
                <Image src={"/Icons/HeartIcon.svg"} width={20} height={20} alt="profile icon" className="sm:w-5 w-[3.2vw] min-w-4 cursor-pointer" />
                <span className="flex items-center gap-1.5 cursor-pointer" onClick={() => setIsSidebarOpen(true)}>
-                  <Image src={"/Icons/BagIcon.svg"} width={20} height={20} alt="profile icon" className="sm:w-5 w-[3.2vw] min-w-4" />0
+                  <Image src={"/Icons/BagIcon.svg"} width={20} height={20} alt="profile icon" className="sm:w-5 w-[3.2vw] min-w-4" />
+                  {totalCartItems || 0}
                </span>
             </div>
             <nav onMouseEnter={() => setIsNavbar(true)} className={`max-xl:hidden h-120 bg-white absolute w-full top-17.5 left-0 lg:px-10 px-5 flex gap-10 py-10 transition-all duration-300  ${isNavbar ? "opacity-100" : "opacity-0 pointer-events-none"}`}>

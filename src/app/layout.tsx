@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { StoreHydration } from "@/Hooks/useHydration";
 
 export const metadata: Metadata = {
    title: "Create Next App",
@@ -14,7 +15,10 @@ export default function RootLayout({
    // className="min-h-screen overflow-x-hidden"
    return (
       <html>
-         <body>{children}</body>
+         <body>
+            <StoreHydration />
+            {children}
+         </body>
       </html>
    );
 }

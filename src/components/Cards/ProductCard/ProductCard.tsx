@@ -1,5 +1,5 @@
 "use client";
-import { Product, productCart } from "@/Types/Collection/CollectionTypes";
+import { Product, productCart, ProductColor } from "@/Types/Collection/CollectionTypes";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -12,6 +12,8 @@ type ProductCardProps = {
 
 const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
    const [isHover, setIsHover] = useState(false);
+   const [selectedColor, setSelectedColor] = useState<ProductColor>({ hex: "", image: "" });
+
    return (
       <Link href={`/product/${data.slug || "tan"}`} className="group cursor-pointer  overflow-hidden   relative" title={data.name}>
          <div className="w-full h-full relative flex flex-col gap-3">
@@ -19,7 +21,7 @@ const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
                <Image
                   width={500}
                   height={800}
-                  src={isHover ? data?.gallery?.[0] : data?.images?.[0] || "/Dummy/Product/ProductImg.png"}
+                  src={isHover ? data?.gallery?.[0] : selectedColor.image ? selectedColor.image : data?.images?.[0] || "/Dummy/Product/ProductImg.png"}
                   alt="Category Image Here"
                   onMouseEnter={() => setIsHover(true)}
                   onMouseLeave={() => setIsHover(false)}
@@ -50,11 +52,24 @@ const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
                   />
                </div>
             </div>
-            <div className=" flex flex-col gap-2">
+            <div
+               className=" flex flex-col gap-2"
+               onClick={(e) => {
+                  e.preventDefault();
+               }}
+            >
                <div className="flex items-center gap-2">
-                  {data?.colors?.map((item, _) => (
-                     <div key={item} className={` xl:w-4.5 xl:h-4.5 w-3.5 h-3.5 rounded-full`} style={{ backgroundColor: item }} />
-                  ))}
+                  {data?.colors
+                     ?.filter((item) => item.hex && item.image)
+                     .map((item) =>
+                        selectedColor.hex === item.hex ? (
+                           <div className="xl:w-4.5 xl:h-4.5 w-3.5 h-3.5 border-2 border-gray-500 cursor-pointer  rounded-full flex items-center justify-center" key={item.hex}>
+                              <div className={`xl:w-3 xl:h-3 w-2 h-2 rounded-full ${item.hex}`} style={{ background: item.hex }} />
+                           </div>
+                        ) : (
+                           <div onClick={() => setSelectedColor({ hex: item.hex, image: item.image })} key={item.hex} className="xl:w-4.5 xl:h-4.5 w-3.5 h-3.5 rounded-full" style={{ backgroundColor: item.hex }} />
+                        ),
+                     )}
                </div>
                <h3 className="2xl:text-[20px]! xl:text-[19px]! text-[16px]! fontInterRegular">{data.name || "Easy Zipper Tote Bag"}</h3>
                <div className="flex items-center gap-4">
