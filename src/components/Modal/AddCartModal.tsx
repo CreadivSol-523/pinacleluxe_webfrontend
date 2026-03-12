@@ -11,8 +11,30 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
    const [selectedMaterials, setSelectedMaterials] = useState<string>(selectedProduct?.material?.[0] || "");
    const [quantity, setQuantity] = useState(1);
 
-   const { isInCart, addToCart, getCartItem } = useCartStore();
-   const isInCartData = isInCart(selectedProduct?.id || "");
+   const { addToCart, updateQuantity } = useCartStore();
+
+   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === selectedProduct?.id && item.color === selectedColor && item.material === selectedMaterials));
+
+   const GetQuantitySelected = useEffectEvent(() => {
+      setQuantity(GetCartSingleItem?.quantity || 1);
+   });
+
+   useEffect(() => {
+      GetQuantitySelected();
+   }, [GetCartSingleItem, openModal]);
+
+   // Update Quantity
+   const handleIncreaseQuantity = () => {
+      const updateProductQuantity = quantity < (selectedProduct?.stock ?? 0) ? quantity + 1 : quantity;
+      setQuantity(updateProductQuantity);
+      updateQuantity(selectedProduct?.id || "", updateProductQuantity);
+   };
+
+   const handleDecreaseQuantity = () => {
+      const updateProductQuantity = quantity <= 1 ? 1 : quantity - 1;
+      setQuantity(updateProductQuantity);
+      updateQuantity(selectedProduct?.id || "", updateProductQuantity);
+   };
 
    const onProductChange = useEffectEvent(() => {
       setSelectedColor(selectedProduct?.colors?.[0].hex || "");
@@ -82,27 +104,50 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                </div>
                <div className="flex gap-5 w-150">
                   <div className="flex items-center gap-3 px-6 py-2 border-2 border-gray-400 rounded-full max-w-80 ">
-                     <Minus className="w-4 h-4 cursor-pointer" onClick={() => setQuantity((prev) => prev - 1)} />
-                     <p className="w-5 text-center">{quantity}</p>
-                     <Plus className="w-4 h-4 cursor-pointer" onClick={() => setQuantity((prev) => (prev < (selectedProduct?.stock ?? 0) ? prev + 1 : prev))} />
+                     <Minus
+                        className="w-4 h-4 cursor-pointer"
+                        onClick={() => {
+                           if (GetCartSingleItem) {
+                              handleDecreaseQuantity();
+                           } else {
+                              setQuantity((prev) => prev - 1);
+                           }
+                        }}
+                     />
+                     <p className="w-5 text-center">{GetCartSingleItem != undefined ? GetCartSingleItem?.quantity : quantity}</p>
+                     <Plus
+                        className="w-4 h-4 cursor-pointer"
+                        onClick={() => {
+                           if (GetCartSingleItem) {
+                              handleIncreaseQuantity();
+                           } else {
+                              setQuantity((prev) => (prev < (selectedProduct?.stock ?? 0) ? prev + 1 : prev));
+                           }
+                        }}
+                     />
                   </div>
                   <Button
-                     name="Add To Bag"
+                     name={GetCartSingleItem ? "Already In Bag" : "Add To Bag"}
                      className="w-full"
+                     disabled={GetCartSingleItem ? true : false}
                      onClick={() => {
-                        addToCart(
-                           {
-                              id: selectedProduct?.id || "",
-                              name: selectedProduct?.name || "",
-                              image: selectedProduct?.images?.[0] || "",
-                              color: selectedColor,
-                              material: selectedMaterials,
-                              price: quantity * (selectedProduct?.price ?? 0) || 0,
-                              stock: selectedProduct?.stock || 0,
-                           },
-                           quantity,
-                        );
-                        setOpenModal(false);
+                        if (GetCartSingleItem) {
+                           console.log("object");
+                        } else {
+                           addToCart(
+                              {
+                                 id: selectedProduct?.id || "",
+                                 name: selectedProduct?.name || "",
+                                 image: selectedProduct?.images?.[0] || "",
+                                 color: selectedColor,
+                                 material: selectedMaterials,
+                                 price: selectedProduct?.price ?? 0,
+                                 stock: selectedProduct?.stock || 0,
+                              },
+                              quantity,
+                           );
+                           setOpenModal(false);
+                        }
                      }}
                   />
                </div>

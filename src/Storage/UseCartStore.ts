@@ -45,9 +45,9 @@ export const useCartStore = create<CartStore>()(
 
          getSubtotal: () => get().items.reduce((total, item) => total + item.price * item.quantity, 0),
 
-         isInCart: (productId: string) => get().items.some((item) => item.id === productId),
+         isInCart: (productId: string, color: string, material: string) => get().items.some((item) => item.id === productId && item.color === color && item.material === material),
 
-         getCartItem: (productId: string) => get().items.find((item) => item.id === productId),
+         getCartItem: (productId: string, color?: string, material?: string) => get().items.find((item) => item.id === productId || item.color === color || item.material === material),
 
          getQuantity: (productId: string) => {
             const item = get().items.find((item) => item.id === productId);

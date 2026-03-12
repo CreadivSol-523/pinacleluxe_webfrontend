@@ -2,12 +2,22 @@ import { useCartStore } from "@/Storage/UseCartStore";
 import { Cart } from "@/Types/Cart/CartTypes";
 import { Minus, Plus, Trash } from "lucide-react";
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useEffect, useEffectEvent, useState } from "react";
 
 const SidebarCard = ({ product, quantity }: Cart) => {
    const [updateQuantityState, setUpdateQuantityState] = useState(quantity);
 
    const { updateQuantity, removeFromCart } = useCartStore();
+
+   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === product?.id && item.color === product.color && item.material === product.material));
+
+   const GetQuantitySelected = useEffectEvent(() => {
+      setUpdateQuantityState(GetCartSingleItem?.quantity || 1);
+   });
+
+   useEffect(() => {
+      GetQuantitySelected();
+   }, [GetCartSingleItem]);
 
    const handleIncreaseQuantity = () => {
       const updateProductQuantity = updateQuantityState < product.stock ? updateQuantityState + 1 : updateQuantityState;

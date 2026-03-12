@@ -6,7 +6,7 @@ import React from "react";
 
 const Cart = ({ isOpen, setIsSidebarOpen }: { isOpen: boolean; setIsSidebarOpen: (isOpen: boolean) => void }) => {
    const cartItems = useCartStore((state) => state.items);
-   console.log({ cartItems });
+
    return (
       <aside className={`sm:w-100 w-full h-full bg-white fixed transition-all duration-500 ${isOpen ? "sm:right-0 translate-x-0" : "sm:-right-full  translate-x-full"} z-60!`}>
          <div className="p-5 flex justify-between items-center border-b border-b-gray-200">

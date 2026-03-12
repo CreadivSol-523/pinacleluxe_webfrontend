@@ -26,7 +26,7 @@ const Button = ({ name, bgcolor, className, disabled, onClick, isLoading, icon, 
    let btnClass;
 
    if (disabled) {
-      btnClass = `text-sm cursor-not-allowed text-white bg-gray-600 p-3 ${className} px-10`;
+      btnClass = `text-sm cursor-not-allowed text-white bg-gray-600! p-3 ${className} px-10`;
    } else if (mainClass) {
       btnClass = mainClass;
    } else {
