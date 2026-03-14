@@ -52,13 +52,13 @@ const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
                   />
                </div>
             </div>
-            <div
-               className=" flex flex-col gap-2"
-               onClick={(e) => {
-                  e.preventDefault();
-               }}
-            >
-               <div className="flex items-center gap-2">
+            <div className=" flex flex-col gap-2">
+               <div
+                  className="flex items-center gap-2"
+                  onClick={(e) => {
+                     e.preventDefault();
+                  }}
+               >
                   {data?.colors
                      ?.filter((item) => item.hex && item.image)
                      .map((item) =>

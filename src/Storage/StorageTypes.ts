@@ -4,7 +4,7 @@ export interface Product {
    price: number;
    image: string;
    stock: number;
-   color: string;
+   color: { hex: string; image: string };
    material: string;
    category?: string;
    discountPrice?: number;
@@ -20,7 +20,7 @@ export interface CartStore {
    getCartItem: (productId: string, color?: string, material?: string) => CartItem | undefined;
    addToCart: (product: Product, quantity?: number) => void;
    removeFromCart: (productId: string, color: string, material: string) => void;
-   updateQuantity: (productId: string, quantity: number) => void;
+   updateQuantity: (productId: string, quantity: number, color: string, material: string) => void;
    clearCart: () => void;
    getItemCount: () => number;
    getSubtotal: () => number;

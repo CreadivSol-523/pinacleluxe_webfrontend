@@ -4,16 +4,23 @@ import Button from "@/components/Button/Button";
 import ProductCard from "@/components/Cards/ProductCard/ProductCard";
 import { Separator } from "@/components/ui/separator";
 import MainLayout from "@/layout/MainLayout";
-import { ChevronDown, Minus, Plus } from "lucide-react";
+import { ChevronDown, CircleGauge, Minus, Plus } from "lucide-react";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import Image from "next/image";
 import { products } from "../../../../DummyData/Products.json";
-import React, { useState } from "react";
+import React, { useEffect, useEffectEvent, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useCartStore } from "@/Storage/UseCartStore";
+import AccessoriesCard from "@/components/Cards/AccessoriesCard/AccessoriesCard";
 
 const page = () => {
-   const [selectedColor, setSelectedColor] = useState<string>("");
+   const [selectedColor, setSelectedColor] = useState<{ hex: string; image: string }>({ hex: "", image: "" });
    const [selectedMaterials, setSelectedMaterials] = useState<string>("");
+   const [showAccessories, setShowAccessories] = useState<boolean>(false);
+   const [quantity, setQuantity] = useState(1);
    const [accordion, setAccordion] = useState<number | null>();
+
+   const { id } = useParams();
 
    const colors: string[] = ["bg-blue-400", "bg-green-400", "bg-purple-400", "bg-cyan-400"];
    const materials = ["Pebbled", "Pinacle Special", "Shimmer", "New Arrival"];
@@ -38,6 +45,38 @@ const page = () => {
       },
    ];
 
+   const { addToCart, updateQuantity } = useCartStore();
+
+   const findProduct = products.find((item) => item.slug === id);
+
+   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === findProduct?.id && item.color.hex === selectedColor.hex && item.material === selectedMaterials));
+
+   const GetQuantitySelected = useEffectEvent(() => {
+      setQuantity(GetCartSingleItem?.quantity || 1);
+   });
+
+   useEffect(() => {
+      GetQuantitySelected();
+   }, [GetCartSingleItem]);
+
+   useEffect(() => {
+      setSelectedColor({ hex: findProduct?.colors[0].hex || "", image: findProduct?.colors[0].image || "" });
+      setSelectedMaterials(findProduct?.material[0] || "");
+   }, []);
+
+   // Update Quantity
+   const handleIncreaseQuantity = () => {
+      const updateProductQuantity = quantity < (findProduct?.stock ?? 0) ? quantity + 1 : quantity;
+      setQuantity(updateProductQuantity);
+      updateQuantity(findProduct?.id || "", updateProductQuantity, selectedColor.hex, selectedMaterials);
+   };
+
+   const handleDecreaseQuantity = () => {
+      const updateProductQuantity = quantity <= 1 ? 1 : quantity - 1;
+      setQuantity(updateProductQuantity);
+      updateQuantity(findProduct?.id || "", updateProductQuantity, selectedColor.hex, selectedMaterials);
+   };
+
    return (
       <MainLayout>
          <div className="flex flex-col gap-17.5 lg:px-10 px-5 py-17.5">
@@ -59,10 +98,10 @@ const page = () => {
                   <Image src={"/Dummy/Product/ProductImg2.png"} width={700} height={900} alt="Product side image" />
                </div>
                <div className="flex flex-col gap-10 w-200 sticky top-10 max-h-[calc(100vh-50px)] pb-10 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                  <p className="text-[#5E5F60]! lg:flex hidden">Cart / Shipping / Payment</p>
+                  <p className="text-[#5E5F60]! lg:flex hidden">Cart / Shipping / {id}</p>
                   <div className="flex flex-col gap-2.5">
-                     <h2 className="text-headingColor">Small Easy Zipper Tote</h2>
-                     <h3 className="text-[20px]! text-headingColor">Rs 11,000</h3>
+                     <h2 className="text-headingColor">{findProduct?.name}</h2>
+                     <h3 className="text-[20px]! text-headingColor">Rs {findProduct?.price}</h3>
                   </div>
                   <p className="text-textBlack">
                      A lightweight Italian leather carryall with the most crucial feature A lightweight Italian leather carryall with the most crucial feature A lightweight Italian leather carryall with the most crucial feature A lightweight Italian leather carryall with the most crucial feature A
@@ -73,13 +112,13 @@ const page = () => {
                      <div className="flex flex-col gap-2">
                         <p className="text-headingColor">Color - Green</p>
                         <div className="flex items-center  gap-2">
-                           {colors.map((item, i) =>
-                              selectedColor === item ? (
-                                 <div className="w-6 h-6 border-2 border-gray-500 cursor-pointer  rounded-full flex items-center justify-center" key={item}>
-                                    <div className={`w-4 h-4 rounded-full ${item}`} />
+                           {findProduct?.colors?.map((item, i) =>
+                              selectedColor.hex === item.hex ? (
+                                 <div className="w-6 h-6 border-2 border-gray-500 cursor-pointer  rounded-full flex items-center justify-center" key={item.hex}>
+                                    <div className={`w-4 h-4 rounded-full ${item.hex}`} style={{ background: item.hex }} />
                                  </div>
                               ) : (
-                                 <div onClick={() => setSelectedColor(item)} className={`w-6 h-6 cursor-pointer rounded-full ${item}`} key={i} />
+                                 <div onClick={() => setSelectedColor({ hex: item.hex, image: item.image })} className={`w-6 h-6 cursor-pointer rounded-full ${item.hex}`} style={{ background: item.hex }} key={i} />
                               ),
                            )}
                         </div>
@@ -87,7 +126,7 @@ const page = () => {
                      <div className="flex flex-col gap-2">
                         <p className="text-headingColor">Material:</p>
                         <div className="flex items-center  gap-3.5">
-                           {materials.map((materials, i) => (
+                           {findProduct?.material.map((materials, i) => (
                               <div key={i} className={`cursor-pointer active:scale-99 py-2 px-6 rounded-full border-2 ${selectedMaterials === materials ? "border-BtnBlack bg-BtnBlack" : "border-gray-400 bg-white"} `} onClick={() => setSelectedMaterials(materials)}>
                                  <p className={`${selectedMaterials === materials ? "text-white" : "text-textBlack"}  tracking-wide`}>{materials}</p>
                               </div>
@@ -97,11 +136,47 @@ const page = () => {
                   </div>
                   <div className="flex gap-5 w-150">
                      <div className="flex items-center gap-3 px-6 py-2 border-2 border-gray-400 rounded-full w-fit">
-                        <Minus className="w-4 h-4 cursor-pointer" />
-                        <p>1</p>
-                        <Plus className="w-4 h-4 cursor-pointer" />
+                        <Minus
+                           className="w-4 h-4 cursor-pointer"
+                           onClick={() => {
+                              if (GetCartSingleItem) {
+                                 handleDecreaseQuantity();
+                              } else {
+                                 setQuantity((prev) => prev - 1);
+                              }
+                           }}
+                        />
+                        <p>{GetCartSingleItem != undefined ? GetCartSingleItem?.quantity : quantity}</p>
+                        <Plus
+                           onClick={() => {
+                              if (GetCartSingleItem) {
+                                 handleIncreaseQuantity();
+                              } else {
+                                 setQuantity((prev) => (prev < (findProduct?.stock ?? 0) ? prev + 1 : prev));
+                              }
+                           }}
+                           className="w-4 h-4 cursor-pointer"
+                        />
                      </div>
-                     <Button name="Add To Bag" className="w-full" />
+                     <Button
+                        name={GetCartSingleItem ? "Already In Bag" : "Add To Bag"}
+                        className="w-full"
+                        disabled={GetCartSingleItem ? true : false}
+                        onClick={() => {
+                           addToCart(
+                              {
+                                 id: findProduct?.id || "",
+                                 name: findProduct?.name || "",
+                                 image: findProduct?.images?.[0] || "",
+                                 color: selectedColor,
+                                 material: selectedMaterials,
+                                 price: findProduct?.price ?? 0,
+                                 stock: findProduct?.stock || 0,
+                              },
+                              quantity,
+                           );
+                        }}
+                     />
                   </div>
                   <div>
                      <div className=" text-white">
@@ -110,6 +185,18 @@ const page = () => {
                            <p className="text-textBlack font-semibold!">Share on Whatsapp</p>
                         </div>
                         <div className="flex flex-col ">
+                           <div className={`${showAccessories ? "mb-2" : "pb-0"} transition-all duration-500    rounded-xl`}>
+                              <span className={`${showAccessories && "text-headingColor"} transition-all duration-700  flex items-center justify-between  py-4 px-6 cursor-pointer`} onClick={() => setShowAccessories(!showAccessories)}>
+                                 <p className=" text-headingColor font-semibold!">Add Accessories</p>
+                                 <ChevronDown className={showAccessories ? "transition-transform duration-300 rotate-0 text-headingColor" : " transition-transform duration-300 rotate-180 text-headingColor"} />
+                              </span>
+                              <div className={`${showAccessories ? "max-h-50 opacity-100  pb-4" : "max-h-0 opacity-0"} px-6  overflow-y-auto overflow-x-hidden flex flex-col gap-3 text-headingColor relative transition-normal duration-700 `}>
+                                 {products.map((item) => (
+                                    <AccessoriesCard selectedColor={selectedColor} selectedMaterials={selectedMaterials} product={item} isButton key={item?.id + item.badge} />
+                                 ))}
+                              </div>
+                              <Separator className="bg-gray-400" />
+                           </div>
                            {contactFAQs.map((item, index) => (
                               <div key={index} className={`${accordion == index + 1 ? "mb-2" : "pb-0"} transition-all duration-500    rounded-xl`}>
                                  <span className={`${accordion == index + 1 && "text-headingColor"} transition-all duration-700  flex items-center justify-between  py-4 px-6 cursor-pointer`} onClick={() => setAccordion((prev) => (prev === index + 1 ? null : index + 1))}>

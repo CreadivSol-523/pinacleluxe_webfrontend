@@ -25,17 +25,17 @@ export const useCartStore = create<CartStore>()(
 
          removeFromCart: (productId: string, color: string, material: string) => {
             set({
-               items: get().items.filter((item) => !(item.id === productId && item.color === color && item.material === material)),
+               items: get().items.filter((item) => !(item.id === productId && item.color.hex === color && item.material === material)),
             });
          },
 
-         updateQuantity: (productId: string, quantity: number) => {
+         updateQuantity: (productId: string, quantity: number, color: string, material: string) => {
             if (quantity < 1) {
-               set({ items: get().items.filter((item) => item.id !== productId) });
+               set({ items: get().items.filter((item) => !(item.id === productId && item.color.hex === color && item.material === material)) });
                return;
             }
             set({
-               items: get().items.map((item) => (item.id === productId ? { ...item, quantity } : item)),
+               items: get().items.map((item) => (item.id === productId && item.color.hex === color && item.material === material ? { ...item, quantity } : item)),
             });
          },
 
@@ -45,9 +45,9 @@ export const useCartStore = create<CartStore>()(
 
          getSubtotal: () => get().items.reduce((total, item) => total + item.price * item.quantity, 0),
 
-         isInCart: (productId: string, color: string, material: string) => get().items.some((item) => item.id === productId && item.color === color && item.material === material),
+         isInCart: (productId: string, color: string, material: string) => get().items.some((item) => item.id === productId && item.color.hex === color && item.material === material),
 
-         getCartItem: (productId: string, color?: string, material?: string) => get().items.find((item) => item.id === productId || item.color === color || item.material === material),
+         getCartItem: (productId: string, color?: string, material?: string) => get().items.find((item) => item.id === productId || item.color.hex === color || item.material === material),
 
          getQuantity: (productId: string) => {
             const item = get().items.find((item) => item.id === productId);

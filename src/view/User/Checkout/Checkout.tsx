@@ -4,6 +4,7 @@ import CheckoutCards from "@/components/Cards/CheckoutCards/CheckoutCards";
 import SidebarCard from "@/components/Cards/SidebarCard/SidebarCard";
 import Field from "@/components/InputField/Field";
 import MainLayout from "@/layout/MainLayout";
+import { useCartStore } from "@/Storage/UseCartStore";
 import { ChevronDown } from "lucide-react";
 import Image from "next/image";
 import React, { useState } from "react";
@@ -12,7 +13,8 @@ const Checkout = () => {
    const [mobileCheckout, setMobileCheckout] = useState<Boolean>(false);
    const [isShipping, setIsShipping] = useState<Boolean>(false);
    const [paymentThrough, setPaymentThrough] = useState<"bank" | "cash" | "">("");
-   console.log(paymentThrough);
+
+   const cartItems = useCartStore((state) => state.items);
 
    return (
       <MainLayout isHeader={false} isFooter={false}>
@@ -27,14 +29,13 @@ const Checkout = () => {
                </span>
                <h3>Rs 11,999</h3>
             </div>
-            <div className={`lg:hidden ${mobileCheckout ? "max-h-400 opacity-100 py-5" : "max-h-0 opacity-0 py-0"} transition-all duration-700 flex w-full bg-staticSecondaryBG xl:px-20 sm:px-20 px-5 flex-col gap-10`}>
+            <div className={`lg:hidden ${mobileCheckout ? "max-h-400 opacity-100 py-5" : "max-h-0 opacity-0 py-0 overflow-hidden"}  transition-all duration-700 flex w-full bg-staticSecondaryBG xl:px-20 sm:px-20 px-5 flex-col gap-10`}>
                <div className="flex flex-col gap-4">
                   <Image src={"/Common/Logo.png"} width={250} height={250} alt="website logo" />
                   <h3 className="uppercase md:text-[20px]! text-headingColor">Review your Bag</h3>
                </div>
                <div className="flex flex-col gap-6">
-                  <CheckoutCards />
-                  <CheckoutCards />
+                  <div className=" max-h-[80vh] overflow-y-auto overflow-x-hidden flex flex-col gap-6 pb-10!">{cartItems.length > 0 && cartItems.map((item) => <CheckoutCards product={item} quantity={item.quantity} key={item.id + item.color + item.material} />)}</div>
                   <div className="flex flex-col gap-4 ">
                      <span className="flex justify-between">
                         <p className="text-[#5E5F5F]">Subtotal</p>
@@ -190,8 +191,8 @@ const Checkout = () => {
                   <h3 className="uppercase md:text-[20px]! text-headingColor">Review your Bag</h3>
                </div>
                <div className="flex flex-col gap-6">
-                  <CheckoutCards />
-                  <CheckoutCards />
+                  <div className=" max-h-[50vh] overflow-auto pb-10! flex flex-col gap-6">{cartItems.length > 0 && cartItems.map((item) => <CheckoutCards product={item} quantity={item.quantity} key={item.id + item.color + item.material} />)}</div>
+
                   <div className="flex flex-col gap-4 w-100">
                      <span className="flex justify-between">
                         <p className="text-[#5E5F5F]">Subtotal</p>

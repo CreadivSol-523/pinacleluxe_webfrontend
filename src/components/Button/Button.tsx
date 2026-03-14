@@ -3,6 +3,7 @@
 import React from "react";
 import dynamic from "next/dynamic";
 import { LoaderPinwheelIcon } from "../ui/AnimatedIcons/Loader";
+import Link from "next/link";
 
 interface ButtonProps {
    name?: string;
@@ -20,9 +21,10 @@ interface ButtonProps {
    isDark?: boolean;
    onMouseEnter?: any;
    onMouseLeave?: any;
+   href?: string;
 }
 
-const Button = ({ name, bgcolor, className, disabled, onClick, isLoading, icon, textColor, style, pClass, mainClass, type, isDark = false, onMouseEnter, onMouseLeave }: ButtonProps) => {
+const Button = ({ name, bgcolor, className, disabled, onClick, isLoading, icon, textColor, style, pClass, mainClass, type, isDark = false, onMouseEnter, onMouseLeave, href }: ButtonProps) => {
    let btnClass;
 
    if (disabled) {
@@ -52,16 +54,28 @@ const Button = ({ name, bgcolor, className, disabled, onClick, isLoading, icon, 
          type={`${type ? type : "button"}`}
       >
          {isLoading ? (
-            <small className={`flex items-center bg-BtnBlack text-sm justify-center ${disabled ? "cursor-not-allowed" : "cursor-pointer"} font-bold ${textColor ? textColor : isDark ? "dark:text-textColorLight text-white" : "text-white"} gap-2 ${pClass}`}>
+            <small className={`flex items-center bg-BtnBlack text-sm justify-center ${disabled ? "cursor-not-allowed" : "cursor-pointer"} font-medium! ${textColor ? textColor : isDark ? "dark:text-textColorLight text-white" : "text-white"} gap-2 ${pClass}`}>
                <LoaderPinwheelIcon isLoading={isLoading} />
                {name && "Loading..."}
             </small>
          ) : icon ? (
-            <small className={`${pClass} flex items-center justify-center ${disabled ? "cursor-not-allowed" : "cursor-pointer"} text-sm gap-2 w-full  font-bold ${textColor ? textColor : isDark ? "dark:text-textColorLight text-white" : "text-white"} `}>
+            href ? (
+               <Link href={href || "/"} className={`${pClass} flex items-center justify-center ${disabled ? "cursor-not-allowed" : "cursor-pointer"} text-sm gap-2 w-full  font-medium! ${textColor ? textColor : isDark ? "dark:text-textColorLight text-white" : "text-white"} `}>
+                  {name} {icon}
+               </Link>
+            ) : (
+               <small className={`${pClass} flex items-center justify-center ${disabled ? "cursor-not-allowed" : "cursor-pointer"} text-sm gap-2 w-full  font-medium! ${textColor ? textColor : isDark ? "dark:text-textColorLight text-white" : "text-white"} `}>
+                  {name} {icon}
+               </small>
+            )
+         ) : href ? (
+            <Link href={href || "/"} className={`${pClass} flex items-center justify-center ${disabled ? "cursor-not-allowed" : "cursor-pointer"} text-sm gap-2 w-full  font-medium! ${textColor ? textColor : isDark ? "dark:text-textColorLight text-white" : "text-white"} `}>
+               {name} {icon}
+            </Link>
+         ) : (
+            <small className={`${pClass} flex items-center justify-center ${disabled ? "cursor-not-allowed" : "cursor-pointer"} text-sm gap-2 w-full  font-medium! ${textColor ? textColor : isDark ? "dark:text-textColorLight text-white" : "text-white"} `}>
                {name} {icon}
             </small>
-         ) : (
-            <small className={`flex items-center text-sm gap-2 justify-center ${disabled ? "cursor-not-allowed" : "cursor-pointer"} font-bold ${textColor ? textColor : isDark ? "dark:text-textColorLight text-white" : "text-white"} ${pClass}`}>{name}</small>
          )}
       </button>
    );
