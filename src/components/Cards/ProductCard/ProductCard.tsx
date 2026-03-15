@@ -1,4 +1,5 @@
 "use client";
+import { useFavoriteStore } from "@/Storage/UseFavoriteStore";
 import { Product, productCart, ProductColor } from "@/Types/Collection/CollectionTypes";
 import Image from "next/image";
 import Link from "next/link";
@@ -14,6 +15,9 @@ const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
    const [isHover, setIsHover] = useState(false);
    const [selectedColor, setSelectedColor] = useState<ProductColor>({ hex: "", image: "" });
 
+   const { toggleFavorite, removeFromFavorites } = useFavoriteStore();
+
+   const isProductFavorite = useFavoriteStore((state) => state.favorites.some((fav) => fav.id === data?.id && fav.color.hex === data.colors?.[0]?.hex && fav.material === data.material?.[0]));
    return (
       <Link href={`/product/${data.slug || "tan"}`} className="group cursor-pointer  overflow-hidden   relative" title={data.name}>
          <div className="w-full h-full relative flex flex-col gap-3">
@@ -38,7 +42,38 @@ const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
                   }}
                   className="absolute top-0 xl:right-6 right-5 flex flex-col gap-2 justify-between h-full xl:py-8 py-6"
                >
-                  <Image src={"/Icons/HeartIcon.svg"} width={20} height={20} alt="profile icon" className="w-6 max-xl:w-[2vw]! max-lg:w-5! hover:scale-105" />
+                  {isProductFavorite ? (
+                     <Image
+                        onClick={() => {
+                           removeFromFavorites(data.id || "", data.colors?.[0] || { hex: "", image: "" }, data?.material?.[0]);
+                        }}
+                        src={"/Icons/FillFavoriteIcon.svg"}
+                        width={20}
+                        height={20}
+                        alt="profile icon"
+                        className="w-6 max-xl:w-[2vw]! max-lg:w-5! hover:scale-105 "
+                     />
+                  ) : (
+                     <Image
+                        onClick={() => {
+                           toggleFavorite({
+                              id: data.id || "",
+                              name: data.name || "",
+                              image: data.images?.[0] || "",
+                              price: data.price || 0,
+                              discountPrice: data.discountPrice || 0,
+                              stock: data.stock || 0,
+                              color: data.colors?.[0] || { hex: "", image: "" },
+                              material: data.material?.[0],
+                           });
+                        }}
+                        src={"/Icons/HeartIcon.svg"}
+                        width={20}
+                        height={20}
+                        alt="profile icon"
+                        className="w-6 max-xl:w-[2vw]! max-lg:w-5! hover:scale-105"
+                     />
+                  )}
                   <Image
                      onClick={() => {
                         isCart?.(true);

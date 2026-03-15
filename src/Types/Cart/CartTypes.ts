@@ -1,7 +1,7 @@
 import { Product } from "../Collection/CollectionTypes";
 
 export interface Cart {
-   quantity: number;
+   quantity?: number;
    isButton?: boolean;
    product: {
       color: { hex: string; image: string };

@@ -1,5 +1,6 @@
 "use client";
 import Cart from "@/ui/Cart/Cart";
+import Favorite from "@/ui/Favorite/Favorite";
 import Footer from "@/ui/Footer/Footer";
 import Header from "@/ui/Header/Header";
 import TopBar from "@/ui/TopBar/TopBar";
@@ -13,6 +14,7 @@ type MainLayoutType = {
 
 const MainLayout = ({ children, isHeader = true, isFooter = true }: MainLayoutType) => {
    const [isCartOpen, setIsCartOpen] = useState(false);
+   const [isFavoriteOpen, setIsFavoriteOpen] = useState(false);
 
    useEffect(() => {
       if (isCartOpen) {
@@ -36,10 +38,15 @@ const MainLayout = ({ children, isHeader = true, isFooter = true }: MainLayoutTy
                <Cart isOpen={isCartOpen} setIsSidebarOpen={setIsCartOpen} />
             </div>
          </div>
+         <div onClick={() => setIsFavoriteOpen(false)} className={isFavoriteOpen ? "fixed w-full h-full z-60! bg-black/20 transition-all duration-500" : "fixed w-full h-full z-60! bg-transparent transition-all duration-500 pointer-events-none"}>
+            <div onClick={(e) => e.stopPropagation()}>
+               <Favorite isOpen={isFavoriteOpen} setIsSidebarOpen={setIsFavoriteOpen} />
+            </div>
+         </div>
          {isHeader ? (
             <div className={`h-28.5 relative  ${isCartOpen ? "z-50 " : "z-60 delay-500"}`}>
                <TopBar />
-               <Header setIsSidebarOpen={setIsCartOpen} />
+               <Header setIsSidebarOpen={setIsCartOpen} setIsFavoriteOpen={setIsFavoriteOpen} />
             </div>
          ) : (
             <TopBar />

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCartStore } from "@/Storage/UseCartStore";
+import { useFavoriteStore } from "@/Storage/UseFavoriteStore";
 import { useEffect } from "react";
 
 // Yeh component layout mein ek baar render hoga
@@ -8,6 +9,7 @@ import { useEffect } from "react";
 export function StoreHydration() {
    useEffect(() => {
       useCartStore.persist.rehydrate();
+      useFavoriteStore.persist.rehydrate();
    }, []);
 
    return null; // kuch render nahi karta

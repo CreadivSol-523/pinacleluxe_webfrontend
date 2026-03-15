@@ -1,11 +1,12 @@
 "use client";
 import { useCartStore } from "@/Storage/UseCartStore";
+import { useFavoriteStore } from "@/Storage/UseFavoriteStore";
 import { TextAlignJustify } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 
-const Header = ({ setIsSidebarOpen }: { setIsSidebarOpen: (isOpen: boolean) => void }) => {
+const Header = ({ setIsSidebarOpen, setIsFavoriteOpen }: { setIsSidebarOpen: (isOpen: boolean) => void; setIsFavoriteOpen: (isOpen: boolean) => void }) => {
    const [isNavbar, setIsNavbar] = useState(false);
    const TOPBAR_HEIGHT = 15;
 
@@ -35,6 +36,7 @@ const Header = ({ setIsSidebarOpen }: { setIsSidebarOpen: (isOpen: boolean) => v
    }, [isNavbar]);
 
    const totalCartItems = useCartStore((state) => state.items.length);
+   const totalFavoriteItems = useFavoriteStore((state) => state.favorites.length);
 
    return (
       <>
@@ -57,7 +59,11 @@ const Header = ({ setIsSidebarOpen }: { setIsSidebarOpen: (isOpen: boolean) => v
                   <Image src={"/Icons/SearchIcon.svg"} width={16} height={16} alt="profile icon" className="lg:w-4 sm:w-4.5 w-[3.2vw]" />
                </span>
                <Image src={"/Icons/ProfileIcon.svg"} width={20} height={20} alt="profile icon" className="sm:w-5 w-[3.2vw] min-w-4 cursor-pointer" />
-               <Image src={"/Icons/HeartIcon.svg"} width={20} height={20} alt="profile icon" className="sm:w-5 w-[3.2vw] min-w-4 cursor-pointer" />
+               {/* <Image src={"/Icons/HeartIcon.svg"} width={20} height={20} alt="profile icon" className="sm:w-5 w-[3.2vw] min-w-4 cursor-pointer" /> */}
+               <span className="flex items-center gap-1.5 cursor-pointer" onClick={() => setIsFavoriteOpen(true)}>
+                  <Image src={"/Icons/HeartIcon.svg"} width={20} height={20} alt="profile icon" className="sm:w-5 w-[3.2vw] min-w-4" />
+                  {totalFavoriteItems || 0}
+               </span>
                <span className="flex items-center gap-1.5 cursor-pointer" onClick={() => setIsSidebarOpen(true)}>
                   <Image src={"/Icons/BagIcon.svg"} width={20} height={20} alt="profile icon" className="sm:w-5 w-[3.2vw] min-w-4" />
                   {totalCartItems || 0}

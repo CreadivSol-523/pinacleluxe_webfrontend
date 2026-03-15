@@ -132,7 +132,6 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                      disabled={GetCartSingleItem ? true : false}
                      onClick={() => {
                         if (GetCartSingleItem) {
-                           console.log("object");
                         } else {
                            addToCart(
                               {

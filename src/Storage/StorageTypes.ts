@@ -29,29 +29,23 @@ export interface CartStore {
 }
 
 // Favorite Store
+export interface FavoriteItem {
+   id: string;
+   name: string;
+   price: number;
+   image: string;
+   stock: number;
+   color: { hex: string; image: string };
+   material: string;
+   category?: string;
+   discountPrice?: number;
+}
+
 export interface FavoriteStore {
-   favorites: Product[];
-   toggleFavorite: (product: Product) => void;
-   removeFromFavorites: (productId: string) => void;
+   favorites: FavoriteItem[];
+   toggleFavorite: (item: FavoriteItem) => void;
+   removeFromFavorites: (id: string, color: { hex: string; image: string }, material: string) => void;
    clearFavorites: () => void;
-   isFavorite: (productId: string) => boolean;
+   isFavorite: (id: string, color: { hex: string; image: string }, material: string) => boolean;
    getFavoriteCount: () => number;
-}
-
-// UI Store
-export type ToastType = "success" | "error" | "info" | "warning";
-
-export interface Toast {
-   message: string;
-   type: ToastType;
-}
-
-export interface UIStore {
-   isCartOpen: boolean;
-   openCart: () => void;
-   closeCart: () => void;
-   toggleCart: () => void;
-   toast: Toast | null;
-   showToast: (message: string, type?: ToastType) => void;
-   hideToast: () => void;
 }

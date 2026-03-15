@@ -9,8 +9,6 @@ const AccessoriesCard = ({ product, isButton = true, selectedColor, selectedMate
 
    const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === product?.id && item.color.hex === selectedColor.hex && item.material === selectedMaterials));
 
-   console.log(GetCartSingleItem, "GetCartSingleItemGetCartSingleItemGetCartSingleItem");
-
    return (
       <div className="flex items-center gap-6 " key={product?.id}>
          <Image src={product?.images?.[0] || "/Dummy/Product/ProductImg.png"} alt="sidebar card" width={80} height={100} />
