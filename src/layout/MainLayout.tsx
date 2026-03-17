@@ -1,6 +1,7 @@
 "use client";
 import Cart from "@/ui/Cart/Cart";
 import Favorite from "@/ui/Favorite/Favorite";
+import FilterSheet from "@/ui/FilterSheet/FilterSheet";
 import Footer from "@/ui/Footer/Footer";
 import Header from "@/ui/Header/Header";
 import TopBar from "@/ui/TopBar/TopBar";
@@ -10,9 +11,11 @@ type MainLayoutType = {
    children: ReactNode;
    isHeader?: boolean;
    isFooter?: boolean;
+   isFilter?: boolean;
+   setIsFilter?: (value: boolean) => void;
 };
 
-const MainLayout = ({ children, isHeader = true, isFooter = true }: MainLayoutType) => {
+const MainLayout = ({ children, isHeader = true, isFooter = true, isFilter, setIsFilter }: MainLayoutType) => {
    const [isCartOpen, setIsCartOpen] = useState(false);
    const [isFavoriteOpen, setIsFavoriteOpen] = useState(false);
 
@@ -43,8 +46,13 @@ const MainLayout = ({ children, isHeader = true, isFooter = true }: MainLayoutTy
                <Favorite isOpen={isFavoriteOpen} setIsSidebarOpen={setIsFavoriteOpen} />
             </div>
          </div>
+         <div onClick={() => setIsFilter?.(false)} className={isFilter ? "fixed w-full h-full z-80! bg-black/20 transition-all duration-500 sm:hidden flex" : "fixed w-full h-full z-60! bg-transparent transition-all duration-500 pointer-events-none"}>
+            <div onClick={(e) => e.stopPropagation()}>
+               <FilterSheet isOpen={isFilter} setIsSidebarOpen={setIsFilter} />
+            </div>
+         </div>
          {isHeader ? (
-            <div className={`h-28.5 relative  ${isCartOpen ? "z-50 " : "z-60 delay-500"}`}>
+            <div className={`h-28.5 relative  ${isCartOpen || isFavoriteOpen ? "z-50 " : "z-60 delay-500"}`}>
                <TopBar />
                <Header setIsSidebarOpen={setIsCartOpen} setIsFavoriteOpen={setIsFavoriteOpen} />
             </div>

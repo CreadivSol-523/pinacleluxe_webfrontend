@@ -20,13 +20,13 @@ const CheckoutCards = ({ product, quantity }: Cart) => {
    }, [GetCartSingleItem]);
 
    const handleIncreaseQuantity = () => {
-      const updateProductQuantity = updateQuantityState < product.stock ? updateQuantityState + 1 : updateQuantityState;
+      const updateProductQuantity = (updateQuantityState ?? 0 < product.stock) ? (updateQuantityState ?? 0 + 1) : updateQuantityState;
       setUpdateQuantityState(updateProductQuantity);
-      updateQuantity(product.id, updateProductQuantity, product.color.hex, product.material);
+      updateQuantity(product.id, updateProductQuantity ?? 0, product.color.hex, product.material);
    };
 
    const handleDecreaseQuantity = () => {
-      const updateProductQuantity = updateQuantityState <= 1 ? 1 : updateQuantityState - 1;
+      const updateProductQuantity = (updateQuantityState ?? 0 <= 1) ? 1 : (updateQuantityState ?? 0 - 1);
       setUpdateQuantityState(updateProductQuantity);
       updateQuantity(product.id, updateProductQuantity, product.color.hex, product.material);
    };
@@ -36,7 +36,7 @@ const CheckoutCards = ({ product, quantity }: Cart) => {
          <div className="flex flex-col justify-between  gap-2.5 w-full">
             <p className="text-headingColor">{product.name || "Easy Zipper Tote"}</p>
             <p style={{ fontFamily: "InterMedium", fontWeight: 500 }} className="text-lg! text-headingColor">
-               Rs {product.price * updateQuantityState || "65.00"}
+               Rs {product.price * (updateQuantityState ?? 0) || "65.00"}
             </p>
             <div className="flex items-center justify-between sm:w-60 w-full">
                <div className="flex items-center gap-3 px-4 py-1 border border-gray-400 rounded-full w-fit">

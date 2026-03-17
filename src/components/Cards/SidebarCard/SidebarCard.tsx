@@ -39,7 +39,7 @@ const SidebarCard = ({ product, quantity }: Cart) => {
             <p style={{ fontFamily: "InterMedium", fontWeight: 500 }} className="text-xl!">
                Rs {product.price * (updateQuantityState ?? 0) || "65.00"}
             </p>
-            <div className="flex items-center justify-between w-60">
+            <div className="flex items-center justify-between sm:w-60 w-50">
                <div className="flex items-center gap-3 px-4 py-1 border border-gray-400 rounded-full w-fit">
                   <Minus className="w-4 h-4 cursor-pointer" onClick={handleDecreaseQuantity} />
                   <p>{updateQuantityState}</p>

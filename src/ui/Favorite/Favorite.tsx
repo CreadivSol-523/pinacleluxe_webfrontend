@@ -16,7 +16,7 @@ const Favorite = ({ isOpen, setIsSidebarOpen }: { isOpen: boolean; setIsSidebarO
    return (
       <aside className={`sm:w-100 w-full h-full bg-white fixed transition-all duration-500 ${isOpen ? "sm:right-0 translate-x-0" : "sm:-right-full  translate-x-full"} z-60!`}>
          <div className="p-5 flex justify-between items-center border-b border-b-gray-200">
-            <h3>Shopping Bag</h3>
+            <h3>Favorite Items</h3>
             <X className="cursor-pointer" onClick={() => setIsSidebarOpen(false)} />
          </div>
          <div className="flex items-start py-10 justify-start px-6 h-full">
