@@ -5,6 +5,7 @@ import { Minus, Plus } from "lucide-react";
 import Button from "../Button/Button";
 import { ModalType } from "@/Types/Modal/ModalType";
 import { useCartStore } from "@/Storage/UseCartStore";
+import { useFavoriteStore } from "@/Storage/UseFavoriteStore";
 
 const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) => {
    const [selectedColor, setSelectedColor] = useState<{ hex: string; image: string }>({ hex: "", image: "" });
@@ -158,7 +159,7 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                      </div>
                   </div>
                </div>
-               <div className="flex gap-5 2xl:w-150 max-[950px]:flex-col">
+               <div className="flex gap-5 2xl:w-150 max-[950px]:flex-col items-center">
                   <div className="flex items-center gap-3 px-6 py-2 border-2 border-gray-400 rounded-full md:max-w-80 w-fit ">
                      <Minus
                         className="w-4 h-4 cursor-pointer"

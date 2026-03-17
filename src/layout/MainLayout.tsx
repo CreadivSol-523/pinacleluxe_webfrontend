@@ -20,7 +20,7 @@ const MainLayout = ({ children, isHeader = true, isFooter = true, isFilter, setI
    const [isFavoriteOpen, setIsFavoriteOpen] = useState(false);
 
    useEffect(() => {
-      if (isCartOpen) {
+      if (isCartOpen || isFavoriteOpen) {
          // Disable scroll
          document.body.style.overflow = "hidden";
       } else {
@@ -32,7 +32,7 @@ const MainLayout = ({ children, isHeader = true, isFooter = true, isFilter, setI
       return () => {
          document.body.style.overflow = "auto";
       };
-   }, [isCartOpen]);
+   }, [isCartOpen, isFavoriteOpen]);
 
    return (
       <main>

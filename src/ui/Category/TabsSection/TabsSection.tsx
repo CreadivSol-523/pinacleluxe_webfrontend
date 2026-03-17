@@ -34,9 +34,9 @@ const TabsSection = ({ isFilter, setIsFilter }: { isFilter: boolean; setIsFilter
    }, [isFilter]);
 
    return (
-      <div className="sm:sticky  top-17.5 sm:z-70! bg-white">
+      <div className={`sm:sticky ${isFilter && "sm:z-70!"}  top-17.5  bg-white`}>
          <div className="w-full flex flex-col gap-4 pt-4 ">
-            <div className="flex md:items-center justify-between max-md:flex-col max-md:gap-4 py-2 bg-white ">
+            <div className="flex md:items-center justify-between max-md:flex-col max-md:gap-4 py-2  bg-white ">
                <div className="flex items-center gap-2">
                   <button onClick={() => scroll("left")} className="shrink-0 p-1 rounded-full hover:bg-gray-100 transition">
                      <ChevronLeft className="text-[#8D8D8D]" size={20} />
@@ -54,19 +54,19 @@ const TabsSection = ({ isFilter, setIsFilter }: { isFilter: boolean; setIsFilter
                      <ChevronRight className="text-[#8D8D8D]" size={20} />
                   </button>
                </div>
-               <div className="flex items-center gap-20">
+               <div className="flex items-center sm:gap-20 gap-5">
                   <span className="flex items-center gap-1.5 cursor-pointer">
-                     <p className="text-[#8D8D8D] max-[700px]:pl-4">Sort</p>
+                     <p className="text-[#8D8D8D] max-[700px]:pl-4 max-sm:text-[12px]!">Sort</p>
                      <ChevronDown className={`text-[#8D8D8D] ${isFilter ? "rotate-180" : "rotate-0"} transition-all duration-300`} />
                   </span>
-                  <p className="text-[#8D8D8D] cursor-pointer max-[700px]:pl-4" onClick={() => setIsFilter(!isFilter)}>
+                  <p className="text-[#8D8D8D] cursor-pointer max-[700px]:pl-4 max-sm:text-[12px]!" onClick={() => setIsFilter(!isFilter)}>
                      Filter
                   </p>
                </div>
             </div>
             <div className="w-full h-px bg-gray-200" />
          </div>
-         <div className={`${isFilter ? "max-h-200 opacity-100" : "max-h-0 opacity-0"} max-sm:hidden  pb-10 flex flex-col gap-4 overflow-hidden transition-all duration-400 bg-white absolute z-70! sm:top-full top-0 right-full left-0 w-full`}>
+         <div className={`${isFilter ? "max-h-200 opacity-100" : "max-h-0 opacity-0"} max-sm:hidden   pb-10 flex flex-col gap-4 overflow-hidden transition-all duration-400 bg-white absolute z-70! sm:top-full top-0 right-full left-0 w-full`}>
             <div className="flex items-center justify-between p-5 border-b border-gray-200">
                <h2 className="text-headingColor">Filters</h2>
                <X className="text-textBlack cursor-pointer" size={30} onClick={() => setIsFilter(false)} />
