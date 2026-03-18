@@ -44,9 +44,9 @@ const Header = ({ setIsSidebarOpen, setIsFavoriteOpen }: { setIsSidebarOpen: (is
          <div className={`${depth === 0 ? "border-b border-gray-200" : ""}`}>
             {/* Row */}
             <div className={`flex items-center justify-between cursor-pointer ${depth === 0 ? "py-4 px-5" : depth === 1 ? "py-3 pl-6 pr-5" : "py-2 px-11"}`} onClick={() => hasChildren && setOpen((p) => !p)}>
-               {hasChildren && <p className={`${depth === 0 ? "text-[15px] text-textBlack!" : depth === 1 ? "text-[13px] font-semibold text-textBlack!" : "text-[13px] text-gray-500"}`}>{label.name}</p>}
+               {hasChildren && <a className={`${depth === 0 ? "text-[15px] text-textBlack!" : depth === 1 ? "text-[14px]  text-textBlack!" : "text-[13px] text-textBlack!"}`}>{label.name}</a>}
                {!hasChildren && (
-                  <a href={label.href} className={`${depth === 0 ? "text-[15px] text-textBlack!" : depth === 1 ? "text-[13px] font-semibold text-textBlack!" : "text-[13px] text-gray-500"}`}>
+                  <a href={label.href} className={`${depth === 0 ? "text-[15px] text-textBlack!" : depth === 1 ? "text-[14px]  text-textBlack!" : "text-[13px] text-textBlack!"}`}>
                      {label.name}
                   </a>
                )}
@@ -60,7 +60,7 @@ const Header = ({ setIsSidebarOpen, setIsFavoriteOpen }: { setIsSidebarOpen: (is
                      // Leaf node — { name, href }
                      if ("name" in child) {
                         return (
-                           <a key={i} href={child.href} className="block py-2 px-5 text-[13px] text-gray-500 hover:text-gray-800 transition-colors">
+                           <a key={i} href={child.href} className="block py-2 px-5 text-[13px]! text-gray-500 hover:text-gray-800 transition-colors">
                               {child.name}
                            </a>
                         );

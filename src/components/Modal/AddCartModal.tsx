@@ -159,7 +159,7 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                      </div>
                   </div>
                </div>
-               <div className="flex gap-5 2xl:w-150 max-[950px]:flex-col items-center">
+               <div className="flex gap-5 2xl:w-150 max-xl:flex-col max-xl:items-start items-center">
                   <div className="flex items-center gap-3 px-6 py-2 border-2 border-gray-400 rounded-full md:max-w-80 w-fit ">
                      <Minus
                         className="w-4 h-4 cursor-pointer"
@@ -183,29 +183,42 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                         }}
                      />
                   </div>
-                  <Button
-                     name={GetCartSingleItem ? "Already In Bag" : "Add To Bag"}
-                     className="w-full"
-                     disabled={GetCartSingleItem ? true : false}
-                     onClick={() => {
-                        if (GetCartSingleItem) {
-                        } else {
-                           addToCart(
-                              {
-                                 id: selectedProduct?.id || "",
-                                 name: selectedProduct?.name || "",
-                                 image: selectedProduct?.images?.[0] || "",
-                                 color: selectedColor,
-                                 material: selectedMaterials,
-                                 price: selectedProduct?.price ?? 0,
-                                 stock: selectedProduct?.stock || 0,
-                              },
-                              quantity,
-                           );
+                  <div className="w-full flex flex-col gap-3">
+                     <Button
+                        name={GetCartSingleItem ? "Already In Bag" : "Add To Bag"}
+                        className="w-full"
+                        disabled={GetCartSingleItem ? true : false}
+                        onClick={() => {
+                           if (GetCartSingleItem) {
+                           } else {
+                              addToCart(
+                                 {
+                                    id: selectedProduct?.id || "",
+                                    name: selectedProduct?.name || "",
+                                    image: selectedProduct?.images?.[0] || "",
+                                    color: selectedColor,
+                                    material: selectedMaterials,
+                                    price: selectedProduct?.price ?? 0,
+                                    stock: selectedProduct?.stock || 0,
+                                 },
+                                 quantity,
+                              );
+                              setOpenModal(false);
+                           }
+                        }}
+                     />
+                     <Button
+                        name={"Close"}
+                        className="w-full border border-textBlack"
+                        bgcolor="bg-white!"
+                        pClass="text-textBlack!"
+                        disabled={GetCartSingleItem ? true : false}
+                        onClick={() => {
                            setOpenModal(false);
-                        }
-                     }}
-                  />
+                           setQuantity(1);
+                        }}
+                     />
+                  </div>
                </div>
             </div>
          </div>

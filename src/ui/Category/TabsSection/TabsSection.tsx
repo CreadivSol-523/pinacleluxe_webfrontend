@@ -34,7 +34,7 @@ const TabsSection = ({ isFilter, setIsFilter }: { isFilter: boolean; setIsFilter
    }, [isFilter]);
 
    return (
-      <div className={`sm:sticky ${isFilter && "sm:z-70!"}  top-17.5  bg-white`}>
+      <div className={`sm:sticky relative  z-50! top-17.5  bg-white`}>
          <div className="w-full flex flex-col gap-4 pt-4 ">
             <div className="flex md:items-center justify-between max-md:flex-col max-md:gap-4 py-2  bg-white ">
                <div className="flex items-center gap-2">
@@ -71,7 +71,7 @@ const TabsSection = ({ isFilter, setIsFilter }: { isFilter: boolean; setIsFilter
                <h2 className="text-headingColor">Filters</h2>
                <X className="text-textBlack cursor-pointer" size={30} onClick={() => setIsFilter(false)} />
             </div>
-            <div className="pb-5 pt-12 sm:px-15 px-4 flex max-sm:flex-col items-start sm:justify-around justify-start max-sm:gap-10 flex-wrap">
+            <div className="pb-5 xl:pt-12 pt-6 sm:px-15 px-4 flex max-sm:flex-col items-start sm:justify-around justify-start max-sm:gap-10 flex-wrap">
                <div className="flex flex-col gap-2">
                   <h4 className="text-textBlack">Colors</h4>
                   <div className="flex items-center flex-wrap gap-2">
