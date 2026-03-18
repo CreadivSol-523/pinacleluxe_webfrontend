@@ -51,6 +51,11 @@ const MainLayout = ({ children, isHeader = true, isFooter = true, isFilter, setI
                <FilterSheet isOpen={isFilter} setIsSidebarOpen={setIsFilter} />
             </div>
          </div>
+         <div onClick={() => setIsFilter?.(false)} className={isFilter ? "fixed w-full h-full z-80! bg-black/20 transition-all duration-500 sm:hidden flex" : "fixed w-full h-full z-60! bg-transparent transition-all duration-500 pointer-events-none"}>
+            <div onClick={(e) => e.stopPropagation()}>
+               <FilterSheet isOpen={isFilter} setIsSidebarOpen={setIsFilter} />
+            </div>
+         </div>
          {isHeader ? (
             <div className={`h-28.5 relative  ${isCartOpen || isFavoriteOpen ? "z-50 " : "z-60 delay-500"}`}>
                <TopBar />
