@@ -51,6 +51,32 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
       onProductChange();
    }, [selectedProduct]);
 
+   useEffect(() => {
+      const observers: IntersectionObserver[] = [];
+
+      imageRefs.current.forEach((ref, i) => {
+         if (!ref) return;
+
+         const observer = new IntersectionObserver(
+            (entries) => {
+               entries.forEach((entry) => {
+                  if (entry.isIntersecting) {
+                     setActiveIndex(i);
+                  }
+               });
+            },
+            {
+               threshold: 0.5, // 50% image visible ho to active ho
+            },
+         );
+
+         observer.observe(ref);
+         observers.push(observer);
+      });
+
+      return () => observers.forEach((obs) => obs.disconnect());
+   }, []);
+
    const images = [1, 2, 3, 4, 5, 6, 7, 8];
 
    const goTo = (idx: number) => {
