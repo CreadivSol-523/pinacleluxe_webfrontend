@@ -1,3 +1,5 @@
+"use client";
+
 import ProductCard from "@/components/Cards/ProductCard/ProductCard";
 import MainLayout from "@/layout/MainLayout";
 import HeadingSection from "@/ui/Category/HeadingSection/HeadingSection";
