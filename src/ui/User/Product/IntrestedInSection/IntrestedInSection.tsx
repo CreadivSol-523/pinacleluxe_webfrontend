@@ -1,5 +1,5 @@
 import React from "react";
-import { products } from "../../../DummyData/Products.json";
+import { products } from "../../../../DummyData/Products.json";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import ProductCard from "@/components/Cards/ProductCard/ProductCard";
 

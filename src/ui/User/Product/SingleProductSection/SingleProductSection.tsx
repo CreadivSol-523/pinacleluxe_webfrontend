@@ -3,7 +3,7 @@ import Button from "@/components/Button/Button";
 import { Separator } from "@/components/ui/separator";
 import { ChevronDown, Minus, Plus } from "lucide-react";
 import Image from "next/image";
-import { products } from "../../../DummyData/Products.json";
+import { products } from "../../../../DummyData/Products.json";
 import React, { useEffect, useEffectEvent, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { useCartStore } from "@/Storage/UseCartStore";

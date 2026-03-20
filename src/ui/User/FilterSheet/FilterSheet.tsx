@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
 import React, { useState } from "react";
-import { products } from "../../DummyData/Products.json";
+import { products } from "../../../DummyData/Products.json";
 import Button from "@/components/Button/Button";
 
 const FilterSheet = ({ isOpen, setIsSidebarOpen }: { isOpen?: boolean; setIsSidebarOpen?: (isOpen: boolean) => void }) => {

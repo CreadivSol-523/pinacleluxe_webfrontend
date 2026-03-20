@@ -1,7 +1,7 @@
 import MainLayout from "@/layout/MainLayout";
-import ImageSection from "@/ui/AboutUS/ImageSection/ImageSection";
-import TagLine from "@/ui/AboutUS/TagLine/TagLine";
-import BannerSection from "@/ui/Home/BannerSection/BannerSection";
+import ImageSection from "@/ui/User/AboutUS/ImageSection/ImageSection";
+import TagLine from "@/ui/User/AboutUS/TagLine/TagLine";
+import BannerSection from "@/ui/User/Home/BannerSection/BannerSection";
 import Image from "next/image";
 import React from "react";
 

@@ -11,6 +11,7 @@ export interface Product {
    discount?: number;
    badge?: string;
    stock?: number;
+   category?: string;
    colors?: ProductColor[];
    material: string[];
    images: string[];

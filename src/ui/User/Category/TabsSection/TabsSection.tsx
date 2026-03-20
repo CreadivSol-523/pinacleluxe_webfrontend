@@ -1,7 +1,7 @@
 "use client";
 import { ChevronDown, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { products } from "../../../DummyData/Products.json";
+import { products } from "../../../../DummyData/Products.json";
 import Button from "@/components/Button/Button";
 
 const TabsSection = ({ isFilter, setIsFilter }: { isFilter: boolean; setIsFilter: (value: boolean) => void }) => {

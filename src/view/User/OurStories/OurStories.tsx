@@ -1,6 +1,6 @@
 "use client";
 import MainLayout from "@/layout/MainLayout";
-import BannerSection from "@/ui/Home/BannerSection/BannerSection";
+import BannerSection from "@/ui/User/Home/BannerSection/BannerSection";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
