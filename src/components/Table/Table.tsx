@@ -279,7 +279,7 @@ const Table = <T extends Record<string, any>>({
          </div>
 
          <div className="max-h-[calc(100vh)] overflow-auto  ">
-            <div className={"w-full overflow-y-auto overflow-x-auto "}>
+            <div className={"w-full overflow-y-auto overflow-x-auto max-h-[50vh]"}>
                <table
                   cellPadding="10"
                   className={tableWidth ? tableWidth : "md:w-full sm:w-200 w-200"}
@@ -289,7 +289,7 @@ const Table = <T extends Record<string, any>>({
                      borderSpacing: "0 0rem",
                   }}
                >
-                  <thead className="bg-transparent dark:bg-cardBG sticky top-0 border-t! border-[#B8975A]/8!" style={{ ...theadStyle, zIndex: 10 }}>
+                  <thead className=" dark:bg-cardBG sticky top-0 border-t! border-[#B8975A]/8! bg-staticSecondaryBG" style={{ ...theadStyle, zIndex: 10 }}>
                      <tr style={{ ...trStyle }} className="text-center text-[#5E5F60] text-xs border-t! border-gray-200!">
                         {!isLoading && isSelect && (
                            <th className={`pb-3 font-medium pt-4 `}>
@@ -330,7 +330,7 @@ const Table = <T extends Record<string, any>>({
                         currentData.map((item, index) => (
                            <tr
                               key={keyField ? item[keyField] : index}
-                              className="border-b! border-[#B8975A]/8! h-auto "
+                              className={`border-b! border-[#B8975A]/8! h-auto ${onRowClick && "hover:bg-[#F5F0E8]! hover:cursor-pointer"}`}
                               style={{ ...trStyle }}
                               onClick={() => {
                                  if (onRowClick) {
@@ -440,7 +440,7 @@ const Table = <T extends Record<string, any>>({
                      </button>
 
                      {generatePageNumbers().map((page) => (
-                        <button key={page} onClick={() => handlePageChange(page)} className={`w-8 border cursor-pointer ${currentPage === page ? "bg-[#1a40ff] border-[#1a40ff] text-textBlack " : "border-headingLight/70"}`}>
+                        <button key={page} onClick={() => handlePageChange(page)} className={`w-8 border cursor-pointer ${currentPage === page ? "bg-[#1a40ff] border-[#1a40ff] text-white " : "border-headingLight/70"}`}>
                            {page}
                         </button>
                      ))}

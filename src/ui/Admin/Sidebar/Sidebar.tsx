@@ -44,16 +44,6 @@ const navSections = [
                </svg>
             ),
          },
-         {
-            label: "Inventory",
-            href: "/admin/inventory",
-            icon: (
-               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <rect x="2" y="3" width="12" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
-                  <path d="M5 7h6M5 10h4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-               </svg>
-            ),
-         },
       ],
    },
    {
