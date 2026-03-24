@@ -1,20 +1,19 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Customer } from "@/Types/Customer/CustomerType";
 import { formatDate } from "@/helper/FormateDateAndTime";
-import { AVATAR_COLORS, CustomerDrawer } from "@/components/Drawer/CustomerDrawer";
+import { AVATAR_COLORS } from "@/components/Drawer/CustomerDrawer";
 import { getInitials } from "@/helper/GetInitials";
 import { MOCK_CUSTOMERS } from "@/DummyData/Customers";
 
 const CITIES = ["Karachi", "Lahore", "Islamabad", "Rawalpindi"];
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
 export default function CustomerPage() {
+   const router = useRouter();
    const [search, setSearch] = useState("");
    const [cityFilter, setCityFilter] = useState("all");
-   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
    const [page, setPage] = useState(1);
    const PAGE_SIZE = 8;
 
@@ -57,7 +56,6 @@ export default function CustomerPage() {
 
          {/* ── Filters ── */}
          <div className="flex flex-wrap gap-3">
-            {/* Search */}
             <div className="relative flex-1 min-w-[200px]">
                <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5E5F60]" width="15" height="15" viewBox="0 0 16 16" fill="none">
                   <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.3" />
@@ -74,8 +72,6 @@ export default function CustomerPage() {
                   className="w-full pl-9 pr-4 py-2.5 text-[13px] bg-staticSecondaryBG border border-[#B8975A]/20 rounded-lg text-headingColor placeholder:text-[#5E5F60] focus:outline-none focus:border-[#B8975A]/50 transition-colors"
                />
             </div>
-
-            {/* City filter */}
             <select
                value={cityFilter}
                onChange={(e) => {
@@ -91,13 +87,11 @@ export default function CustomerPage() {
                   </option>
                ))}
             </select>
-
             <p className="self-center text-[12px] text-[#5E5F60]">{filtered.length} customers</p>
          </div>
 
          {/* ── Table ── */}
          <div className="bg-staticSecondaryBG border border-[#B8975A]/15 rounded-xl overflow-hidden">
-            {/* Head */}
             <div className="grid grid-cols-[2fr_2fr_1fr_1fr_1fr] gap-4 px-5 py-3 border-b border-[#B8975A]/15 bg-[#F5F0E8]/60">
                {["Customer", "Contact", "City", "Orders", "Spent"].map((h) => (
                   <p key={h} className="text-[10px] tracking-[0.1em] uppercase text-[#5E5F60] font-medium">
@@ -108,8 +102,7 @@ export default function CustomerPage() {
 
             {paginated.length > 0 ? (
                paginated.map((customer, idx) => (
-                  <div key={customer.id} onClick={() => setSelectedCustomer(customer)} className="grid grid-cols-[2fr_2fr_1fr_1fr_1fr] gap-4 px-5 py-3.5 border-b border-[#B8975A]/8 hover:bg-[#B8975A]/3 transition-colors cursor-pointer items-center">
-                     {/* Customer */}
+                  <div key={customer.id} onClick={() => router.push(`/admin/customers/${customer.id}`)} className="grid grid-cols-[2fr_2fr_1fr_1fr_1fr] gap-4 px-5 py-3.5 border-b border-[#B8975A]/8 hover:bg-[#B8975A]/3 transition-colors cursor-pointer items-center">
                      <div className="flex items-center gap-3 min-w-0">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-[11px] font-medium shrink-0 ${AVATAR_COLORS[idx % AVATAR_COLORS.length]}`}>{getInitials(customer.name)}</div>
                         <div className="min-w-0">
@@ -117,20 +110,12 @@ export default function CustomerPage() {
                            <p className="text-[11px] text-[#5E5F60]">Since {formatDate(customer.joinedAt)}</p>
                         </div>
                      </div>
-
-                     {/* Contact */}
                      <div className="min-w-0">
                         <p className="text-[12px] text-headingColor truncate">{customer.email}</p>
                         <p className="text-[11px] text-[#5E5F60]">{customer.phone}</p>
                      </div>
-
-                     {/* City */}
                      <p className="text-[12px] text-[#5E5F60]">{customer.city}</p>
-
-                     {/* Orders */}
                      <p className="text-[13px] font-medium text-headingColor">{customer.totalOrders}</p>
-
-                     {/* Spent */}
                      <p className="text-[13px] font-serif font-medium text-headingColor">Rs {customer.totalSpent.toLocaleString()}</p>
                   </div>
                ))
@@ -179,9 +164,6 @@ export default function CustomerPage() {
                </button>
             </div>
          )}
-
-         {/* ── Drawer ── */}
-         <CustomerDrawer customer={selectedCustomer} onClose={() => setSelectedCustomer(null)} />
       </div>
    );
 }
