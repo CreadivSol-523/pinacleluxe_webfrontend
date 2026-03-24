@@ -9,16 +9,20 @@ export interface Product {
    price?: number;
    discountPrice?: number;
    discount?: number;
+   description?: string;
    badge?: string;
    stock?: number;
    category?: string;
-   colors?: ProductColor[];
+   subCategory?: string;
    material: string[];
+   isVariable?: boolean;
    images: string[];
    gallery: string[];
+   colorVariants: colorVariants[];
+   discountMode?: "percentage" | "static";
 }
 
-export interface ProductColor {
+export interface colorVariants {
    hex: string;
-   image: string;
+   images: string[];
 }

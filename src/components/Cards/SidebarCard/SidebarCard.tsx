@@ -5,11 +5,11 @@ import Image from "next/image";
 import React, { useEffect, useEffectEvent, useState } from "react";
 
 const SidebarCard = ({ product, quantity }: Cart) => {
-   const [updateQuantityState, setUpdateQuantityState] = useState(quantity);
+   const [updateQuantityState, setUpdateQuantityState] = useState<number>(quantity);
 
    const { updateQuantity, removeFromCart } = useCartStore();
 
-   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === product?.id && item.color.hex === product.color.hex && item.material === product.material));
+   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === product?.id && item?.colorVariants === product.colorVariants && item.material === product.material));
 
    const GetQuantitySelected = useEffectEvent(() => {
       setUpdateQuantityState(GetCartSingleItem?.quantity || 1);
@@ -18,17 +18,16 @@ const SidebarCard = ({ product, quantity }: Cart) => {
    useEffect(() => {
       GetQuantitySelected();
    }, [GetCartSingleItem]);
-
    const handleIncreaseQuantity = () => {
-      const updateProductQuantity = (updateQuantityState ?? 0 < product.stock) ? (updateQuantityState ?? 0 + 1) : updateQuantityState;
+      const updateProductQuantity = updateQuantityState < product.stock ? updateQuantityState + 1 : updateQuantityState;
       setUpdateQuantityState(updateProductQuantity);
-      updateQuantity(product.id, updateProductQuantity ?? 0, product.color.hex, product.material);
+      updateQuantity(product.id, updateProductQuantity, product?.colorVariants, product.material);
    };
 
    const handleDecreaseQuantity = () => {
-      const updateProductQuantity = (updateQuantityState ?? 0 <= 1) ? 1 : (updateQuantityState ?? 0 - 1);
+      const updateProductQuantity = updateQuantityState <= 1 ? 1 : updateQuantityState - 1;
       setUpdateQuantityState(updateProductQuantity);
-      updateQuantity(product.id, updateProductQuantity, product.color.hex, product.material);
+      updateQuantity(product.id, updateProductQuantity, product?.colorVariants, product.material);
    };
 
    return (
@@ -45,7 +44,7 @@ const SidebarCard = ({ product, quantity }: Cart) => {
                   <p>{updateQuantityState}</p>
                   <Plus className="w-4 h-4 cursor-pointer" onClick={handleIncreaseQuantity} />
                </div>
-               <Trash className="text-lightText cursor-pointer" onClick={() => removeFromCart(product.id, product.color.hex, product.material)} />
+               <Trash className="text-lightText cursor-pointer" onClick={() => removeFromCart(product.id, product?.colorVariants, product.material)} />
             </div>
          </div>
       </div>

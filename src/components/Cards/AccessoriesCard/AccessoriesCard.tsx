@@ -4,10 +4,10 @@ import { Cart } from "@/Types/Cart/CartTypes";
 import { Product } from "@/Types/Collection/CollectionTypes";
 import Image from "next/image";
 
-const AccessoriesCard = ({ product, isButton = true, selectedColor, selectedMaterials }: { product: Product; isButton: boolean; selectedColor: { hex: string; image: string }; selectedMaterials: string }) => {
+const AccessoriesCard = ({ product, isButton = true, selectedColor, selectedMaterials }: { product: Product; isButton: boolean; selectedColor: { hex: string; images: string[] }; selectedMaterials: string }) => {
    const { addToCart, updateQuantity } = useCartStore();
 
-   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === product?.id && item.color.hex === selectedColor.hex && item.material === selectedMaterials));
+   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === product?.id && item.colorVariants === selectedColor.hex && item.material === selectedMaterials));
 
    return (
       <div className="flex items-center gap-6 " key={product?.id}>
@@ -29,8 +29,8 @@ const AccessoriesCard = ({ product, isButton = true, selectedColor, selectedMate
                            {
                               id: product?.id || "",
                               name: product?.name || "",
-                              image: product?.images?.[0] || "",
-                              color: selectedColor,
+                              images: product?.images?.[0] || "",
+                              colorVariants: selectedColor.hex,
                               material: selectedMaterials,
                               price: product?.price ?? 0,
                               stock: product?.stock || 0,

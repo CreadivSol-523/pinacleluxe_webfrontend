@@ -1,11 +1,10 @@
 import Button from "@/components/Button/Button";
 import { useFavoriteStore } from "@/Storage/UseFavoriteStore";
-import { Cart } from "@/Types/Cart/CartTypes";
-import { Trash } from "lucide-react";
+import { FavoriteCart } from "@/Types/Cart/CartTypes";
 import Image from "next/image";
 import React from "react";
 
-const FavoriteCards = ({ product }: Cart) => {
+const FavoriteCards = ({ product }: FavoriteCart) => {
    const { removeFromFavorites } = useFavoriteStore();
 
    return (
@@ -23,7 +22,7 @@ const FavoriteCards = ({ product }: Cart) => {
                      className="py-1!"
                      pClass="font-normal!"
                      onClick={() => {
-                        removeFromFavorites(product.id || "", product.color || { hex: "", image: "" }, product?.material);
+                        removeFromFavorites(product.id || "", product.colorVariants || "", product?.material);
                         console.log(product);
                      }}
                   />

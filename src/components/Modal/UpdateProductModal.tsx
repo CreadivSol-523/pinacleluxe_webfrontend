@@ -3,11 +3,13 @@
 import { useState, useRef, useEffect } from "react";
 
 import { useProductForm, DiscountMode, ColorVariant } from "@/Validations/Useproductform";
+import { Product } from "@/Types/Collection/CollectionTypes";
 
-interface AddProductModalProps {
+interface UpdateProductModalProps {
    isOpen: boolean;
    onClose: () => void;
    onSuccess?: (product: any) => void;
+   initialData?: Product;
 }
 
 type Tab = "basic" | "media" | "variants";
@@ -132,7 +134,7 @@ function ImageUploader({ label, images, onAdd, onRemove, error, firstLabel }: { 
 }
 
 // ── Main Modal ────────────────────────────────────────────────────────────────
-export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProductModalProps) {
+export default function UpdateProductModal({ isOpen, onClose, onSuccess, initialData }: UpdateProductModalProps) {
    const [activeTab, setActiveTab] = useState<Tab>("basic");
    const overlayRef = useRef<HTMLDivElement>(null);
 
@@ -161,10 +163,44 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
       addColorImage,
       removeColorImage,
       removeColorVariantImage,
+      setForm,
    } = useProductForm((product) => {
       onSuccess?.(product);
       onClose();
    });
+
+   useEffect(() => {
+      //   setForm({
+      //      description: initialData?.description||"",
+      //      category:initialData?.category||"",
+      //      subCategory:"Pending",
+      //      colorVariants:initialData?.colorVariants ?? [],
+      //      discountMode:"percentage",
+      //      gallery:initialData?.gallery ?? [],
+      //      images:initialData?.images ?? [],
+      //      isVariable:initialData?.isVariable ?? false,
+
+      //   });
+      setForm({
+         name: initialData?.name,
+         slug: initialData?.slug,
+         badge: initialData?.badge,
+         description: initialData?.description ?? "",
+         price: initialData?.price,
+         discountPrice: initialData?.discountPrice,
+         discount: initialData?.discount,
+         discountMode: initialData?.discountMode ?? "percentage",
+         stock: initialData?.stock,
+         category: initialData?.category ?? "",
+         subCategory: initialData?.subCategory ?? "",
+         isVariable: initialData?.isVariable ?? false,
+         material: initialData?.material ?? [],
+         colorVariants: initialData?.colorVariants ?? [],
+         images: initialData?.images ?? [],
+         gallery: initialData?.gallery ?? [],
+      });
+   }, []);
+   console.log(form);
 
    useEffect(() => {
       const handler = (e: KeyboardEvent) => {
@@ -478,7 +514,7 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
                            {/* ── Added variants list ── */}
                            {(form.colorVariants?.length ?? 0) > 0 && (
                               <div className="flex flex-col gap-2">
-                                 <p className="text-[10px] tracking-widest uppercase text-[#5E5F60]">Added Variants ({form.colorVariants?.length})</p>
+                                 <p className="text-[10px] tracking-[0.1em] uppercase text-[#5E5F60]">Added Variants ({form.colorVariants?.length})</p>
                                  {form.colorVariants?.map((c) => (
                                     <div key={c.hex} className="bg-[#F5F0E8] rounded-xl border border-[#B8975A]/10 overflow-hidden">
                                        {/* Variant header */}

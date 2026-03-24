@@ -2,9 +2,10 @@ import { X } from "lucide-react";
 import React, { useState } from "react";
 import { products } from "../../../DummyData/Products.json";
 import Button from "@/components/Button/Button";
+import { colorVariants } from "@/Types/Collection/CollectionTypes";
 
 const FilterSheet = ({ isOpen, setIsSidebarOpen }: { isOpen?: boolean; setIsSidebarOpen?: (isOpen: boolean) => void }) => {
-   const [selectedColor, setSelectedColor] = useState({ hex: "", image: "" });
+   const [selectedColor, setSelectedColor] = useState<colorVariants>({ hex: "", images: [] });
 
    return (
       <aside className={`sm:w-100 w-full h-full bg-white fixed transition-all duration-500 ${isOpen ? "sm:right-0 translate-x-0" : "sm:-right-full  translate-x-full"} z-60!`}>
@@ -17,13 +18,13 @@ const FilterSheet = ({ isOpen, setIsSidebarOpen }: { isOpen?: boolean; setIsSide
                <div className="flex flex-col gap-2">
                   <h4 className="text-textBlack">Colors</h4>
                   <div className="flex items-center flex-wrap gap-2">
-                     {products?.[0]?.colors?.map((item, i) =>
+                     {products?.[0]?.colorVariants?.map((item, i) =>
                         selectedColor.hex === item.hex ? (
                            <div className="w-6 h-6 border-2 border-gray-500 cursor-pointer  rounded-full flex items-center justify-center" key={item.hex}>
                               <div className={`w-4 h-4 rounded-full bg-[${item.hex}]`} style={{ background: item.hex }} />
                            </div>
                         ) : (
-                           <div onClick={() => setSelectedColor({ hex: item.hex, image: item.image })} className={`w-6 h-6 cursor-pointer rounded-full ${item.hex}`} style={{ background: item.hex }} key={i} />
+                           <div onClick={() => setSelectedColor({ hex: item.hex, images: item.images })} className={`w-6 h-6 cursor-pointer rounded-full ${item.hex}`} style={{ background: item.hex }} key={i} />
                         ),
                      )}
                   </div>

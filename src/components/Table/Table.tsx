@@ -290,11 +290,11 @@ const Table = <T extends Record<string, any>>({
                   }}
                >
                   <thead className=" dark:bg-cardBG sticky top-0 border-t! border-[#B8975A]/8! bg-staticSecondaryBG" style={{ ...theadStyle, zIndex: 10 }}>
-                     <tr style={{ ...trStyle }} className="text-center text-[#5E5F60] text-xs border-t! border-gray-200!">
+                     <tr style={{ ...trStyle }} className="text-start text-[#5E5F60] text-xs border-t! border-gray-200!">
                         {!isLoading && isSelect && (
-                           <th className={`pb-3 font-medium pt-4 `}>
+                           <div className={`pb-3 font-medium pt-4 max-h-50 h-15 flex items-center justify-center pl-[2.2rem] pr-8`} style={{ width: 20 }}>
                               <input type="checkbox" className="accent-primary" checked={currentData?.length === tableIds?.length && currentData?.length !== 0} onChange={() => getAllIds()} />
-                           </th>
+                           </div>
                         )}
                         {columns.map((column) => (
                            <th key={column?.mapKey || column?.key} className={`py-3 uppercase text-[10px] text-[#5E5F60]! text-start px-5 font-medium!  tracking-widest ${column.className || ""}`}>
@@ -342,7 +342,7 @@ const Table = <T extends Record<string, any>>({
                               }}
                            >
                               {isSelect && (
-                                 <td key={keyField ? item[keyField] : index} className="py-4  font-normal text-[12px] text-textBlack text-start px-5 border-t w-60 border-[#B8975A]/8! pl-[1.8rem] pr-8">
+                                 <td key={keyField ? item[keyField] : index} className="py-4  font-normal text-[12px] text-textBlack text-start  border-t w-10 border-[#B8975A]/8! pl-[1.8rem] ">
                                     <input type="checkbox" className="accent-primary" checked={tableIds?.includes(selectKey ? item[selectKey] : item?._id)} onChange={() => getSingleIds(selectKey ? item[selectKey] : item?._id)} />
                                  </td>
                               )}

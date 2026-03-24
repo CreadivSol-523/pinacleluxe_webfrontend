@@ -10,7 +10,7 @@ import { useCartStore } from "@/Storage/UseCartStore";
 import AccessoriesCard from "@/components/Cards/AccessoriesCard/AccessoriesCard";
 
 const SingleProductSection = () => {
-   const [selectedColor, setSelectedColor] = useState<{ hex: string; image: string }>({ hex: "", image: "" });
+   const [selectedColor, setSelectedColor] = useState<{ hex: string; images: string[] }>({ hex: "", images: [] });
    const [selectedMaterials, setSelectedMaterials] = useState<string>("");
    const [showAccessories, setShowAccessories] = useState<boolean>(false);
    const [quantity, setQuantity] = useState(1);
@@ -47,7 +47,7 @@ const SingleProductSection = () => {
 
    const findProduct = products.find((item) => item.slug === id);
 
-   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === findProduct?.id && item.color.hex === selectedColor.hex && item.material === selectedMaterials));
+   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === findProduct?.id && item.colorVariants === selectedColor.hex && item.material === selectedMaterials));
 
    const GetQuantitySelected = useEffectEvent(() => {
       setQuantity(GetCartSingleItem?.quantity || 1);
@@ -84,7 +84,7 @@ const SingleProductSection = () => {
    }, [GetCartSingleItem]);
 
    useEffect(() => {
-      setSelectedColor({ hex: findProduct?.colors[0].hex || "", image: findProduct?.colors[0].image || "" });
+      setSelectedColor({ hex: findProduct?.colorVariants[0].hex || "", images: findProduct?.colorVariants[0].images || [] });
       setSelectedMaterials(findProduct?.material[0] || "");
    }, []);
 
@@ -184,13 +184,13 @@ const SingleProductSection = () => {
                <div className="flex flex-col gap-2">
                   <p className="text-headingColor">Color - Green</p>
                   <div className="flex items-center flex-wrap gap-2">
-                     {findProduct?.colors?.map((item, i) =>
+                     {findProduct?.colorVariants?.map((item, i) =>
                         selectedColor.hex === item.hex ? (
                            <div className="w-6 h-6 border-2 border-gray-500 cursor-pointer  rounded-full flex items-center justify-center" key={item.hex}>
                               <div className={`w-4 h-4 rounded-full ${item.hex}`} style={{ background: item.hex }} />
                            </div>
                         ) : (
-                           <div onClick={() => setSelectedColor({ hex: item.hex, image: item.image })} className={`w-6 h-6 cursor-pointer rounded-full ${item.hex}`} style={{ background: item.hex }} key={i} />
+                           <div onClick={() => setSelectedColor({ hex: item.hex, images: item.images })} className={`w-6 h-6 cursor-pointer rounded-full ${item.hex}`} style={{ background: item.hex }} key={i} />
                         ),
                      )}
                   </div>
@@ -239,8 +239,8 @@ const SingleProductSection = () => {
                         {
                            id: findProduct?.id || "",
                            name: findProduct?.name || "",
-                           image: findProduct?.images?.[0] || "",
-                           color: selectedColor,
+                           images: findProduct?.images?.[0] || "",
+                           colorVariants: selectedColor.hex || "",
                            material: selectedMaterials,
                            price: findProduct?.price ?? 0,
                            stock: findProduct?.stock || 0,

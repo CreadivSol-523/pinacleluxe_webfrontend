@@ -1,6 +1,6 @@
 "use client";
 
-import { Product, ProductColor } from "@/Types/Collection/CollectionTypes";
+import { Product, colorVariants } from "@/Types/Collection/CollectionTypes";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -14,10 +14,10 @@ type AdminProductCardProps = {
 
 const AdminProductCards = ({ data, isSelected, onSelect, onDelete }: AdminProductCardProps) => {
    const [isHover, setIsHover] = useState(false);
-   const [selectedColor, setSelectedColor] = useState<ProductColor>({ hex: "", image: "" });
+   const [selectedColor, setSelectedColor] = useState<colorVariants>({ hex: "", images: [] });
 
-   const displayImage = isHover ? data?.gallery?.[0] : selectedColor.image ? selectedColor.image : data?.images?.[0] || "/Dummy/Product/ProductImg.png";
-
+   const displayImage = isHover ? data?.gallery?.[0] : selectedColor.images.length > 0 ? selectedColor.images[0] : data?.images?.[0] || "/Dummy/Product/ProductImg.png";
+   console.log(data);
    const stockStatus = (data.stock ?? 0) === 0 ? { label: "Out of Stock", cls: "bg-red-50 text-red-600" } : (data.stock ?? 0) <= 5 ? { label: "Low Stock", cls: "bg-amber-50 text-amber-600" } : { label: "In Stock", cls: "bg-green-50 text-green-700" };
 
    return (
@@ -66,15 +66,15 @@ const AdminProductCards = ({ data, isSelected, onSelect, onDelete }: AdminProduc
          <div className="p-4 bg-staticSecondaryBG flex flex-col gap-2.5">
             {/* Colors */}
             <div className="flex items-center gap-1.5">
-               {data?.colors
-                  ?.filter((c) => c.hex && c.image)
+               {data?.colorVariants
+                  ?.filter((c) => c.hex && c.images)
                   .map((c) =>
                      selectedColor.hex === c.hex ? (
                         <div key={c.hex} className="w-4 h-4 border-2 border-[#B8975A] rounded-full flex items-center justify-center">
                            <div className="w-2.5 h-2.5 rounded-full" style={{ background: c.hex }} />
                         </div>
                      ) : (
-                        <button key={c.hex} onClick={() => setSelectedColor({ hex: c.hex, image: c.image })} className="w-4 h-4 rounded-full border border-black/10 hover:scale-110 transition-transform" style={{ backgroundColor: c.hex }} />
+                        <button key={c.hex} onClick={() => setSelectedColor({ hex: c.hex, images: c.images })} className="w-4 h-4 rounded-full border border-black/10 hover:scale-110 transition-transform" style={{ backgroundColor: c.hex }} />
                      ),
                   )}
             </div>

@@ -8,7 +8,7 @@ import { useCartStore } from "@/Storage/UseCartStore";
 import { useFavoriteStore } from "@/Storage/UseFavoriteStore";
 
 const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) => {
-   const [selectedColor, setSelectedColor] = useState<{ hex: string; image: string }>({ hex: "", image: "" });
+   const [selectedColor, setSelectedColor] = useState<{ hex: string; images: string[] }>({ hex: "", images: [] });
    const [selectedMaterials, setSelectedMaterials] = useState<string>(selectedProduct?.material?.[0] || "");
    const [quantity, setQuantity] = useState(1);
    const [activeIndex, setActiveIndex] = useState(0);
@@ -19,7 +19,7 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
 
    const { addToCart, updateQuantity } = useCartStore();
 
-   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === selectedProduct?.id && item.color.hex === selectedColor.hex && item.material === selectedMaterials));
+   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === selectedProduct?.id && item.colorVariants === selectedColor.hex && item.material === selectedMaterials));
 
    const GetQuantitySelected = useEffectEvent(() => {
       setQuantity(GetCartSingleItem?.quantity || 1);
@@ -43,7 +43,7 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
    };
 
    const onProductChange = useEffectEvent(() => {
-      setSelectedColor({ hex: selectedProduct?.colors?.[0].hex || "", image: selectedProduct?.images?.[0] || "" });
+      setSelectedColor({ hex: selectedProduct?.colorVariants?.[0].hex || "", images: selectedProduct?.images || [] });
       setSelectedMaterials(selectedProduct?.material?.[0] || "");
    });
 
@@ -163,13 +163,13 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                   <div className="flex flex-col gap-2">
                      <p className="text-headingColor">Color - Green</p>
                      <div className="flex items-center flex-wrap gap-2">
-                        {selectedProduct?.colors?.map((item, i) =>
+                        {selectedProduct?.colorVariants?.map((item, i) =>
                            selectedColor.hex === item.hex ? (
                               <div className="w-6 h-6 border-2 border-gray-500 cursor-pointer  rounded-full flex items-center justify-center" key={item.hex}>
                                  <div className={`w-4 h-4 rounded-full bg-[${item.hex}]`} style={{ background: item.hex }} />
                               </div>
                            ) : (
-                              <div onClick={() => setSelectedColor({ hex: item.hex, image: item.image })} className={`w-6 h-6 cursor-pointer rounded-full ${item.hex}`} style={{ background: item.hex }} key={i} />
+                              <div onClick={() => setSelectedColor({ hex: item.hex, images: item.images })} className={`w-6 h-6 cursor-pointer rounded-full ${item.hex}`} style={{ background: item.hex }} key={i} />
                            ),
                         )}
                      </div>
@@ -221,8 +221,8 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                                  {
                                     id: selectedProduct?.id || "",
                                     name: selectedProduct?.name || "",
-                                    image: selectedProduct?.images?.[0] || "",
-                                    color: selectedColor,
+                                    images: selectedProduct?.images?.[0] || "",
+                                    colorVariants: selectedColor.hex,
                                     material: selectedMaterials,
                                     price: selectedProduct?.price ?? 0,
                                     stock: selectedProduct?.stock || 0,
