@@ -65,7 +65,7 @@ export default function SingleCustomerPage() {
          <div className="bg-staticSecondaryBG border border-[#B8975A]/15 rounded-xl p-6 flex items-center gap-5 flex-wrap">
             <div className={`w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-medium shrink-0 ${avatarColor}`}>{getInitials(customer.name)}</div>
             <div className="flex-1 min-w-0">
-               <h1 className="font-serif text-[24px] font-semibold text-headingColor tracking-[0.02em]">{customer.name}</h1>
+               <h1 className="font-serif sm:text-[24px]! font-semibold text-headingColor tracking-[0.02em]">{customer.name}</h1>
                <p className="text-[12px] text-[#5E5F60] mt-0.5">Customer since {formatDate(customer.joinedAt)}</p>
             </div>
             <div className="grid grid-cols-2 gap-4 shrink-0">
