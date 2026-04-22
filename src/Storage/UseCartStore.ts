@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { CartStore, Product } from "./StorageTypes";
+import { CartStore, Product } from "../Types/StorageTypes";
 
 export const useCartStore = create<CartStore>()(
    persist(
@@ -9,33 +9,33 @@ export const useCartStore = create<CartStore>()(
 
          addToCart: (product: Product, quantity: number = 1) => {
             const { items } = get();
-            const existing = items.find((item) => item.id === product.id && item.color === product.color && item.material === product.material);
+            const existing = items.find((item) => item.id === product.id && item.colorVariants === product.colorVariants && item.material === product.material);
 
             if (existing) {
                const newQuantity = existing.quantity + quantity;
-               if (newQuantity > product.stock) return; // stock exceed na ho
+               if (newQuantity > (product?.stock ?? 0)) return; // stock exceed na ho
                set({
-                  items: items.map((item) => (item.id === product.id && item.color === product.color && item.material === product.material ? { ...item, quantity: newQuantity } : item)),
+                  items: items.map((item) => (item.id === product.id && item.colorVariants === product.colorVariants && item.material === product.material ? { ...item, quantity: newQuantity } : item)),
                });
             } else {
-               const safeQuantity = Math.min(quantity, product.stock); // stock se zyada nahi
+               const safeQuantity = Math.min(quantity, product.stock ?? 0); // stock se zyada nahi
                set({ items: [...items, { ...product, quantity: safeQuantity }] });
             }
          },
 
          removeFromCart: (productId: string, color: string, material: string) => {
             set({
-               items: get().items.filter((item) => !(item.id === productId && item.color.hex === color && item.material === material)),
+               items: get().items.filter((item) => !(item.id === productId && item.colorVariants === color && item.material === material)),
             });
          },
 
          updateQuantity: (productId: string, quantity: number, color: string, material: string) => {
             if (quantity < 1) {
-               set({ items: get().items.filter((item) => !(item.id === productId && item.color.hex === color && item.material === material)) });
+               set({ items: get().items.filter((item) => !(item.id === productId && item.colorVariants === color && item.material === material)) });
                return;
             }
             set({
-               items: get().items.map((item) => (item.id === productId && item.color.hex === color && item.material === material ? { ...item, quantity } : item)),
+               items: get().items.map((item) => (item.id === productId && item.colorVariants === color && item.material === material ? { ...item, quantity } : item)),
             });
          },
 
@@ -43,11 +43,11 @@ export const useCartStore = create<CartStore>()(
 
          getItemCount: () => get().items.reduce((total, item) => total + item.quantity, 0),
 
-         getSubtotal: () => get().items.reduce((total, item) => total + item.price * item.quantity, 0),
+         getSubtotal: () => get().items.reduce((total, item) => total + (item.price || 0) * item.quantity, 0),
 
-         isInCart: (productId: string, color: string, material: string) => get().items.some((item) => item.id === productId && item.color.hex === color && item.material === material),
+         isInCart: (productId: string, color: string, material: string) => get().items.some((item) => item.id === productId && item.colorVariants === color && item.material === material),
 
-         getCartItem: (productId: string, color?: string, material?: string) => get().items.find((item) => item.id === productId || item.color.hex === color || item.material === material),
+         getCartItem: (productId: string, color?: string, material?: string) => get().items.find((item) => item.id === productId || item.colorVariants === color || item.material === material),
 
          getQuantity: (productId: string) => {
             const item = get().items.find((item) => item.id === productId);

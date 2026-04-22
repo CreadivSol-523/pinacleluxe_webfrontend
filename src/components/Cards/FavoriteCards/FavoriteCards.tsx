@@ -1,10 +1,12 @@
 import Button from "@/components/Button/Button";
-import { Cart } from "@/Types/Cart/CartTypes";
-import { Trash } from "lucide-react";
+import { useFavoriteStore } from "@/Storage/UseFavoriteStore";
+import { FavoriteCart } from "@/Types/Cart/CartTypes";
 import Image from "next/image";
 import React from "react";
 
-const FavoriteCards = ({ product }: Cart) => {
+const FavoriteCards = ({ product }: FavoriteCart) => {
+   const { removeFromFavorites } = useFavoriteStore();
+
    return (
       <div className="flex items-center gap-3 ">
          <Image src="/Dummy/Product/ProductImg2.png" alt="sidebar card" width={90} height={150} />
@@ -15,7 +17,15 @@ const FavoriteCards = ({ product }: Cart) => {
             </p>
             <div className="flex items-center justify-between w-60">
                <div className="flex items-center gap-3  w-fit">
-                  <Button name={"Remove"} className="py-1!" pClass="font-normal!" />
+                  <Button
+                     name={"Remove"}
+                     className="py-1!"
+                     pClass="font-normal!"
+                     onClick={() => {
+                        removeFromFavorites(product.id || "", product.colorVariants || "", product?.material);
+                        console.log(product);
+                     }}
+                  />
                </div>
             </div>
          </div>

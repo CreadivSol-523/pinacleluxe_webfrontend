@@ -35,7 +35,7 @@ const Checkout = () => {
                   <h3 className="uppercase md:text-[20px]! text-headingColor">Review your Bag</h3>
                </div>
                <div className="flex flex-col gap-6">
-                  <div className=" max-h-[80vh] overflow-y-auto overflow-x-hidden flex flex-col gap-6 pb-10!">{cartItems.length > 0 && cartItems.map((item) => <CheckoutCards product={item} quantity={item.quantity} key={item.id + item.color + item.material} />)}</div>
+                  <div className=" max-h-[80vh] overflow-y-auto overflow-x-hidden flex flex-col gap-6 pb-10!">{cartItems.length > 0 && cartItems.map((item) => <CheckoutCards product={item} quantity={item.quantity} key={item.id + item.colorVariants + item.material} />)}</div>
                   <div className="flex flex-col gap-4 ">
                      <span className="flex justify-between">
                         <p className="text-[#5E5F5F]">Subtotal</p>
@@ -191,8 +191,17 @@ const Checkout = () => {
                   <h3 className="uppercase md:text-[20px]! text-headingColor">Review your Bag</h3>
                </div>
                <div className="flex flex-col gap-6">
-                  <div className=" max-h-[50vh] overflow-auto pb-10! flex flex-col gap-6">{cartItems.length > 0 && cartItems.map((item) => <CheckoutCards product={item} quantity={item.quantity} key={item.id + item.color + item.material} />)}</div>
-
+                  {cartItems.length > 0 ? (
+                     <div className=" max-h-[50vh] overflow-auto pb-10! flex flex-col gap-6">
+                        {cartItems.map((item) => (
+                           <CheckoutCards product={item} quantity={item.quantity} key={item.id + item.colorVariants + item.material} />
+                        ))}
+                     </div>
+                  ) : (
+                     <div className="w-100 h-30 flex items-center justify-center">
+                        <h3 className="text-gray-400 ">No Product In Cart</h3>
+                     </div>
+                  )}
                   <div className="flex flex-col gap-4 w-100">
                      <span className="flex justify-between">
                         <p className="text-[#5E5F5F]">Subtotal</p>

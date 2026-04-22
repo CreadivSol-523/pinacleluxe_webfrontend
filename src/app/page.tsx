@@ -1,11 +1,11 @@
 import MainLayout from "@/layout/MainLayout";
-import Footer from "@/ui/Footer/Footer";
-import BannerSection from "@/ui/Home/BannerSection/BannerSection";
-import CarouselSection from "@/ui/Home/CarouselSection/CarouselSection";
-import CategorySection from "@/ui/Home/CategorySection/CategorySection";
-import ReferSection from "@/ui/Home/ReferSection/ReferSection";
-import SaleBanner from "@/ui/Home/SaleBanner/SaleBanner";
-import VideoSection from "@/ui/Home/VideoSection/VideoSection";
+import Footer from "@/ui/User/Footer/Footer";
+import BannerSection from "@/ui/User/Home/BannerSection/BannerSection";
+import CarouselSection from "@/ui/User/Home/CarouselSection/CarouselSection";
+import CategorySection from "@/ui/User/Home/CategorySection/CategorySection";
+import ReferSection from "@/ui/User/Home/ReferSection/ReferSection";
+import SaleBanner from "@/ui/User/Home/SaleBanner/SaleBanner";
+import VideoSection from "@/ui/User/Home/VideoSection/VideoSection";
 
 export default function Home() {
    return (

@@ -1,11 +1,12 @@
 "use client";
 import { useFavoriteStore } from "@/Storage/UseFavoriteStore";
-import { Product, productCart, ProductColor } from "@/Types/Collection/CollectionTypes";
+import { Product, colorVariants } from "@/Types/Collection/CollectionTypes";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
 type ProductCardProps = {
+   // data: Omit<Product, "VariantSchema">;
    data: Product;
    isCart?: (value: boolean) => void;
    AddCartDetail?: (value: any) => void;
@@ -13,11 +14,12 @@ type ProductCardProps = {
 
 const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
    const [isHover, setIsHover] = useState(false);
-   const [selectedColor, setSelectedColor] = useState<ProductColor>({ hex: "", image: "" });
+   const [selectedColor, setSelectedColor] = useState<colorVariants>({ hex: "", images: [] });
 
    const { toggleFavorite, removeFromFavorites } = useFavoriteStore();
 
-   const isProductFavorite = useFavoriteStore((state) => state.favorites.some((fav) => fav.id === data?.id && fav.color.hex === data.colors?.[0]?.hex && fav.material === data.material?.[0]));
+   const isProductFavorite = useFavoriteStore((state) => state.favorites.some((fav) => fav.id === data?.id && fav.colorVariants === data.VariantSchema?.[0]?.colors?.[0]?.hex && fav.material === data.VariantSchema?.[0]?.material));
+
    return (
       <Link href={`/product/${data.slug || "tan"}`} className="group cursor-pointer  overflow-hidden   relative" title={data.name}>
          <div className="w-full h-full relative flex flex-col gap-3">
@@ -25,7 +27,7 @@ const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
                <Image
                   width={500}
                   height={800}
-                  src={isHover ? data?.gallery?.[0] : selectedColor.image ? selectedColor.image : data?.images?.[0] || "/Dummy/Product/ProductImg.png"}
+                  src={isHover ? data?.gallery?.[0] : selectedColor.images.length > 0 ? selectedColor.images?.[0] : data?.images?.[0] || "/Dummy/Product/ProductImg.png"}
                   alt="Category Image Here"
                   onMouseEnter={() => setIsHover(true)}
                   onMouseLeave={() => setIsHover(false)}
@@ -45,7 +47,7 @@ const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
                   {isProductFavorite ? (
                      <Image
                         onClick={() => {
-                           removeFromFavorites(data.id || "", data.colors?.[0] || { hex: "", image: "" }, data?.material?.[0]);
+                           removeFromFavorites(data.id || "", data.VariantSchema?.[0]?.colors?.[0]?.hex || "", data.VariantSchema?.[0]?.material);
                         }}
                         src={"/Icons/FillFavoriteIcon.svg"}
                         width={20}
@@ -59,12 +61,12 @@ const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
                            toggleFavorite({
                               id: data.id || "",
                               name: data.name || "",
-                              image: data.images?.[0] || "",
-                              price: data.price || 0,
-                              discountPrice: data.discountPrice || 0,
-                              stock: data.stock || 0,
-                              color: data.colors?.[0] || { hex: "", image: "" },
-                              material: data.material?.[0],
+                              images: data.images?.[0] || "",
+                              price: data.VariantSchema?.[0]?.price || 0,
+                              discountPrice: data.VariantSchema?.[0]?.discountPrice || 0,
+                              stock: data.VariantSchema?.[0]?.stock || 0,
+                              colorVariants: data.VariantSchema?.[0]?.colors?.[0]?.hex || "",
+                              material: data.VariantSchema?.[0]?.material,
                            });
                         }}
                         src={"/Icons/HeartIcon.svg"}
@@ -94,23 +96,23 @@ const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
                      e.preventDefault();
                   }}
                >
-                  {data?.colors
-                     ?.filter((item) => item.hex && item.image)
+                  {data?.VariantSchema?.[0]?.colors
+                     ?.filter((item) => item.hex && item.images)
                      .map((item) =>
                         selectedColor.hex === item.hex ? (
                            <div className="xl:w-4.5 xl:h-4.5 w-3.5 h-3.5 border-2 border-gray-500 cursor-pointer  rounded-full flex items-center justify-center" key={item.hex}>
                               <div className={`xl:w-3 xl:h-3 w-2 h-2 rounded-full ${item.hex}`} style={{ background: item.hex }} />
                            </div>
                         ) : (
-                           <div onClick={() => setSelectedColor({ hex: item.hex, image: item.image })} key={item.hex} className="xl:w-4.5 xl:h-4.5 w-3.5 h-3.5 rounded-full" style={{ backgroundColor: item.hex }} />
+                           <div onClick={() => setSelectedColor({ hex: item.hex, images: item.images })} key={item.hex} className="xl:w-4.5 xl:h-4.5 w-3.5 h-3.5 rounded-full" style={{ backgroundColor: item.hex }} />
                         ),
                      )}
                </div>
                <h3 className="2xl:text-[20px]! xl:text-[19px]! text-[16px]! fontInterRegular">{data.name || "Easy Zipper Tote Bag"}</h3>
                <div className="flex items-center gap-4">
-                  <p>Rs {data?.price || "11,999"}</p>
+                  <p>Rs {data?.VariantSchema?.[0]?.price || "11,999"}</p>
                   <span className="py-0.5 px-2 bg-BtnBlack">
-                     <p className="text-white">-80% Rs {data?.discountPrice || "2500"}</p>
+                     <p className="text-white">-80% Rs {data?.VariantSchema?.[0]?.discountPrice || "2500"}</p>
                   </span>
                </div>
             </div>
