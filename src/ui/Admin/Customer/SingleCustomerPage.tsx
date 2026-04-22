@@ -8,18 +8,8 @@ import { OrderStatus } from "@/Types/Order/OrderType";
 import { formatDate } from "@/helper/FormateDateAndTime";
 import { AVATAR_COLORS } from "@/components/Drawer/CustomerDrawer";
 import { getInitials } from "@/helper/GetInitials";
-import { StatusBadge } from "@/helper/StatusBadge";
 import { MOCK_CUSTOMERS } from "@/DummyData/Customers";
-
-// ── Info row ──────────────────────────────────────────────────────────────────
-function InfoRow({ label, value }: { label: string; value: string }) {
-   return (
-      <div className="flex items-center justify-between py-2.5 border-b border-[#B8975A]/8 last:border-0">
-         <p className="text-[11px] text-[#5E5F60]">{label}</p>
-         <p className="text-[12px] font-medium text-headingColor">{value}</p>
-      </div>
-   );
-}
+import { InfoRow, StatusBadge } from "@/ui/UI";
 
 export default function SingleCustomerPage() {
    const router = useRouter();

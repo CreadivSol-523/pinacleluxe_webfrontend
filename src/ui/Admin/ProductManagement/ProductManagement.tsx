@@ -49,43 +49,29 @@ const columns = [
    {
       key: "price",
       header: "Price",
-      render: (price: number) => <p className="text-[13px] font-serif font-medium text-headingColor">Rs {price?.toLocaleString() || "—"}</p>,
+      render: (price: number, item: Product) => <p className="text-[13px] font-serif font-medium text-headingColor">Rs {item?.VariantSchema?.[0]?.price?.toLocaleString() || "—"}</p>,
    },
-   {
-      key: "discountPrice",
-      header: "Discount",
-      render: (discountPrice: number, item: Product) => (
-         <div className="flex items-center gap-2">
-            {discountPrice ? (
-               <>
-                  <p className="text-[13px] font-serif text-headingColor">Rs {discountPrice.toLocaleString()}</p>
-                  {item.discount && <span className="text-[10px] bg-primaryBG text-[#B8975A] px-2 py-0.5 rounded">-{item.discount}%</span>}
-               </>
-            ) : (
-               <p className="text-[12px] text-[#5E5F60]">—</p>
-            )}
-         </div>
-      ),
-   },
+
    {
       key: "colors",
       header: "Colors",
-      render: (colors: { hex: string; image: string }[]) => (
+      render: (colors: { hex: string; image: string }[], item: Product) => (
          <div className="flex items-center gap-1">
-            {colors
-               ?.filter((c) => c.hex)
-               .slice(0, 5)
-               .map((c) => (
-                  <div key={c.hex} className="w-4 h-4 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: c.hex }} />
-               ))}
-            {(colors?.length ?? 0) > 5 && <span className="text-[10px] text-[#5E5F60]">+{colors.length - 5}</span>}
+            {item?.VariantSchema?.flatMap((variant) =>
+               variant.colors
+                  ?.filter((c) => c.hex)
+                  .slice(0, 5)
+                  .map((c) => <div key={c.hex} className="w-4 h-4 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: c.hex }} />),
+            )}
+
+            {(item?.VariantSchema?.[0]?.colors?.length ?? 0) > 5 && <span className="text-[10px] text-[#5E5F60]">+{(item?.VariantSchema?.[0]?.colors?.length || 0) - 5}</span>}
          </div>
       ),
    },
    {
       key: "material",
       header: "Material",
-      render: (material: string[]) => <p className="text-[12px] text-[#5E5F60]">{material?.join(", ") || "—"}</p>,
+      render: (material: string[], item: Product) => <p className="text-[12px] text-[#5E5F60]">{item?.VariantSchema?.flatMap((item, i) => <p className="text-[13px] font-serif text-headingColor">{item?.material},</p>) || "—"}</p>,
    },
    {
       key: "badge",
@@ -95,7 +81,7 @@ const columns = [
    {
       key: "stock",
       header: "Stock",
-      render: (stock: number) => <StockBadge stock={stock} />,
+      render: (stock: number, item: Product) => <StockBadge stock={item.VariantSchema?.[0]?.stock} />,
    },
 ];
 
@@ -116,8 +102,9 @@ export default function ProductManagement() {
    const filtered = useMemo(() => {
       return productss.filter((p: Product) => {
          const matchSearch = !search || p.name?.toLowerCase().includes(search.toLowerCase());
-         const matchCat = categoryFilter === "all" || p.material?.includes(categoryFilter);
-         const matchStock = stockFilter === "all" || (stockFilter === "out" && (p.stock ?? 0) === 0) || (stockFilter === "low" && (p.stock ?? 0) > 0 && (p.stock ?? 0) <= 5) || (stockFilter === "in" && (p.stock ?? 0) > 5);
+         const matchCat = categoryFilter === "all" || p.VariantSchema?.[0]?.material?.includes(categoryFilter);
+         const matchStock =
+            stockFilter === "all" || (stockFilter === "out" && (p.VariantSchema?.[0]?.stock ?? 0) === 0) || (stockFilter === "low" && (p.VariantSchema?.[0]?.stock ?? 0) > 0 && (p.VariantSchema?.[0]?.stock ?? 0) <= 5) || (stockFilter === "in" && (p.VariantSchema?.[0]?.stock ?? 0) > 5);
          return matchSearch && matchCat && matchStock;
       });
    }, [search, stockFilter, categoryFilter]);

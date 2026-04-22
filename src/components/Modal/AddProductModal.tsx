@@ -47,7 +47,7 @@ const Toggle = ({ active, onChange, label }: { active: boolean; onChange: () => 
    </div>
 );
 
-// ── Discount block (reused in both single + draft) ────────────────────────────
+// ── Discount block ────────────────────────────────────────────────────────────
 function DiscountBlock({ discount, discountMode, discountPrice, onDiscountChange, onModeChange }: { discount: number | undefined; discountMode: DiscountMode; discountPrice: number | undefined; onDiscountChange: (v: string) => void; onModeChange: (m: DiscountMode) => void }) {
    return (
       <div className="bg-staticSecondaryBG rounded-xl p-3.5 flex flex-col gap-3">
@@ -57,12 +57,7 @@ function DiscountBlock({ discount, discountMode, discountPrice, onDiscountChange
             </p>
             <div className="flex items-center bg-[#F5F0E8] border border-[#B8975A]/20 rounded-lg overflow-hidden">
                {(["static", "percentage"] as DiscountMode[]).map((mode) => (
-                  <button
-                     key={mode}
-                     onClick={() => onModeChange(mode)}
-                     className={`px-3 py-1.5 text-[11px] transition-colors
-                        ${discountMode === mode ? "bg-primaryBG text-[#B8975A]" : "text-[#5E5F60] hover:text-headingColor"}`}
-                  >
+                  <button key={mode} onClick={() => onModeChange(mode)} className={`px-3 py-1.5 text-[11px] transition-colors ${discountMode === mode ? "bg-primaryBG text-[#B8975A]" : "text-[#5E5F60] hover:text-headingColor"}`}>
                      {mode === "static" ? "Fixed" : "Percentage %"}
                   </button>
                ))}
@@ -86,22 +81,19 @@ function DiscountBlock({ discount, discountMode, discountPrice, onDiscountChange
 function ImageUploader({ label, images, onAdd, onRemove, error, firstLabel }: { label: string; images: string[]; onAdd: (url: string) => void; onRemove: (i: number) => void; error?: string; firstLabel?: string }) {
    const [urlInput, setUrlInput] = useState("");
    const fileRef = useRef<HTMLInputElement>(null);
-
    const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
       Array.from(e.target.files || []).forEach((file) => {
-         const reader = new FileReader();
-         reader.onload = () => onAdd(reader.result as string);
-         reader.readAsDataURL(file);
+         const r = new FileReader();
+         r.onload = () => onAdd(r.result as string);
+         r.readAsDataURL(file);
       });
       e.target.value = "";
    };
-
    const handleUrl = () => {
       if (!urlInput.trim()) return;
       onAdd(urlInput.trim());
       setUrlInput("");
    };
-
    return (
       <div>
          <Label>{label}</Label>
@@ -149,31 +141,35 @@ function ImageUploader({ label, images, onAdd, onRemove, error, firstLabel }: { 
    );
 }
 
-// ── Color section (inside variant draft, only when isVariable) ────────────────
+// ── Color section (reused in both single & multi) ─────────────────────────────
 function ColorSection({
    colorDraft,
    setColorDraft,
    addColorImage,
    removeColorImage,
-   addColorToVariantDraft,
-   removeColorFromVariantDraft,
-   removeColorImageFromVariantDraft,
-   variantColors,
+   onAddColor,
+   onRemoveColor,
+   onRemoveColorImage,
+   addedColors,
    errors,
 }: {
    colorDraft: ColorVariant;
    setColorDraft: React.Dispatch<React.SetStateAction<ColorVariant>>;
    addColorImage: (url: string) => void;
    removeColorImage: (i: number) => void;
-   addColorToVariantDraft: () => void;
-   removeColorFromVariantDraft: (hex: string) => void;
-   removeColorImageFromVariantDraft: (hex: string, i: number) => void;
-   variantColors: ColorVariant[];
+   onAddColor: () => void;
+   onRemoveColor: (hex: string) => void;
+   onRemoveColorImage: (hex: string, i: number) => void;
+   addedColors: ColorVariant[];
    errors: { colorHex?: string; colorImage?: string };
 }) {
    return (
       <div className="flex flex-col gap-3 border-t border-[#B8975A]/10 pt-3">
-         <p className="text-[11px] tracking-[0.08em] uppercase text-[#5E5F60]">Color Swatches</p>
+         <p className="text-[11px] tracking-[0.08em] uppercase text-[#5E5F60]">
+            Color Swatches <span className="normal-case text-[#5E5F60]/60">(optional)</span>
+         </p>
+
+         {/* Picker */}
          <div className="flex items-center gap-3">
             <div className="flex flex-col gap-1 items-center">
                <div className="relative w-12 h-10 rounded-lg overflow-hidden border border-[#B8975A]/20">
@@ -258,14 +254,15 @@ function ColorSection({
             )}
          </div>
 
-         <button onClick={addColorToVariantDraft} className="w-full py-2 border border-dashed border-[#B8975A]/40 text-[#B8975A] text-[12px] rounded-lg hover:bg-[#B8975A]/5 transition-colors">
+         <button onClick={onAddColor} className="w-full py-2 border border-dashed border-[#B8975A]/40 text-[#B8975A] text-[12px] rounded-lg hover:bg-[#B8975A]/5 transition-colors">
             + Add Color Swatch
          </button>
 
-         {variantColors.length > 0 && (
+         {/* Added colors list */}
+         {addedColors.length > 0 && (
             <div className="flex flex-col gap-2">
-               <p className="text-[10px] tracking-widest uppercase text-[#5E5F60]">Added ({variantColors.length})</p>
-               {variantColors.map((c) => (
+               <p className="text-[10px] tracking-widest uppercase text-[#5E5F60]">Added ({addedColors.length})</p>
+               {addedColors.map((c) => (
                   <div key={c.hex} className="bg-staticSecondaryBG rounded-xl border border-[#B8975A]/10 overflow-hidden">
                      <div className="flex items-center gap-3 px-3 py-2 border-b border-[#B8975A]/10">
                         <div className="w-5 h-5 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: c.hex }} />
@@ -273,7 +270,7 @@ function ColorSection({
                         <p className="text-[11px] text-[#5E5F60]">
                            {c.images.length} img{c.images.length !== 1 ? "s" : ""}
                         </p>
-                        <button onClick={() => removeColorFromVariantDraft(c.hex)} className="text-[#5E5F60] hover:text-red-500 transition-colors">
+                        <button onClick={() => onRemoveColor(c.hex)} className="text-[#5E5F60] hover:text-red-500 transition-colors">
                            <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
                               <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
                            </svg>
@@ -284,7 +281,7 @@ function ColorSection({
                            <div key={i} className="relative group aspect-square rounded-lg overflow-hidden border border-[#B8975A]/10 bg-[#F5F0E8]">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img src={img} alt="" className="w-full h-full object-cover" />
-                              <button onClick={() => removeColorImageFromVariantDraft(c.hex, i)} className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button onClick={() => onRemoveColorImage(c.hex, i)} className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                  <svg width="7" height="7" viewBox="0 0 8 8" fill="none">
                                     <path d="M1 1l6 6M7 1L1 7" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
                                  </svg>
@@ -300,11 +297,10 @@ function ColorSection({
    );
 }
 
-// ── Added variant card ────────────────────────────────────────────────────────
+// ── Added variant card (multi mode) ──────────────────────────────────────────
 function VariantCard({ variant, onRemove, onRemoveColor, onRemoveColorImage }: { variant: import("@/Types/Collection/CollectionTypes").VariantSchema; onRemove: () => void; onRemoveColor: (hex: string) => void; onRemoveColorImage: (hex: string, i: number) => void }) {
    const [expanded, setExpanded] = useState(false);
    const hasColors = (variant.colors?.length ?? 0) > 0;
-
    return (
       <div className="bg-[#F5F0E8] rounded-xl border border-[#B8975A]/10 overflow-hidden">
          <div className="flex items-center gap-3 px-3.5 py-3">
@@ -377,9 +373,13 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
       handleVariableToggle,
       addImage,
       removeImage,
+      // single
       singleVariant,
       setSingleField,
       handleSingleDiscountModeChange,
+      removeSingleColor,
+      removeSingleColorImage,
+      // multi
       variantDraft,
       setVariantDraftField,
       handleVariantDiscountModeChange,
@@ -387,13 +387,15 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
       removeVariant,
       removeColorFromVariant,
       removeColorVariantImage,
+      removeColorFromVariantDraft,
+      removeColorImageFromVariantDraft,
+      // color draft (shared)
       colorDraft,
       setColorDraft,
       addColorImage,
       removeColorImage,
-      addColorToVariantDraft,
-      removeColorFromVariantDraft,
-      removeColorImageFromVariantDraft,
+      addColorToTarget,
+      // misc
       handleSubmit,
       reset,
       subCategories,
@@ -414,7 +416,6 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
    }, [onClose]);
 
    if (!isOpen) return null;
-
    const handleClose = () => {
       reset();
       onClose();
@@ -521,7 +522,7 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
                         </div>
                         <div className="flex flex-col justify-end pb-0.5">
                            <Toggle active={form.isVariable} onChange={handleVariableToggle} label="Variable Product" />
-                           <p className="text-[10px] text-[#5E5F60] mt-0.5">{form.isVariable ? "Multiple variants — each with own price, stock & colors" : "Single variant — one price, stock & material"}</p>
+                           <p className="text-[10px] text-[#5E5F60] mt-0.5">{form.isVariable ? "Multiple variants — each with own price & stock" : "Single variant — one price & stock"}</p>
                         </div>
                      </div>
                   </div>
@@ -548,8 +549,6 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
                                  Single variant — enable <span className="text-[#B8975A]">Variable Product</span> in Basic Info for multiple
                               </p>
                            </div>
-
-                           {/* Material */}
                            <div>
                               <Label>Material *</Label>
                               <select value={singleVariant.material} onChange={(e) => setSingleField("material", e.target.value)} className={selectCls(errors.singleMaterial)}>
@@ -562,8 +561,6 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
                               </select>
                               {errors.singleMaterial && <p className="text-[11px] text-red-500 mt-1">{errors.singleMaterial}</p>}
                            </div>
-
-                           {/* Price + Stock */}
                            <div className="grid grid-cols-2 gap-3">
                               <div>
                                  <Label>Price (Rs) *</Label>
@@ -574,19 +571,27 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
                                  <FieldInput type="number" value={singleVariant.stock} onChange={(v) => setSingleField("stock", v ? Number(v) : undefined)} placeholder="0" error={errors.singleStock} />
                               </div>
                            </div>
-
-                           {/* Discount */}
                            <DiscountBlock discount={singleVariant.discount} discountMode={singleVariant.discountMode} discountPrice={singleVariant.discountPrice} onDiscountChange={(v) => setSingleField("discount", v ? Number(v) : undefined)} onModeChange={handleSingleDiscountModeChange} />
+                           {/* Colors for single variant */}
+                           <ColorSection
+                              colorDraft={colorDraft}
+                              setColorDraft={setColorDraft}
+                              addColorImage={addColorImage}
+                              removeColorImage={removeColorImage}
+                              onAddColor={() => addColorToTarget("single")}
+                              onRemoveColor={removeSingleColor}
+                              onRemoveColorImage={removeSingleColorImage}
+                              addedColors={singleVariant.colors}
+                              errors={{ colorHex: errors.colorHex, colorImage: errors.colorImage }}
+                           />
                         </div>
                      )}
 
                      {/* ── MULTI VARIANT MODE ── */}
                      {form.isVariable && (
                         <div className="flex flex-col gap-5">
-                           {/* Draft form */}
                            <div className="bg-[#F5F0E8] rounded-xl p-4 flex flex-col gap-4 border border-[#B8975A]/10">
                               <p className="text-[12px] font-medium text-headingColor tracking-[0.04em]">New Variant</p>
-
                               <div>
                                  <Label>Material *</Label>
                                  <select value={variantDraft.material} onChange={(e) => setVariantDraftField("material", e.target.value)} className={selectCls(errors.variantMaterial)}>
@@ -600,7 +605,6 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
                                  </select>
                                  {errors.variantMaterial && <p className="text-[11px] text-red-500 mt-1">{errors.variantMaterial}</p>}
                               </div>
-
                               <div className="grid grid-cols-2 gap-3">
                                  <div>
                                     <Label>Price (Rs) *</Label>
@@ -611,30 +615,26 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
                                     <FieldInput type="number" value={variantDraft.stock} onChange={(v) => setVariantDraftField("stock", v ? Number(v) : undefined)} placeholder="0" error={errors.variantStock} />
                                  </div>
                               </div>
-
                               <DiscountBlock discount={variantDraft.discount} discountMode={variantDraft.discountMode} discountPrice={variantDraft.discountPrice} onDiscountChange={(v) => setVariantDraftField("discount", v ? Number(v) : undefined)} onModeChange={handleVariantDiscountModeChange} />
-
+                              {/* Colors for this draft variant */}
                               <ColorSection
                                  colorDraft={colorDraft}
                                  setColorDraft={setColorDraft}
                                  addColorImage={addColorImage}
                                  removeColorImage={removeColorImage}
-                                 addColorToVariantDraft={addColorToVariantDraft}
-                                 removeColorFromVariantDraft={removeColorFromVariantDraft}
-                                 removeColorImageFromVariantDraft={removeColorImageFromVariantDraft}
-                                 variantColors={variantDraft.colors}
+                                 onAddColor={() => addColorToTarget("draft")}
+                                 onRemoveColor={removeColorFromVariantDraft}
+                                 onRemoveColorImage={removeColorImageFromVariantDraft}
+                                 addedColors={variantDraft.colors}
                                  errors={{ colorHex: errors.colorHex, colorImage: errors.colorImage }}
                               />
-
                               <button onClick={addVariant} className="w-full py-2.5 bg-primaryBG text-[#B8975A] text-[12px] font-medium rounded-lg hover:bg-headingColor transition-colors mt-1">
                                  + Add Variant
                               </button>
                            </div>
 
-                           {/* Error */}
                            {errors.VariantSchema && <p className="text-[11px] text-red-500 -mt-3">{errors.VariantSchema}</p>}
 
-                           {/* Added variants */}
                            {form.VariantSchema.length > 0 && (
                               <div className="flex flex-col gap-3">
                                  <p className="text-[10px] tracking-widest uppercase text-[#5E5F60]">Added Variants ({form.VariantSchema.length})</p>

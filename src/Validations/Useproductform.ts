@@ -43,7 +43,7 @@ export interface ProductFormData extends Omit<Product, "id"> {
    isVariable: boolean;
 }
 
-// Used when isVariable = false — just one flat variant, no colors
+// Single variant — one material/price/stock/discount + optional colors
 export interface SingleVariantForm {
    material: string;
    price: number | undefined;
@@ -51,9 +51,10 @@ export interface SingleVariantForm {
    discount: number | undefined;
    discountMode: DiscountMode;
    discountPrice: number | undefined;
+   colors: ColorVariant[];
 }
 
-// Used when isVariable = true — multiple variants, each with colors
+// Multi variant draft — same as single but gets pushed to VariantSchema[]
 export interface VariantDraft {
    material: string;
    price: number | undefined;
@@ -71,6 +72,7 @@ const emptySingleVariant = (): SingleVariantForm => ({
    discount: undefined,
    discountMode: "static",
    discountPrice: undefined,
+   colors: [],
 });
 
 const emptyVariantDraft = (): VariantDraft => ({
@@ -129,6 +131,8 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
 
    const [singleVariant, setSingleVariant] = useState<SingleVariantForm>(emptySingleVariant());
    const [variantDraft, setVariantDraft] = useState<VariantDraft>(emptyVariantDraft());
+
+   // colorDraft is shared — used for both single & multi mode
    const [colorDraft, setColorDraft] = useState<ColorVariant>({ hex: "#000000", images: [] });
 
    // ── Product-level ─────────────────────────────────────────────────────────
@@ -147,7 +151,6 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       setErrors((prev) => ({ ...prev, category: undefined }));
    };
 
-   // Toggle resets both modes cleanly
    const handleVariableToggle = () => {
       setForm((prev) => ({ ...prev, isVariable: !prev.isVariable, VariantSchema: [] }));
       setSingleVariant(emptySingleVariant());
@@ -156,7 +159,7 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       setErrors({});
    };
 
-   // ── Single variant (isVariable = false) ──────────────────────────────────
+   // ── Single variant setters ────────────────────────────────────────────────
    const setSingleField = <K extends keyof SingleVariantForm>(key: K, value: SingleVariantForm[K]) => {
       setSingleVariant((prev) => {
          const updated = { ...prev, [key]: value };
@@ -172,7 +175,7 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       setSingleVariant((prev) => ({ ...prev, discountMode: mode, discount: undefined, discountPrice: undefined }));
    };
 
-   // ── Multi variant draft (isVariable = true) ───────────────────────────────
+   // ── Multi variant draft setters ───────────────────────────────────────────
    const setVariantDraftField = <K extends keyof VariantDraft>(key: K, value: VariantDraft[K]) => {
       setVariantDraft((prev) => {
          const updated = { ...prev, [key]: value };
@@ -188,7 +191,7 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       setVariantDraft((prev) => ({ ...prev, discountMode: mode, discount: undefined, discountPrice: undefined }));
    };
 
-   // ── Color draft ───────────────────────────────────────────────────────────
+   // ── Color draft (shared, target-aware) ───────────────────────────────────
    const addColorImage = (url: string) => {
       if (!url.trim()) return;
       setColorDraft((prev) => ({ ...prev, images: [...prev.images, url.trim()] }));
@@ -198,20 +201,43 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       setColorDraft((prev) => ({ ...prev, images: prev.images.filter((_, i) => i !== idx) }));
    };
 
-   const addColorToVariantDraft = () => {
+   const addColorToTarget = (target: "single" | "draft") => {
       if (!colorDraft.images.length) {
          setErrors((prev) => ({ ...prev, colorImage: "Add at least one image" }));
          return;
       }
-      if (variantDraft.colors.some((c) => c.hex === colorDraft.hex)) {
-         setErrors((prev) => ({ ...prev, colorHex: "Color already added" }));
-         return;
+
+      if (target === "single") {
+         if (singleVariant.colors.some((c) => c.hex === colorDraft.hex)) {
+            setErrors((prev) => ({ ...prev, colorHex: "Color already added" }));
+            return;
+         }
+         setSingleVariant((prev) => ({ ...prev, colors: [...prev.colors, { ...colorDraft }] }));
+      } else {
+         if (variantDraft.colors.some((c) => c.hex === colorDraft.hex)) {
+            setErrors((prev) => ({ ...prev, colorHex: "Color already added" }));
+            return;
+         }
+         setVariantDraft((prev) => ({ ...prev, colors: [...prev.colors, { ...colorDraft }] }));
       }
-      setVariantDraft((prev) => ({ ...prev, colors: [...prev.colors, { ...colorDraft }] }));
+
       setColorDraft({ hex: "#000000", images: [] });
       setErrors((prev) => ({ ...prev, colorHex: undefined, colorImage: undefined }));
    };
 
+   // Remove color from single variant
+   const removeSingleColor = (hex: string) => {
+      setSingleVariant((prev) => ({ ...prev, colors: prev.colors.filter((c) => c.hex !== hex) }));
+   };
+
+   const removeSingleColorImage = (hex: string, idx: number) => {
+      setSingleVariant((prev) => ({
+         ...prev,
+         colors: prev.colors.map((c) => (c.hex === hex ? { ...c, images: c.images.filter((_, i) => i !== idx) } : c)),
+      }));
+   };
+
+   // Remove color from variant draft
    const removeColorFromVariantDraft = (hex: string) => {
       setVariantDraft((prev) => ({ ...prev, colors: prev.colors.filter((c) => c.hex !== hex) }));
    };
@@ -223,7 +249,7 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       }));
    };
 
-   // ── Add variant to form ───────────────────────────────────────────────────
+   // ── Add variant to form (multi mode) ─────────────────────────────────────
    const addVariant = () => {
       const e: FormErrors = {};
       if (!variantDraft.material) e.variantMaterial = "Select a material";
@@ -269,7 +295,7 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       }));
    };
 
-   // ── Images ────────────────────────────────────────────────────────────────
+   // ── Product images ────────────────────────────────────────────────────────
    const addImage = (key: "images" | "gallery", url: string) => {
       if (!url.trim()) return;
       setForm((prev) => ({ ...prev, [key]: [...(prev[key] as string[]), url.trim()] }));
@@ -311,7 +337,7 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
                stock: singleVariant.stock,
                discountMode: singleVariant.discountMode,
                discountPrice: singleVariant.discountPrice,
-               colors: [],
+               colors: singleVariant.colors.map((c) => ({ hex: c.hex, images: c.images })),
             },
          ];
       }
@@ -337,6 +363,7 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
 
    return {
       form,
+      setForm,
       errors,
       loading,
       setField,
@@ -345,9 +372,13 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       handleVariableToggle,
       addImage,
       removeImage,
+      // single
       singleVariant,
       setSingleField,
       handleSingleDiscountModeChange,
+      removeSingleColor,
+      removeSingleColorImage,
+      // multi
       variantDraft,
       setVariantDraftField,
       handleVariantDiscountModeChange,
@@ -355,13 +386,15 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       removeVariant,
       removeColorFromVariant,
       removeColorVariantImage,
+      // color draft (shared)
       colorDraft,
       setColorDraft,
       addColorImage,
       removeColorImage,
-      addColorToVariantDraft,
+      addColorToTarget,
       removeColorFromVariantDraft,
       removeColorImageFromVariantDraft,
+      // submit
       handleSubmit,
       reset,
       subCategories,

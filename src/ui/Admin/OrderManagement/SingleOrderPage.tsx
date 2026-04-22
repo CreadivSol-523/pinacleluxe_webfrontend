@@ -5,9 +5,9 @@ import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { Order, OrderStatus } from "@/Types/Order/OrderType";
 import { formatDate, formatTime } from "@/helper/FormateDateAndTime";
-import { StatusBadge } from "@/helper/StatusBadge";
 import { MOCK_ORDERS } from "@/DummyData/OrdersData";
 import { StatusStepper } from "./StatusStepper";
+import { StatusBadge } from "@/ui/UI";
 
 // ── Status flow ───────────────────────────────────────────────────────────────
 const STATUS_FLOW: Record<OrderStatus, OrderStatus | null> = {
