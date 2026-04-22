@@ -1,8 +1,7 @@
 import MainLayout from "@/layout/MainLayout";
-import React from "react";
-import SingleProductSection from "@/ui/Product/SingleProductSection/SingleProductSection";
-import ThreeTabsSection from "@/ui/Product/ThreeTabsSection/ThreeTabsSection";
-import IntrestedInSection from "@/ui/Product/IntrestedInSection/IntrestedInSection";
+import SingleProductSection from "@/ui/User/Product/SingleProductSection/SingleProductSection";
+import ThreeTabsSection from "@/ui/User/Product/ThreeTabsSection/ThreeTabsSection";
+import IntrestedInSection from "@/ui/User/Product/IntrestedInSection/IntrestedInSection";
 
 const ProductPage = () => {
    return (

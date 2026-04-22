@@ -1,12 +1,14 @@
+"use client";
+
 import ProductCard from "@/components/Cards/ProductCard/ProductCard";
 import MainLayout from "@/layout/MainLayout";
-import HeadingSection from "@/ui/Category/HeadingSection/HeadingSection";
+import HeadingSection from "@/ui/User/Category/HeadingSection/HeadingSection";
 import Image from "next/image";
 import { products } from "@/DummyData/Products.json";
 import { useState } from "react";
 import { Product } from "@/Types/Collection/CollectionTypes";
 import AddCartModal from "@/components/Modal/AddCartModal";
-import TabsSection from "@/ui/Category/TabsSection/TabsSection";
+import TabsSection from "@/ui/User/Category/TabsSection/TabsSection";
 
 const CollectionPage = () => {
    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);

@@ -1,10 +1,10 @@
 "use client";
-import Cart from "@/ui/Cart/Cart";
-import Favorite from "@/ui/Favorite/Favorite";
-import FilterSheet from "@/ui/FilterSheet/FilterSheet";
-import Footer from "@/ui/Footer/Footer";
-import Header from "@/ui/Header/Header";
-import TopBar from "@/ui/TopBar/TopBar";
+import Cart from "@/ui/User/Cart/Cart";
+import Favorite from "@/ui/User/Favorite/Favorite";
+import FilterSheet from "@/ui/User/FilterSheet/FilterSheet";
+import Footer from "@/ui/User/Footer/Footer";
+import Header from "@/ui/User/Header/Header";
+import TopBar from "@/ui/User/TopBar/TopBar";
 import React, { ReactNode, useEffect, useState } from "react";
 
 type MainLayoutType = {

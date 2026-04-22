@@ -9,7 +9,7 @@ const CheckoutCards = ({ product, quantity }: Cart) => {
 
    const { updateQuantity, removeFromCart } = useCartStore();
 
-   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === product?.id && item.color.hex === product.color.hex && item.material === product.material));
+   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === product?.id && item.colorVariants === product.colorVariants && item.material === product.material));
 
    const GetQuantitySelected = useEffectEvent(() => {
       setUpdateQuantityState(GetCartSingleItem?.quantity || 1);
@@ -20,15 +20,15 @@ const CheckoutCards = ({ product, quantity }: Cart) => {
    }, [GetCartSingleItem]);
 
    const handleIncreaseQuantity = () => {
-      const updateProductQuantity = (updateQuantityState ?? 0 < product.stock) ? (updateQuantityState ?? 0 + 1) : updateQuantityState;
+      const updateProductQuantity = updateQuantityState < product.stock ? updateQuantityState + 1 : updateQuantityState;
       setUpdateQuantityState(updateProductQuantity);
-      updateQuantity(product.id, updateProductQuantity ?? 0, product.color.hex, product.material);
+      updateQuantity(product.id, updateProductQuantity, product.colorVariants, product.material);
    };
 
    const handleDecreaseQuantity = () => {
-      const updateProductQuantity = (updateQuantityState ?? 0 <= 1) ? 1 : (updateQuantityState ?? 0 - 1);
+      const updateProductQuantity = updateQuantityState <= 1 ? 1 : updateQuantityState - 1;
       setUpdateQuantityState(updateProductQuantity);
-      updateQuantity(product.id, updateProductQuantity, product.color.hex, product.material);
+      updateQuantity(product.id, updateProductQuantity, product.colorVariants, product.material);
    };
    return (
       <div className="flex items-center gap-6 ">
@@ -36,7 +36,7 @@ const CheckoutCards = ({ product, quantity }: Cart) => {
          <div className="flex flex-col justify-between  gap-2.5 w-full">
             <p className="text-headingColor">{product.name || "Easy Zipper Tote"}</p>
             <p style={{ fontFamily: "InterMedium", fontWeight: 500 }} className="text-lg! text-headingColor">
-               Rs {product.price * (updateQuantityState ?? 0) || "65.00"}
+               Rs {product.price * updateQuantityState || "65.00"}
             </p>
             <div className="flex items-center justify-between sm:w-60 w-full">
                <div className="flex items-center gap-3 px-4 py-1 border border-gray-400 rounded-full w-fit">
@@ -44,7 +44,7 @@ const CheckoutCards = ({ product, quantity }: Cart) => {
                   <p>{updateQuantityState}</p>
                   <Plus className="w-4 h-4 cursor-pointer" onClick={handleIncreaseQuantity} />
                </div>
-               <Trash className="text-lightText cursor-pointer" onClick={() => removeFromCart(product.id, product.color.hex, product.material)} />
+               <Trash className="text-lightText cursor-pointer" onClick={() => removeFromCart(product.id, product.colorVariants, product.material)} />
             </div>
          </div>
       </div>
