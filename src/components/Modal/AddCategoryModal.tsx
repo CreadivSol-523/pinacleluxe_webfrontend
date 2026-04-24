@@ -1,39 +1,7 @@
+import { FieldInput, Label, Toggle } from "@/ui/UI";
 import { useCategoryManager } from "@/Validations/CategoryManager/CategoryManager";
 import { useEffect, useRef } from "react";
 
-// ── Small helpers ─────────────────────────────────────────────────────────────
-
-export const Label = ({ children }: { children: React.ReactNode }) => <p className="text-[11px] tracking-[0.08em] uppercase text-[#5E5F60] mb-1.5">{children}</p>;
-
-export const FieldInput = ({ value, onChange, placeholder, error }: { value: string; onChange: (v: string) => void; placeholder?: string; error?: string }) => (
-   <div>
-      <input
-         type="text"
-         value={value}
-         onChange={(e) => onChange(e.target.value)}
-         placeholder={placeholder}
-         className={`w-full px-3.5 py-2.5 text-[13px] bg-[#F5F0E8] border rounded-lg text-headingColor placeholder:text-[#5E5F60]/60 focus:outline-none transition-colors
-            ${error ? "border-red-400" : "border-[#B8975A]/20 focus:border-[#B8975A]/60"}`}
-      />
-      {error && <p className="text-[11px] text-red-500 mt-1">{error}</p>}
-   </div>
-);
-
-// ── Toggle switch ─────────────────────────────────────────────────────────────
-export const Toggle = ({ active, onChange }: { active: boolean; onChange: () => void }) => (
-   <button
-      onClick={onChange}
-      className={`relative w-10 h-5 rounded-full transition-colors duration-200 shrink-0
-         ${active ? "bg-[#B8975A]" : "bg-[#5E5F60]/30"}`}
-   >
-      <span
-         className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 
-            ${active ? "-translate-x-4.5" : "translate-x-0.5"}`}
-      />
-   </button>
-);
-
-// ── Add/Edit Modal ────────────────────────────────────────────────────────────
 export function CategoryModal({
    isOpen,
    onClose,

@@ -5,9 +5,9 @@ import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { Order, OrderStatus } from "@/Types/Order/OrderType";
 import { formatDate, formatTime } from "@/helper/FormateDateAndTime";
-import { StatusBadge } from "@/helper/StatusBadge";
 import { MOCK_ORDERS } from "@/DummyData/OrdersData";
 import { StatusStepper } from "./StatusStepper";
+import { StatusBadge } from "@/ui/UI";
 
 // ── Status flow ───────────────────────────────────────────────────────────────
 const STATUS_FLOW: Record<OrderStatus, OrderStatus | null> = {
@@ -91,8 +91,8 @@ export default function SingleOrderPage() {
          {/* ── Header card ── */}
          <div className="bg-staticSecondaryBG border border-[#B8975A]/15 rounded-xl p-5 flex items-center justify-between flex-wrap gap-3">
             <div>
-               <h1 className="font-serif text-[26px] font-semibold text-headingColor tracking-[0.03em]">{order.orderNumber}</h1>
-               <p className="text-[12px] text-[#5E5F60] mt-0.5">
+               <h1 className="font-serif text-[26px]! font-semibold text-headingColor tracking-[0.03em]">{order.orderNumber}</h1>
+               <p className="text-[12px]! text-[#5E5F60] mt-0.5">
                   Placed on {formatDate(order.createdAt)} · {formatTime(order.createdAt)}
                </p>
             </div>
@@ -116,7 +116,7 @@ export default function SingleOrderPage() {
                   <div className="px-5 py-4 border-b border-[#B8975A]/10">
                      <p className="text-[11px] tracking-[0.12em] uppercase text-headingColor font-medium">Items ({order.items.length})</p>
                   </div>
-                  <div className="divide-y divide-[#B8975A]/8 max-h-[50vh] overflow-y-scroll">
+                  <div className="divide-y divide-[#B8975A]/8 max-h-[50vh] overflow-y-auto">
                      {order.items.map((item, i) => (
                         <div key={i} className="flex items-center gap-4 px-5 py-4">
                            <div className="w-14 h-14 rounded-xl overflow-hidden border border-[#B8975A]/15 shrink-0">
