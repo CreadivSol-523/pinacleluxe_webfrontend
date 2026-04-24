@@ -5,11 +5,17 @@ import { Minus, Plus } from "lucide-react";
 import Button from "../Button/Button";
 import { ModalType } from "@/Types/Modal/ModalType";
 import { useCartStore } from "@/Storage/UseCartStore";
-import { useFavoriteStore } from "@/Storage/UseFavoriteStore";
+import { VariantSchema } from "@/Types/Collection/CollectionTypes";
 
 const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) => {
    const [selectedColor, setSelectedColor] = useState<{ hex: string; images: string[] }>({ hex: "", images: [] });
-   const [selectedMaterials, setSelectedMaterials] = useState<string>(selectedProduct?.material?.[0] || "");
+   const [selectedMaterials, setSelectedMaterials] = useState<VariantSchema>({
+      material: selectedProduct?.VariantSchema?.[0]?.material || "",
+      price: selectedProduct?.VariantSchema?.[0].price || 0,
+      discountPrice: selectedProduct?.VariantSchema?.[0].discountPrice,
+      stock: selectedProduct?.VariantSchema?.[0].stock,
+      colors: selectedProduct?.VariantSchema?.[0].colors,
+   });
    const [quantity, setQuantity] = useState(1);
    const [activeIndex, setActiveIndex] = useState(0);
    const [current, setCurrent] = useState(0);
@@ -19,7 +25,7 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
 
    const { addToCart, updateQuantity } = useCartStore();
 
-   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === selectedProduct?.id && item.colorVariants === selectedColor.hex && item.material === selectedMaterials));
+   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === selectedProduct?.id && item.colorVariants === selectedColor.hex && item.material === selectedMaterials.material));
 
    const GetQuantitySelected = useEffectEvent(() => {
       setQuantity(GetCartSingleItem?.quantity || 1);
@@ -28,23 +34,30 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
    useEffect(() => {
       GetQuantitySelected();
    }, [GetCartSingleItem, openModal]);
+   console.log(selectedMaterials);
 
    // Update Quantity
    const handleIncreaseQuantity = () => {
-      const updateProductQuantity = quantity < (selectedProduct?.stock ?? 0) ? quantity + 1 : quantity;
+      const updateProductQuantity = quantity < (selectedMaterials?.stock ?? 0) ? quantity + 1 : quantity;
       setQuantity(updateProductQuantity);
-      updateQuantity(selectedProduct?.id || "", updateProductQuantity, selectedColor.hex, selectedMaterials);
+      updateQuantity(selectedProduct?.id || "", updateProductQuantity, selectedColor.hex, selectedMaterials.material);
    };
 
    const handleDecreaseQuantity = () => {
-      const updateProductQuantity = quantity <= 1 ? 1 : quantity - 1;
+      const updateProductQuantity = quantity == 1 ? 1 : quantity - 1;
       setQuantity(updateProductQuantity);
-      updateQuantity(selectedProduct?.id || "", updateProductQuantity, selectedColor.hex, selectedMaterials);
+      updateQuantity(selectedProduct?.id || "", updateProductQuantity, selectedColor.hex, selectedMaterials.material);
    };
 
    const onProductChange = useEffectEvent(() => {
-      setSelectedColor({ hex: selectedProduct?.colorVariants?.[0].hex || "", images: selectedProduct?.images || [] });
-      setSelectedMaterials(selectedProduct?.material?.[0] || "");
+      setSelectedColor({ hex: selectedProduct?.VariantSchema?.[0].colors?.[0]?.hex || "", images: selectedProduct?.images || [] });
+      setSelectedMaterials({
+         material: selectedProduct?.VariantSchema?.[0]?.material || "",
+         price: selectedProduct?.VariantSchema?.[0].price || 0,
+         discountPrice: selectedProduct?.VariantSchema?.[0].discountPrice,
+         stock: selectedProduct?.VariantSchema?.[0].stock,
+         colors: selectedProduct?.VariantSchema?.[0].colors,
+      });
    });
 
    useEffect(() => {
@@ -156,14 +169,14 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
             <div className=" md:p-10 px-5 flex flex-col gap-10 md:w-200 top-0 sticky md:max-h-[calc(100vh-50px)] pb-10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                <div className="flex flex-col gap-2.5">
                   <h2 className="text-headingColor">{selectedProduct?.name}</h2>
-                  <h3 className="text-[20px]! text-headingColor">Rs {selectedProduct?.price}</h3>
+                  <h3 className="text-[20px]! text-headingColor">Rs {selectedMaterials?.price}</h3>
                </div>
 
                <div className="flex flex-col gap-5">
                   <div className="flex flex-col gap-2">
                      <p className="text-headingColor">Color - Green</p>
                      <div className="flex items-center flex-wrap gap-2">
-                        {selectedProduct?.colorVariants?.map((item, i) =>
+                        {selectedMaterials?.colors?.map((item, i) =>
                            selectedColor.hex === item.hex ? (
                               <div className="w-6 h-6 border-2 border-gray-500 cursor-pointer  rounded-full flex items-center justify-center" key={item.hex}>
                                  <div className={`w-4 h-4 rounded-full bg-[${item.hex}]`} style={{ background: item.hex }} />
@@ -177,9 +190,9 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                   <div className="flex flex-col gap-2">
                      <p className="text-headingColor">Material:</p>
                      <div className="flex items-center flex-wrap gap-3.5">
-                        {selectedProduct?.material?.map((materials, i) => (
-                           <div key={i} className={`cursor-pointer active:scale-99 py-2 px-6 rounded-full border-2 ${selectedMaterials === materials ? "border-BtnBlack bg-BtnBlack" : "border-gray-400 bg-white"} `} onClick={() => setSelectedMaterials(materials)}>
-                              <p className={`${selectedMaterials === materials ? "text-white" : "text-textBlack"}  tracking-wide`}>{materials}</p>
+                        {selectedProduct?.VariantSchema?.map((materials, i) => (
+                           <div key={i} className={`cursor-pointer active:scale-99 py-2 px-6 rounded-full border-2 ${selectedMaterials.material === materials.material ? "border-BtnBlack bg-BtnBlack" : "border-gray-400 bg-white"} `} onClick={() => setSelectedMaterials(materials)}>
+                              <p className={`${selectedMaterials.material === materials.material ? "text-white" : "text-textBlack"}  tracking-wide`}>{materials.material}</p>
                            </div>
                         ))}
                      </div>
@@ -193,7 +206,7 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                            if (GetCartSingleItem) {
                               handleDecreaseQuantity();
                            } else {
-                              setQuantity((prev) => prev - 1);
+                              setQuantity((prev) => Math.max(1, prev - 1));
                            }
                         }}
                      />
@@ -204,7 +217,7 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                            if (GetCartSingleItem) {
                               handleIncreaseQuantity();
                            } else {
-                              setQuantity((prev) => (prev < (selectedProduct?.stock ?? 0) ? prev + 1 : prev));
+                              setQuantity((prev) => (prev < (selectedMaterials?.stock ?? 0) ? prev + 1 : prev));
                            }
                         }}
                      />
@@ -223,9 +236,9 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                                     name: selectedProduct?.name || "",
                                     images: selectedProduct?.images?.[0] || "",
                                     colorVariants: selectedColor.hex,
-                                    material: selectedMaterials,
-                                    price: selectedProduct?.price ?? 0,
-                                    stock: selectedProduct?.stock || 0,
+                                    material: selectedMaterials.material,
+                                    price: selectedMaterials?.price ?? 0,
+                                    stock: selectedMaterials?.stock || 0,
                                  },
                                  quantity,
                               );
