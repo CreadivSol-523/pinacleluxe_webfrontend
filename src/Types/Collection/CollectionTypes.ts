@@ -47,6 +47,7 @@ export interface VariantSchema {
    price: number | null;
    colors?: colorVariants[];
    discountPrice?: number;
+   discountValue?: number;
    discountMode?: "percentage" | "static";
    stock?: number;
 }

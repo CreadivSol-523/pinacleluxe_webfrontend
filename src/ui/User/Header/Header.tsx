@@ -18,7 +18,7 @@ const Header = ({ setIsSidebarOpen, setIsFavoriteOpen }: { setIsSidebarOpen: (is
 
    const menuData: { label: { name: string; href: string }; children: (LeafItem | NestedItem)[] }[] = [
       {
-         label: { name: "Shop", href: "" },
+         label: { name: "Shop", href: "/collection/shop" },
          children: [
             {
                label: { name: "Categories", href: "" },
@@ -33,6 +33,14 @@ const Header = ({ setIsSidebarOpen, setIsFavoriteOpen }: { setIsSidebarOpen: (is
             { label: { name: "Featured", href: "/featured" }, children: [] },
             { label: { name: "Gifting", href: "/gifting" }, children: [] },
          ],
+      },
+      {
+         label: { name: "New Arrivals", href: "" },
+         children: [],
+      },
+      {
+         label: { name: "Archive Sale", href: "" },
+         children: [],
       },
    ];
 
@@ -120,11 +128,13 @@ const Header = ({ setIsSidebarOpen, setIsFavoriteOpen }: { setIsSidebarOpen: (is
                <TextAlignJustify className="xl:hidden hidden min-[500px]:w-auto w-[6vw] min-[500px]:flex" onClick={() => setIsSidebar(true)} />
                <Image src={"/Common/Logo.png"} width={200} height={200} alt="logo image here" className="lg:w-50 min-[500px]:w-48 w-[40vw] h-auto" />
                <ul className="items-center gap-6 xl:flex hidden">
-                  <li className="cursor-pointer text-textBlack" onMouseEnter={() => setIsNavbar(true)}>
-                     <a href="/collection/shop">Shop</a>
-                  </li>
-                  <li className="cursor-pointer text-[#6B4613]">New Arrivals</li>
-                  <li className="cursor-pointer text-[#840D0D]">Archive Sale</li>
+                  {menuData?.map((item, i) => (
+                     <li className="cursor-pointer text-textBlack" onMouseEnter={() => setIsNavbar(true)} key={item.label.name}>
+                        <a href={item.label.href} className={`cursor-pointer ${item.label.name === "New Arrivals" ? "text-[#6B4613]" : item.label.name === "Archive Sale" ? "text-[#840D0D]" : ""}`}>
+                           {item.label.name}
+                        </a>
+                     </li>
+                  ))}
                </ul>
             </div>
             <div className="flex items-center sm:gap-6 gap-3">
@@ -161,47 +171,51 @@ const Header = ({ setIsSidebarOpen, setIsFavoriteOpen }: { setIsSidebarOpen: (is
                      </div>
                   </div>
                   <Image src={"/Common/Logo.png"} width={200} height={200} alt="logo image here" className="lg:w-50 min-[500px]:w-48 w-[40vw] h-auto opacity-0 xl:flex hidden " />
-                  <div className=" xl:justify-between w-full max-lg:px-5 xl:flex hidden">
-                     <div className="flex gap-10 max-xl:flex-col">
-                        <div className="flex flex-col gap-4 max-md:place-self-start  max-sm:place-self-start! max-sm:pl-0">
-                           <strong className="fontInterSemiBold text-headingColor">Categories</strong>
-                           <ul className="flex flex-col gap-2">
-                              <li>
-                                 <Link href={"/contact-us"} className="hover:underline">
-                                    Contact Us
-                                 </Link>
-                              </li>
-                              <li>
-                                 <Link href={"/frequently-asked-questions"} className="hover:underline">
-                                    FAQs
-                                 </Link>
-                              </li>
-                              <li>Shipping & Delivery</li>
-                              <li>Returns & Exchanges</li>
-                              <li>Order Tracking</li>
-                           </ul>
-                        </div>
-                        <div className="flex flex-col gap-4 max-md:place-self-start  max-sm:place-self-start! max-sm:pl-0">
-                           <strong className="fontInterSemiBold text-headingColor">Categories</strong>
-                           <ul className="flex flex-col gap-2">
-                              <li>
-                                 <Link href={"/contact-us"} className="hover:underline">
-                                    Contact Us
-                                 </Link>
-                              </li>
-                              <li>
-                                 <Link href={"/frequently-asked-questions"} className="hover:underline">
-                                    FAQs
-                                 </Link>
-                              </li>
-                              <li>Shipping & Delivery</li>
-                              <li>Returns & Exchanges</li>
-                              <li>Order Tracking</li>
-                           </ul>
-                        </div>
+                  {/* Desktop nav — dynamic from menuData */}
+                  <div className="xl:justify-between w-full max-lg:px-5 xl:flex hidden">
+                     <div className="flex gap-16">
+                        {menuData.map((menuItem, i) => {
+                           const hasChildren = menuItem.children && menuItem.children.length > 0;
+                           if (!hasChildren) return null;
+
+                           return (
+                              <div key={i} className="flex gap-16">
+                                 {menuItem.children.map((section, j) => {
+                                    if (!("label" in section)) return null;
+
+                                    const sectionHasChildren = section.children && section.children.length > 0;
+
+                                    return (
+                                       <div key={j} className="flex flex-col gap-3">
+                                          <a href={section.label.href || "#"} className="fontInterSemiBold text-headingColor text-sm font-semibold">
+                                             {section.label.name}
+                                          </a>
+
+                                          {sectionHasChildren && (
+                                             <ul className="flex flex-col gap-2">
+                                                {section.children.map((child, k) => {
+                                                   if (!("name" in child)) return null;
+                                                   return (
+                                                      <li key={k}>
+                                                         <a href={child.href} className="text-sm text-gray-500 hover:text-black hover:underline transition-colors">
+                                                            {child.name}
+                                                         </a>
+                                                      </li>
+                                                   );
+                                                })}
+                                             </ul>
+                                          )}
+                                       </div>
+                                    );
+                                 })}
+                              </div>
+                           );
+                        })}
                      </div>
-                     <Image src={"/Dummy/Product/ProductImg2.png"} width={400} height={200} alt="logo image here" className="lg:w-72 min-[500px]:w-52 w-[40vw] h-full xl:flex hidden" />
+
+                     <Image src={"/Dummy/Product/ProductImg2.png"} width={400} height={200} alt="product image" className="lg:w-72 min-[500px]:w-52 w-[40vw] h-full xl:flex hidden" />
                   </div>
+
                   <div className="xl:hidden">
                      <div className="w-full">
                         {menuData.map((item, i) => (
