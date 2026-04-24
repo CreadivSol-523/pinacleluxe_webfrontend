@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Order, OrderStatus } from "@/Types/Order/OrderType";
 import Table from "@/components/Table/Table";
 import { formatDate } from "@/helper/FormateDateAndTime";
-import { StatusBadge } from "@/helper/StatusBadge";
+import { StatusBadge } from "@/ui/UI";
 
 // ── Mock Data ─────────────────────────────────────────────────────────────────
 const MOCK_ORDERS: Order[] = [
