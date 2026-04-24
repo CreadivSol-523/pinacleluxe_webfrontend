@@ -3,7 +3,7 @@ import Image from "next/image";
 import { useEffect, useRef } from "react";
 import { Row } from "../../ui/Admin/OrderManagement/OrderRows";
 import { formatDate, formatTime } from "@/helper/FormateDateAndTime";
-import { StatusBadge } from "@/helper/StatusBadge";
+import { StatusBadge } from "@/ui/UI";
 
 const STATUS_FLOW: Record<OrderStatus, OrderStatus | null> = {
    Pending: "Processing",
