@@ -1,11 +1,12 @@
 "use client";
 import { useFavoriteStore } from "@/Storage/UseFavoriteStore";
-import { Product, productCart, colorVariants } from "@/Types/Collection/CollectionTypes";
+import { Product, colorVariants } from "@/Types/Collection/CollectionTypes";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
 type ProductCardProps = {
+   // data: Omit<Product, "VariantSchema">;
    data: Product;
    isCart?: (value: boolean) => void;
    AddCartDetail?: (value: any) => void;
@@ -17,7 +18,7 @@ const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
 
    const { toggleFavorite, removeFromFavorites } = useFavoriteStore();
 
-   const isProductFavorite = useFavoriteStore((state) => state.favorites.some((fav) => fav.id === data?.id && fav.colorVariants === data.colorVariants?.[0]?.hex && fav.material === data.material?.[0]));
+   const isProductFavorite = useFavoriteStore((state) => state.favorites.some((fav) => fav.id === data?.id && fav.colorVariants === data.VariantSchema?.[0]?.colors?.[0]?.hex && fav.material === data.VariantSchema?.[0]?.material));
 
    return (
       <Link href={`/product/${data.slug || "tan"}`} className="group cursor-pointer  overflow-hidden   relative" title={data.name}>
@@ -46,7 +47,7 @@ const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
                   {isProductFavorite ? (
                      <Image
                         onClick={() => {
-                           removeFromFavorites(data.id || "", data.colorVariants?.[0].hex || "", data?.material?.[0]);
+                           removeFromFavorites(data.id || "", data.VariantSchema?.[0]?.colors?.[0]?.hex || "", data.VariantSchema?.[0]?.material);
                         }}
                         src={"/Icons/FillFavoriteIcon.svg"}
                         width={20}
@@ -61,11 +62,11 @@ const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
                               id: data.id || "",
                               name: data.name || "",
                               images: data.images?.[0] || "",
-                              price: data.price || 0,
-                              discountPrice: data.discountPrice || 0,
-                              stock: data.stock || 0,
-                              colorVariants: data.colorVariants?.[0].hex || "",
-                              material: data.material?.[0],
+                              price: data.VariantSchema?.[0]?.price || 0,
+                              discountPrice: data.VariantSchema?.[0]?.discountPrice || 0,
+                              stock: data.VariantSchema?.[0]?.stock || 0,
+                              colorVariants: data.VariantSchema?.[0]?.colors?.[0]?.hex || "",
+                              material: data.VariantSchema?.[0]?.material,
                            });
                         }}
                         src={"/Icons/HeartIcon.svg"}
@@ -95,7 +96,7 @@ const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
                      e.preventDefault();
                   }}
                >
-                  {data?.colorVariants
+                  {data?.VariantSchema?.[0]?.colors
                      ?.filter((item) => item.hex && item.images)
                      .map((item) =>
                         selectedColor.hex === item.hex ? (
@@ -109,9 +110,9 @@ const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
                </div>
                <h3 className="2xl:text-[20px]! xl:text-[19px]! text-[16px]! fontInterRegular">{data.name || "Easy Zipper Tote Bag"}</h3>
                <div className="flex items-center gap-4">
-                  <p>Rs {data?.price || "11,999"}</p>
+                  <p>Rs {data?.VariantSchema?.[0]?.price || "11,999"}</p>
                   <span className="py-0.5 px-2 bg-BtnBlack">
-                     <p className="text-white">-80% Rs {data?.discountPrice || "2500"}</p>
+                     <p className="text-white">-80% Rs {data?.VariantSchema?.[0]?.discountPrice || "2500"}</p>
                   </span>
                </div>
             </div>
