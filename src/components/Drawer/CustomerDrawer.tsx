@@ -1,11 +1,11 @@
 import { formatDate } from "@/helper/FormateDateAndTime";
 import { getInitials } from "@/helper/GetInitials";
-import { InfoRow } from "@/helper/InfoRow";
 import { Customer } from "@/Types/Customer/CustomerType";
 import { OrderStatus } from "@/Types/Order/OrderType";
 import Image from "next/image";
 import { useEffect } from "react";
 import { MOCK_CUSTOMERS } from "@/DummyData/Customers";
+import { InfoIconRow } from "@/ui/UI";
 
 const STATUS_STYLE: Record<OrderStatus, string> = {
    Pending: "bg-amber-50 text-amber-700",
@@ -73,7 +73,7 @@ export function CustomerDrawer({ customer, onClose }: { customer: Customer | nul
                      <div>
                         <p className="text-[10px] tracking-[0.12em] uppercase text-[#5E5F60] mb-3">Contact Info</p>
                         <div className="bg-[#F5F0E8] rounded-xl p-4 flex flex-col gap-2.5">
-                           <InfoRow
+                           <InfoIconRow
                               icon={
                                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                                     <path d="M2 3.5h10v8H2z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
@@ -82,7 +82,7 @@ export function CustomerDrawer({ customer, onClose }: { customer: Customer | nul
                               }
                               value={customer.email}
                            />
-                           <InfoRow
+                           <InfoIconRow
                               icon={
                                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                                     <path d="M3 2h2.5l1 3-1.5 1a7 7 0 003 3l1-1.5 3 1V11c0 1-4 3-8-4S2 3 3 2Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
@@ -90,7 +90,7 @@ export function CustomerDrawer({ customer, onClose }: { customer: Customer | nul
                               }
                               value={customer.phone}
                            />
-                           <InfoRow
+                           <InfoIconRow
                               icon={
                                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                                     <path d="M7 1.5C4.5 1.5 2.5 3.5 2.5 6c0 3.5 4.5 6.5 4.5 6.5s4.5-3 4.5-6.5c0-2.5-2-4.5-4.5-4.5Z" stroke="currentColor" strokeWidth="1.2" />
