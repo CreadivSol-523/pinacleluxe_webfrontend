@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import Products from "@/DummyData/Products.json";
-import { Product } from "@/Types/Collection/CollectionTypes";
+import { Product, VariantSchema } from "@/Types/Collection/CollectionTypes";
 import UpdateProductModal from "@/components/Modal/UpdateProductModal";
+import { useProductForm } from "@/Validations/Useproductform";
 
 // ── Stock badge ───────────────────────────────────────────────────────────────
 function StockBadge({ stock }: { stock?: number }) {
@@ -14,11 +15,14 @@ function StockBadge({ stock }: { stock?: number }) {
    if (s <= 5) return <span className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-amber-50 text-amber-600">Low Stock — {s}</span>;
    return <span className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-green-50 text-green-700">In Stock — {s}</span>;
 }
+export const selectCls = (error?: string) =>
+   `w-2/4 px-3.5 py-2.5 text-[13px] bg-[#F5F0E8] border rounded-lg text-headingColor focus:outline-none transition-colors cursor-pointer
+   ${error ? "border-red-400" : "border-[#B8975A]/20 focus:border-[#B8975A]/60"}`;
 
 // ── Info row ──────────────────────────────────────────────────────────────────
 function InfoRow({ label, children }: { label: string; children: React.ReactNode }) {
    return (
-      <div className="flex items-start justify-between py-3 border-b border-[#B8975A]/8 last:border-0">
+      <div className="flex items-center justify-between py-3 border-b border-[#B8975A]/8 last:border-0">
          <p className="text-[11px] tracking-widest uppercase text-[#5E5F60] font-medium w-32 shrink-0">{label}</p>
          <div className="flex-1 text-right">{children}</div>
       </div>
@@ -31,6 +35,13 @@ export default function SingleProductPage() {
    const [activeImage, setActiveImage] = useState<string>("");
    const [activeColor, setActiveColor] = useState(0);
    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+   const [selectedMaterials, setSelectedMaterials] = useState<VariantSchema>({
+      material: "",
+      price: 0,
+      discountPrice: 0,
+      stock: 0,
+      colors: [{ hex: "", images: [] }],
+   });
 
    const router = useRouter();
    const params = useParams();
@@ -56,14 +67,27 @@ export default function SingleProductPage() {
       );
    }
 
+   useEffect(() => {
+      setSelectedMaterials({
+         material: product?.VariantSchema?.[0]?.material || "",
+         price: product?.VariantSchema?.[0]?.price || 0,
+         discountPrice: product?.VariantSchema?.[0]?.discountPrice || 0,
+         colors: product?.VariantSchema?.[0]?.colors,
+         discountMode: "static",
+         stock: product?.VariantSchema?.[0]?.stock,
+      });
+   }, []);
+
    // colors[i].images is string[] (multiple images per color)
-   const colorImages: string[] = (product.colorVariants?.[activeColor] as any)?.images ?? ((product.colorVariants?.[activeColor] as any)?.image ? [(product.colorVariants?.[activeColor] as any).image] : []);
+   const colorImages: string[] = (selectedMaterials?.colors?.[activeColor] as any)?.images ?? ((selectedMaterials?.colors?.[activeColor] as any)?.image ? [(selectedMaterials?.colors?.[activeColor] as any).image] : []);
 
    // All thumbnails: color images first, then main images, then gallery — all deduped
    const allThumbnails: string[] = [...colorImages, ...(product.images ?? []), ...(product.gallery ?? [])].filter((img, idx, arr) => img && arr.indexOf(img) === idx);
 
    // Displayed main image
    const displayImage = activeImage || allThumbnails[0] || "";
+
+   const { errors } = useProductForm(() => {});
 
    return (
       <div className="flex flex-col gap-6">
@@ -160,14 +184,14 @@ export default function SingleProductPage() {
                <div className="bg-staticSecondaryBG rounded-xl p-4 border border-[#B8975A]/15 flex items-center justify-between">
                   <div>
                      <p className="text-[10px] tracking-[0.12em] uppercase text-[#5E5F60] mb-1">Price</p>
-                     <p className="font-serif text-[26px] font-semibold text-headingColor leading-none">Rs {product.price?.toLocaleString()}</p>
+                     <p className="font-serif text-[26px] font-semibold text-headingColor leading-none">Rs {selectedMaterials.price?.toLocaleString()}</p>
                   </div>
-                  {product.discountPrice && (
+                  {selectedMaterials && (
                      <div className="text-right">
                         <p className="text-[10px] tracking-[0.12em] uppercase text-[#5E5F60] mb-1">After Discount</p>
                         <div className="flex items-center gap-2 justify-end">
-                           <p className="font-serif text-[22px] font-semibold text-green-700 leading-none">Rs {product.discountPrice.toLocaleString()}</p>
-                           {product.discount && <span className="text-[11px] bg-primaryBG text-[#B8975A] px-2 py-0.5 rounded">-{product.discount}%</span>}
+                           <p className="font-serif text-[22px] font-semibold text-green-700 leading-none">Rs {selectedMaterials?.discountPrice?.toLocaleString()}</p>
+                           {selectedMaterials?.discountPrice && <span className="text-[11px] bg-primaryBG text-[#B8975A] px-2 py-0.5 rounded">-{selectedMaterials?.discountPrice}%</span>}
                         </div>
                      </div>
                   )}
@@ -176,10 +200,27 @@ export default function SingleProductPage() {
                {/* Details card */}
                <div className="bg-staticSecondaryBG rounded-xl border border-[#B8975A]/15 px-4">
                   <InfoRow label="Stock">
-                     <StockBadge stock={product.stock} />
+                     <StockBadge stock={product.VariantSchema?.[0]?.stock} />
                   </InfoRow>
-                  <InfoRow label="Material">
-                     <p className="text-[13px] text-headingColor">{product.material?.join(", ") || "—"}</p>
+                  <InfoRow label="Materials">
+                     <select
+                        value={selectedMaterials.material}
+                        className={selectCls(errors.singleMaterial)}
+                        onChange={(e) => {
+                           const selected = product.VariantSchema.find((m) => m.material === e.target.value);
+
+                           if (selected) {
+                              setSelectedMaterials(selected);
+                           }
+                        }}
+                     >
+                        <option value="">Select material...</option>
+                        {product.VariantSchema.map((m) => (
+                           <option key={m.material} value={m.material}>
+                              {m.material}
+                           </option>
+                        ))}
+                     </select>
                   </InfoRow>
                   <InfoRow label="Badge">{product.badge ? <span className="text-[11px] bg-primaryBG text-[#B8975A] px-2.5 py-1 rounded-full">{product.badge}</span> : <p className="text-[12px] text-[#5E5F60]">None</p>}</InfoRow>
                   <InfoRow label="ID">
@@ -196,11 +237,11 @@ export default function SingleProductPage() {
                )}
 
                {/* Color variants */}
-               {(product.colorVariants?.length ?? 0) > 0 && (
+               {(selectedMaterials?.colors?.length ?? 0) > 0 && (
                   <div>
-                     <p className="text-[10px] tracking-[0.12em] uppercase text-[#5E5F60] mb-3">Color Variants ({product.colorVariants?.length})</p>
+                     <p className="text-[10px] tracking-[0.12em] uppercase text-[#5E5F60] mb-3">Color Variants ({selectedMaterials?.colors?.length})</p>
                      <div className="flex flex-col gap-2">
-                        {product.colorVariants?.map((color, i) => {
+                        {selectedMaterials?.colors?.map((color, i) => {
                            const imgs: string[] = (color as any).images ?? ((color as any).image ? [(color as any).image] : []);
                            return (
                               <button

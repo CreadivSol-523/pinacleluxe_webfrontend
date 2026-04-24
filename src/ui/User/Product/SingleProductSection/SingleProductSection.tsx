@@ -7,11 +7,18 @@ import { products } from "../../../../DummyData/Products.json";
 import React, { useEffect, useEffectEvent, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { useCartStore } from "@/Storage/UseCartStore";
+import { VariantSchema } from "@/Types/Collection/CollectionTypes";
 import AccessoriesCard from "@/components/Cards/AccessoriesCard/AccessoriesCard";
 
 const SingleProductSection = () => {
    const [selectedColor, setSelectedColor] = useState<{ hex: string; images: string[] }>({ hex: "", images: [] });
-   const [selectedMaterials, setSelectedMaterials] = useState<string>("");
+   const [selectedMaterials, setSelectedMaterials] = useState<VariantSchema>({
+      material: "",
+      price: 0,
+      discountPrice: 0,
+      stock: 0,
+      colors: [{ hex: "", images: [] }],
+   });
    const [showAccessories, setShowAccessories] = useState<boolean>(false);
    const [quantity, setQuantity] = useState(1);
    const [accordion, setAccordion] = useState<number | null>();
@@ -47,7 +54,7 @@ const SingleProductSection = () => {
 
    const findProduct = products.find((item) => item.slug === id);
 
-   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === findProduct?.id && item.colorVariants === selectedColor.hex && item.material === selectedMaterials));
+   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === findProduct?.id && item.colorVariants === selectedColor.hex && item.material === selectedMaterials.material));
 
    const GetQuantitySelected = useEffectEvent(() => {
       setQuantity(GetCartSingleItem?.quantity || 1);
@@ -84,21 +91,28 @@ const SingleProductSection = () => {
    }, [GetCartSingleItem]);
 
    useEffect(() => {
-      setSelectedColor({ hex: findProduct?.colorVariants[0].hex || "", images: findProduct?.colorVariants[0].images || [] });
-      setSelectedMaterials(findProduct?.material[0] || "");
-   }, []);
+      setSelectedColor({ hex: findProduct?.VariantSchema?.[0]?.colors?.[0].hex || "", images: findProduct?.VariantSchema?.[0]?.colors?.[0].images || [] });
+      setSelectedMaterials({
+         material: findProduct?.VariantSchema?.[0]?.material || "",
+         price: findProduct?.VariantSchema?.[0]?.price || 0,
+         discountMode: "static",
+         discountPrice: findProduct?.VariantSchema?.[0]?.discountPrice,
+         colors: findProduct?.VariantSchema?.[0]?.colors,
+         stock: findProduct?.VariantSchema?.[0]?.stock,
+      });
+   }, [id]);
 
    // Update Quantity
    const handleIncreaseQuantity = () => {
-      const updateProductQuantity = quantity < (findProduct?.stock ?? 0) ? quantity + 1 : quantity;
+      const updateProductQuantity = quantity < (selectedMaterials?.stock ?? 0) ? quantity + 1 : quantity;
       setQuantity(updateProductQuantity);
-      updateQuantity(findProduct?.id || "", updateProductQuantity, selectedColor.hex, selectedMaterials);
+      updateQuantity(findProduct?.id || "", updateProductQuantity, selectedColor.hex, selectedMaterials.material);
    };
 
    const handleDecreaseQuantity = () => {
       const updateProductQuantity = quantity <= 1 ? 1 : quantity - 1;
       setQuantity(updateProductQuantity);
-      updateQuantity(findProduct?.id || "", updateProductQuantity, selectedColor.hex, selectedMaterials);
+      updateQuantity(findProduct?.id || "", updateProductQuantity, selectedColor.hex, selectedMaterials.material);
    };
 
    const images = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -123,6 +137,7 @@ const SingleProductSection = () => {
          block: "center",
       });
    };
+
    return (
       <section className="  flex relative items-start xl:gap-12 gap-5 max-md:flex-col">
          <div className="lg:pl-5 pl-0 flex flex-col xl:w-auto w-15 gap-2 max-xl:items-center max-xl:justify-center sticky top-30 max-xl:h-[calc(100vh-150px)] overflow-scroll [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-[950px]:hidden">
@@ -173,7 +188,7 @@ const SingleProductSection = () => {
             <p className="text-[#5E5F60]! lg:flex hidden">Cart / Shipping / {id}</p>
             <div className="flex flex-col gap-2.5">
                <h2 className="text-headingColor">{findProduct?.name}</h2>
-               <h3 className="text-[20px]! text-headingColor">Rs {findProduct?.price}</h3>
+               <h3 className="text-[20px]! text-headingColor">Rs {selectedMaterials.material !== "" ? selectedMaterials.price : findProduct?.VariantSchema[0]?.price}</h3>
             </div>
             <p className="text-textBlack">
                A lightweight Italian leather carryall with the most crucial feature A lightweight Italian leather carryall with the most crucial feature A lightweight Italian leather carryall with the most crucial feature A lightweight Italian leather carryall with the most crucial feature A
@@ -184,7 +199,7 @@ const SingleProductSection = () => {
                <div className="flex flex-col gap-2">
                   <p className="text-headingColor">Color - Green</p>
                   <div className="flex items-center flex-wrap gap-2">
-                     {findProduct?.colorVariants?.map((item, i) =>
+                     {selectedMaterials?.colors?.map((item, i) =>
                         selectedColor.hex === item.hex ? (
                            <div className="w-6 h-6 border-2 border-gray-500 cursor-pointer  rounded-full flex items-center justify-center" key={item.hex}>
                               <div className={`w-4 h-4 rounded-full ${item.hex}`} style={{ background: item.hex }} />
@@ -198,9 +213,9 @@ const SingleProductSection = () => {
                <div className="flex flex-col gap-2">
                   <p className="text-headingColor">Material:</p>
                   <div className="flex items-center flex-wrap  gap-3.5">
-                     {findProduct?.material.map((materials, i) => (
-                        <div key={i} className={`cursor-pointer active:scale-99 py-2 px-6 rounded-full border-2 ${selectedMaterials === materials ? "border-BtnBlack bg-BtnBlack" : "border-gray-400 bg-white"} `} onClick={() => setSelectedMaterials(materials)}>
-                           <p className={`${selectedMaterials === materials ? "text-white" : "text-textBlack"}  tracking-wide`}>{materials}</p>
+                     {findProduct?.VariantSchema.map((materials, i) => (
+                        <div key={i} className={`cursor-pointer active:scale-99 py-2 px-6 rounded-full border-2 ${selectedMaterials.material === materials.material ? "border-BtnBlack bg-BtnBlack" : "border-gray-400 bg-white"} `} onClick={() => setSelectedMaterials(materials)}>
+                           <p className={`${selectedMaterials.material === materials.material ? "text-white" : "text-textBlack"}  tracking-wide`}>{materials.material}</p>
                         </div>
                      ))}
                   </div>
@@ -214,7 +229,7 @@ const SingleProductSection = () => {
                         if (GetCartSingleItem) {
                            handleDecreaseQuantity();
                         } else {
-                           setQuantity((prev) => prev - 1);
+                           setQuantity((prev) => Math.max(1, prev - 1));
                         }
                      }}
                   />
@@ -224,7 +239,7 @@ const SingleProductSection = () => {
                         if (GetCartSingleItem) {
                            handleIncreaseQuantity();
                         } else {
-                           setQuantity((prev) => (prev < (findProduct?.stock ?? 0) ? prev + 1 : prev));
+                           setQuantity((prev) => (prev < (selectedMaterials?.stock ?? 0) ? prev + 1 : prev));
                         }
                      }}
                      className="w-4 h-4 cursor-pointer"
@@ -241,9 +256,9 @@ const SingleProductSection = () => {
                            name: findProduct?.name || "",
                            images: findProduct?.images?.[0] || "",
                            colorVariants: selectedColor.hex || "",
-                           material: selectedMaterials,
-                           price: findProduct?.price ?? 0,
-                           stock: findProduct?.stock || 0,
+                           material: selectedMaterials.material,
+                           price: selectedMaterials.price ?? 0,
+                           stock: selectedMaterials?.stock || 0,
                         },
                         quantity,
                      );
