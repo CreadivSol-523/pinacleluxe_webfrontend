@@ -1,4 +1,3 @@
-import { Toggle } from "@/components/Modal/AddCategoryModal";
 import { Category } from "@/Types/Category/Category";
 import Image from "next/image";
 import { CategoryRow } from "./CategoryRow";

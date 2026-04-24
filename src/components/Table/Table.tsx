@@ -256,14 +256,14 @@ const Table = <T extends Record<string, any>>({
                            <DropdownMenu onOpenChange={(e) => setIsOpenDropDown(e)} key={item?.mapKey || item?.key}>
                               <DropdownMenuTrigger asChild>
                                  <Button variant="outline" size="lg" className="ml-auto  border border-textColorLight dark:border-textColorDark">
-                                    {(filterObject as string)[item.key] === "" || (filterObject as string)[item.key] === undefined ? item.displayName : (filterObject as string)[item.key]}
+                                    {/* {(filterObject as string)[item.key] === "" || (filterObject as string)[item.key] === undefined ? item.displayName : (filterObject as string)[item.key]} */}
                                     {isOpenDropdown ? <ChevronDown /> : <ChevronUp />}
                                  </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                 <DropdownMenuItem key={item.key} onClick={() => HandleFilterChange(item?.key, "")}>
-                                    {item?.displayName}
-                                 </DropdownMenuItem>
+                                 {/* <DropdownMenuItem key={item.key} onClick={() => HandleFilterChange(item?.key, "")}>
+                                    {(item?.displayName && item?.displayName) || ""}
+                                 </DropdownMenuItem> */}
                                  {item?.select?.map((subItem: string | number) => (
                                     <DropdownMenuItem key={subItem} onClick={() => HandleFilterChange(item?.key, subItem)}>
                                        {subItem}
