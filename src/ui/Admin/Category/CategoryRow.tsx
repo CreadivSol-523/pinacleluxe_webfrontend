@@ -1,7 +1,7 @@
 "use client";
 
-import { Toggle } from "@/components/Modal/AddCategoryModal";
 import { Category } from "@/Types/Category/Category";
+import { Toggle } from "@/ui/UI";
 import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 
