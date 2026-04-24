@@ -1,12 +1,12 @@
 export interface Category {
-   id: string;
+   _id: string;
    name: string;
    slug: string;
-   image: string;
+   image: string | File;
    isActive: boolean;
-   parentId: string | null; // null = top-level category
-   children?: Category[]; // populated on frontend for tree view
+   parentId: string | null;
+   children?: Category[];
    createdAt?: string;
 }
 
-export type CategoryFormData = Omit<Category, "id" | "children" | "createdAt">;
+export type CategoryFormData = Omit<Category, "_id" | "children" | "createdAt">;

@@ -117,7 +117,7 @@ export function CategoryRow({
             {/* Thumbnail */}
             <div className="w-9 h-9 rounded-lg overflow-hidden bg-staticSecondaryBG border border-[#B8975A]/15 shrink-0">
                {cat.image ? (
-                  <Image src={cat.image} alt={cat.name} width={36} height={36} className="w-full h-full object-cover" />
+                  <Image src={cat.image as string} alt={cat.name} width={36} height={36} className="w-full h-full object-cover" />
                ) : (
                   <div className="w-full h-full flex items-center justify-center">
                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -148,19 +148,19 @@ export function CategoryRow({
             {/* Desktop: inline buttons */}
             <div className="hidden sm:flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                {depth === 0 && (
-                  <button onClick={onAddSub} title="Add subcategory" className="w-7 h-7 flex items-center justify-center rounded-lg text-[#B8975A] bg-[#B8975A]/10 transition-colors">
+                  <button onClick={onAddSub} title="Add subcategory" className="w-7 h-7 flex items-center justify-center cursor-pointer rounded-lg text-[#B8975A] bg-[#B8975A]/10 transition-colors">
                      <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
                         <path d="M6.5 2v9M2 6.5h9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                      </svg>
                   </button>
                )}
-               <button onClick={onEdit} title="Edit" className="w-7 h-7 flex items-center justify-center rounded-lg text-headingColor bg-[#B8975A] transition-colors">
+               <button onClick={onEdit} title="Edit" className="w-7 h-7 flex items-center justify-center rounded-lg text-headingColor bg-[#B8975A] transition-colors cursor-pointer">
                   <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
                      <path d="M9 2l2 2-7 7H2v-2L9 2Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
                   </svg>
                </button>
-               <button onClick={onDelete} title="Delete" className="w-7 h-7 flex items-center justify-center rounded-lg text-red-500 bg-red-50 transition-colors">
-                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+               <button onClick={onDelete} title="Delete" className="w-7 h-7 flex items-center justify-center rounded-lg text-red-500 bg-red-50 transition-colors cursor-pointer">
+                  <svg width="20" height="20" viewBox="0 0 13 13" fill="none">
                      <path d="M2 4h9M5 4V2.5h3V4M4 4l.5 6.5h4L9 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                </button>

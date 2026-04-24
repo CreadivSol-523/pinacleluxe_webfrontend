@@ -41,7 +41,7 @@ export const FieldInput = ({ value, onChange, placeholder, error }: { value: str
 export const Toggle = ({ active, onChange }: { active: boolean; onChange: () => void }) => (
    <button
       onClick={onChange}
-      className={`relative w-10 h-5 rounded-full transition-colors duration-200 shrink-0
+      className={`relative w-10 h-5 rounded-full transition-colors duration-200 shrink-0 cursor-pointer
          ${active ? "bg-[#B8975A]" : "bg-[#5E5F60]/30"}`}
    >
       <span

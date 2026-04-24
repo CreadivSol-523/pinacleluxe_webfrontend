@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { StoreHydration } from "@/Hooks/useHydration";
+import { NotificationProvider } from "@/context/NotificationContext";
+import StoreProvider from "./StoreProvider";
 
 export const metadata: Metadata = {
    title: "Create Next App",
@@ -16,8 +18,12 @@ export default function RootLayout({
    return (
       <html>
          <body>
-            <StoreHydration />
-            {children}
+            <StoreProvider>
+               <NotificationProvider>
+                  <StoreHydration />
+                  {children}
+               </NotificationProvider>
+            </StoreProvider>
          </body>
       </html>
    );
