@@ -1,5 +1,4 @@
 import MainLayout from "@/layout/MainLayout";
-import React from "react";
 import SingleProductSection from "@/ui/User/Product/SingleProductSection/SingleProductSection";
 import ThreeTabsSection from "@/ui/User/Product/ThreeTabsSection/ThreeTabsSection";
 import IntrestedInSection from "@/ui/User/Product/IntrestedInSection/IntrestedInSection";
