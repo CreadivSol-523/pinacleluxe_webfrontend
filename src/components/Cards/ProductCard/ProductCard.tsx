@@ -14,11 +14,11 @@ type ProductCardProps = {
 
 const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
    const [isHover, setIsHover] = useState(false);
-   const [selectedColor, setSelectedColor] = useState<colorVariants>({ hex: "", images: [] });
+   const [selectedColor, setSelectedColor] = useState<colorVariants>({ hex: { code: "", colorName: "" }, images: [] });
 
    const { toggleFavorite, removeFromFavorites } = useFavoriteStore();
 
-   const isProductFavorite = useFavoriteStore((state) => state.favorites.some((fav) => fav.id === data?.id && fav.colorVariants === data.VariantSchema?.[0]?.colors?.[0]?.hex && fav.material === data.VariantSchema?.[0]?.material));
+   const isProductFavorite = useFavoriteStore((state) => state.favorites.some((fav) => fav.id === data?._id && fav.colorVariants === data.VariantSchema?.[0]?.colors?.[0]?.hex?.code && fav.material === data.VariantSchema?.[0]?.material));
 
    return (
       <Link href={`/product/${data.slug || "tan"}`} className="group cursor-pointer  overflow-hidden   relative" title={data.name}>
@@ -47,7 +47,7 @@ const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
                   {isProductFavorite ? (
                      <Image
                         onClick={() => {
-                           removeFromFavorites(data.id || "", data.VariantSchema?.[0]?.colors?.[0]?.hex || "", data.VariantSchema?.[0]?.material);
+                           removeFromFavorites(data._id || "", data.VariantSchema?.[0]?.colors?.[0]?.hex?.code || "", data.VariantSchema?.[0]?.material);
                         }}
                         src={"/Icons/FillFavoriteIcon.svg"}
                         width={20}
@@ -59,13 +59,13 @@ const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
                      <Image
                         onClick={() => {
                            toggleFavorite({
-                              id: data.id || "",
+                              id: data._id || "",
                               name: data.name || "",
                               images: data.images?.[0] || "",
                               price: data.VariantSchema?.[0]?.price || 0,
                               discountPrice: data.VariantSchema?.[0]?.discountPrice || 0,
                               stock: data.VariantSchema?.[0]?.stock || 0,
-                              colorVariants: data.VariantSchema?.[0]?.colors?.[0]?.hex || "",
+                              colorVariants: data.VariantSchema?.[0]?.colors?.[0]?.hex?.code || "",
                               material: data.VariantSchema?.[0]?.material,
                            });
                         }}
@@ -97,14 +97,14 @@ const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
                   }}
                >
                   {data?.VariantSchema?.[0]?.colors
-                     ?.filter((item) => item.hex && item.images)
+                     ?.filter((item) => item.hex.code && item.images)
                      .map((item) =>
-                        selectedColor.hex === item.hex ? (
-                           <div className="xl:w-4.5 xl:h-4.5 w-3.5 h-3.5 border-2 border-gray-500 cursor-pointer  rounded-full flex items-center justify-center" key={item.hex}>
-                              <div className={`xl:w-3 xl:h-3 w-2 h-2 rounded-full ${item.hex}`} style={{ background: item.hex }} />
+                        selectedColor.hex?.code === item.hex?.code ? (
+                           <div className="xl:w-4.5 xl:h-4.5 w-3.5 h-3.5 border-2 border-gray-500 cursor-pointer  rounded-full flex items-center justify-center" key={item.hex.code}>
+                              <div className={`xl:w-3 xl:h-3 w-2 h-2 rounded-full ${item.hex}`} style={{ background: item.hex?.code }} />
                            </div>
                         ) : (
-                           <div onClick={() => setSelectedColor({ hex: item.hex, images: item.images })} key={item.hex} className="xl:w-4.5 xl:h-4.5 w-3.5 h-3.5 rounded-full" style={{ backgroundColor: item.hex }} />
+                           <div onClick={() => setSelectedColor({ hex: { code: item.hex?.code, colorName: item.hex?.colorName }, images: item.images })} key={item.hex?.code} className="xl:w-4.5 xl:h-4.5 w-3.5 h-3.5 rounded-full" style={{ backgroundColor: item.hex?.code }} />
                         ),
                      )}
                </div>

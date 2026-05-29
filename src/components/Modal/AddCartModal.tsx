@@ -5,10 +5,10 @@ import { Minus, Plus } from "lucide-react";
 import Button from "../Button/Button";
 import { ModalType } from "@/Types/Modal/ModalType";
 import { useCartStore } from "@/Storage/UseCartStore";
-import { VariantSchema } from "@/Types/Collection/CollectionTypes";
+import { colorVariants, VariantSchema } from "@/Types/Collection/CollectionTypes";
 
 const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) => {
-   const [selectedColor, setSelectedColor] = useState<{ hex: string; images: string[] }>({ hex: "", images: [] });
+   const [selectedColor, setSelectedColor] = useState<colorVariants>({ hex: { code: "", colorName: "" }, images: [] });
    const [selectedMaterials, setSelectedMaterials] = useState<VariantSchema>({
       material: selectedProduct?.VariantSchema?.[0]?.material || "",
       price: selectedProduct?.VariantSchema?.[0].price || 0,
@@ -25,7 +25,7 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
 
    const { addToCart, updateQuantity } = useCartStore();
 
-   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === selectedProduct?.id && item.colorVariants === selectedColor.hex && item.material === selectedMaterials.material));
+   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === selectedProduct?._id && item.colorVariants === selectedColor.hex?.code && item.material === selectedMaterials.material));
 
    const GetQuantitySelected = useEffectEvent(() => {
       setQuantity(GetCartSingleItem?.quantity || 1);
@@ -40,17 +40,17 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
    const handleIncreaseQuantity = () => {
       const updateProductQuantity = quantity < (selectedMaterials?.stock ?? 0) ? quantity + 1 : quantity;
       setQuantity(updateProductQuantity);
-      updateQuantity(selectedProduct?.id || "", updateProductQuantity, selectedColor.hex, selectedMaterials.material);
+      updateQuantity(selectedProduct?._id || "", updateProductQuantity, selectedColor.hex?.code, selectedMaterials.material);
    };
 
    const handleDecreaseQuantity = () => {
       const updateProductQuantity = quantity == 1 ? 1 : quantity - 1;
       setQuantity(updateProductQuantity);
-      updateQuantity(selectedProduct?.id || "", updateProductQuantity, selectedColor.hex, selectedMaterials.material);
+      updateQuantity(selectedProduct?._id || "", updateProductQuantity, selectedColor.hex?.code, selectedMaterials.material);
    };
 
    const onProductChange = useEffectEvent(() => {
-      setSelectedColor({ hex: selectedProduct?.VariantSchema?.[0].colors?.[0]?.hex || "", images: selectedProduct?.images || [] });
+      setSelectedColor({ hex: { code: selectedProduct?.VariantSchema?.[0]?.colors?.[0]?.hex?.code || "", colorName: selectedProduct?.VariantSchema?.[0]?.colors?.[0]?.hex?.colorName || "" }, images: selectedProduct?.images || [] });
       setSelectedMaterials({
          material: selectedProduct?.VariantSchema?.[0]?.material || "",
          price: selectedProduct?.VariantSchema?.[0].price || 0,
@@ -177,12 +177,12 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                      <p className="text-headingColor">Color - Green</p>
                      <div className="flex items-center flex-wrap gap-2">
                         {selectedMaterials?.colors?.map((item, i) =>
-                           selectedColor.hex === item.hex ? (
-                              <div className="w-6 h-6 border-2 border-gray-500 cursor-pointer  rounded-full flex items-center justify-center" key={item.hex}>
-                                 <div className={`w-4 h-4 rounded-full bg-[${item.hex}]`} style={{ background: item.hex }} />
+                           selectedColor.hex?.code === item.hex?.code ? (
+                              <div className="w-6 h-6 border-2 border-gray-500 cursor-pointer  rounded-full flex items-center justify-center" key={item.hex?.code}>
+                                 <div className={`w-4 h-4 rounded-full bg-[${item.hex}]`} style={{ background: item.hex?.code }} />
                               </div>
                            ) : (
-                              <div onClick={() => setSelectedColor({ hex: item.hex, images: item.images })} className={`w-6 h-6 cursor-pointer rounded-full ${item.hex}`} style={{ background: item.hex }} key={i} />
+                              <div onClick={() => setSelectedColor({ hex: item.hex, images: item.images })} className={`w-6 h-6 cursor-pointer rounded-full ${item.hex}`} style={{ background: item.hex?.code }} key={i} />
                            ),
                         )}
                      </div>
@@ -232,10 +232,10 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                            } else {
                               addToCart(
                                  {
-                                    id: selectedProduct?.id || "",
+                                    id: selectedProduct?._id || "",
                                     name: selectedProduct?.name || "",
                                     images: selectedProduct?.images?.[0] || "",
-                                    colorVariants: selectedColor.hex,
+                                    colorVariants: selectedColor.hex?.code || "",
                                     material: selectedMaterials.material,
                                     price: selectedMaterials?.price ?? 0,
                                     stock: selectedMaterials?.stock || 0,

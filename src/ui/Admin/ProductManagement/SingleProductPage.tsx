@@ -40,7 +40,7 @@ export default function SingleProductPage() {
       price: 0,
       discountPrice: 0,
       stock: 0,
-      colors: [{ hex: "", images: [] }],
+      colors: [{ hex: { code: "", colorName: "" }, images: [] }],
    });
 
    const router = useRouter();
@@ -48,7 +48,7 @@ export default function SingleProductPage() {
    const id = params?.id;
 
    const allProducts: Product[] = Products.products;
-   const product = useMemo(() => allProducts.find((p) => p.id === id), [allProducts, id]);
+   const product = useMemo(() => allProducts.find((p) => p._id === id), [allProducts, id]);
 
    // ── Not found ─────────────────────────────────────────────────────────────
    if (!product) {
@@ -100,7 +100,6 @@ export default function SingleProductPage() {
                Back to Products
             </button>
             <div className="flex items-center gap-3">
-               {/* Delete */}
                {showDeleteConfirm ? (
                   <div className="flex items-center gap-2">
                      <p className="text-[12px] text-[#5E5F60]">Are you sure?</p>
@@ -224,7 +223,7 @@ export default function SingleProductPage() {
                   </InfoRow>
                   <InfoRow label="Badge">{product.badge ? <span className="text-[11px] bg-primaryBG text-[#B8975A] px-2.5 py-1 rounded-full">{product.badge}</span> : <p className="text-[12px] text-[#5E5F60]">None</p>}</InfoRow>
                   <InfoRow label="ID">
-                     <p className="text-[11px] text-[#5E5F60] font-mono">{product.id}</p>
+                     <p className="text-[11px] text-[#5E5F60] font-mono">{product._id}</p>
                   </InfoRow>
                </div>
 
@@ -245,7 +244,7 @@ export default function SingleProductPage() {
                            const imgs: string[] = (color as any).images ?? ((color as any).image ? [(color as any).image] : []);
                            return (
                               <button
-                                 key={color.hex}
+                                 key={color.hex.code}
                                  onClick={() => {
                                     setActiveColor(i);
                                     setActiveImage(imgs[0] ?? "");
@@ -254,9 +253,9 @@ export default function SingleProductPage() {
                                     ${activeColor === i ? "border-[#B8975A] bg-[#B8975A]/5" : "border-[#B8975A]/15 bg-staticSecondaryBG hover:border-[#B8975A]/30"}`}
                               >
                                  {/* Color swatch */}
-                                 <div className="w-8 h-8 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: color.hex }} />
+                                 <div className="w-8 h-8 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: color.hex.code }} />
                                  <div className="flex-1 text-left">
-                                    <p className="text-[12px] font-mono text-[#5E5F60]">{color.hex}</p>
+                                    <p className="text-[12px] font-mono text-[#5E5F60]">{color.hex.colorName}</p>
                                     <p className="text-[10px] text-[#5E5F60]/70 mt-0.5">
                                        {imgs.length} image{imgs.length !== 1 ? "s" : ""}
                                     </p>
