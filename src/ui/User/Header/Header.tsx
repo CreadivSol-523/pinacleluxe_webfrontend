@@ -122,12 +122,8 @@ const Header = ({ setIsSidebarOpen, setIsFavoriteOpen }: { setIsSidebarOpen: (is
 
    return (
       <>
-         {/* ${scrolled ? "top-0!" : "top-11"} */}
-         <header
-            onMouseLeave={() => setIsNavbar(false)}
-            className={`lg:px-10 px-5 h-17.5 flex z-60! items-center border-b justify-between border-b-gray-200 fixed w-full  bg-white transition-all duration-75 top-11!  
-               `}
-         >
+         {/* <header onMouseLeave={() => setIsNavbar(false)} className={`lg:px-10 px-5 h-17.5 flex z-60! items-center border-b justify-between border-b-gray-200 fixed w-full  bg-white transition-all duration-75    ${scrolled ? "top-0!" : "top-11"}`}> */}
+         <header onMouseLeave={() => setIsNavbar(false)} className={`lg:px-10 px-5 h-17.5 flex z-60! items-center border-b justify-between border-b-gray-200 sticky top-0! w-full bg-white transition-all duration-300`}>
             <TextAlignJustify className="xl:hidden min-[500px]:w-auto w-[6vw] min-[500px]:hidden flex" onClick={() => setIsSidebar(true)} />
             <div className="flex items-center gap-10">
                <TextAlignJustify className="xl:hidden hidden min-[500px]:w-auto w-[6vw] min-[500px]:flex" onClick={() => setIsSidebar(true)} />

@@ -173,10 +173,10 @@ function ColorSection({
          <div className="flex items-center gap-3">
             <div className="flex flex-col gap-1 items-center">
                <div className="relative w-12 h-10 rounded-lg overflow-hidden border border-[#B8975A]/20">
-                  <input type="color" value={colorDraft.hex} onChange={(e) => setColorDraft((p) => ({ ...p, hex: e.target.value }))} className="absolute inset-0 w-full h-full cursor-pointer opacity-0" />
-                  <div className="w-full h-full rounded-lg" style={{ backgroundColor: colorDraft.hex }} />
+                  <input type="color" value={colorDraft.hex.code} onChange={(e) => setColorDraft((p) => ({ ...p, hex: { ...p.hex, code: e.target.value } }))} className="absolute inset-0 w-full h-full cursor-pointer opacity-0" />
+                  <div className="w-full h-full rounded-lg" style={{ backgroundColor: colorDraft.hex.code }} />
                </div>
-               <p className="text-[9px] text-[#5E5F60] font-mono">{colorDraft.hex}</p>
+               <p className="text-[9px] text-[#5E5F60] font-mono">{colorDraft.hex.code}</p>
             </div>
             <div className="flex-1">
                <p className="text-[11px] font-medium text-headingColor">Pick a color</p>
@@ -263,14 +263,14 @@ function ColorSection({
             <div className="flex flex-col gap-2">
                <p className="text-[10px] tracking-widest uppercase text-[#5E5F60]">Added ({addedColors.length})</p>
                {addedColors.map((c) => (
-                  <div key={c.hex} className="bg-staticSecondaryBG rounded-xl border border-[#B8975A]/10 overflow-hidden">
+                  <div key={c.hex.code} className="bg-staticSecondaryBG rounded-xl border border-[#B8975A]/10 overflow-hidden">
                      <div className="flex items-center gap-3 px-3 py-2 border-b border-[#B8975A]/10">
-                        <div className="w-5 h-5 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: c.hex }} />
-                        <p className="text-[11px] font-mono text-[#5E5F60] flex-1">{c.hex}</p>
+                        <div className="w-5 h-5 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: c.hex.code }} />
+                        <p className="text-[11px] font-mono text-[#5E5F60] flex-1">{c.hex.code}</p>
                         <p className="text-[11px] text-[#5E5F60]">
                            {c.images.length} img{c.images.length !== 1 ? "s" : ""}
                         </p>
-                        <button onClick={() => onRemoveColor(c.hex)} className="text-[#5E5F60] hover:text-red-500 transition-colors">
+                        <button onClick={() => onRemoveColor(c.hex.code)} className="text-[#5E5F60] hover:text-red-500 transition-colors">
                            <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
                               <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
                            </svg>
@@ -281,7 +281,7 @@ function ColorSection({
                            <div key={i} className="relative group aspect-square rounded-lg overflow-hidden border border-[#B8975A]/10 bg-[#F5F0E8]">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img src={img} alt="" className="w-full h-full object-cover" />
-                              <button onClick={() => onRemoveColorImage(c.hex, i)} className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button onClick={() => onRemoveColorImage(c.hex.code, i)} className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                  <svg width="7" height="7" viewBox="0 0 8 8" fill="none">
                                     <path d="M1 1l6 6M7 1L1 7" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
                                  </svg>
@@ -327,11 +327,11 @@ function VariantCard({ variant, onRemove, onRemoveColor, onRemoveColorImage }: {
          {expanded && hasColors && (
             <div className="border-t border-[#B8975A]/10 p-2.5 flex flex-col gap-2">
                {variant.colors!.map((c) => (
-                  <div key={c.hex} className="bg-staticSecondaryBG rounded-xl border border-[#B8975A]/10 overflow-hidden">
+                  <div key={c.hex.code} className="bg-staticSecondaryBG rounded-xl border border-[#B8975A]/10 overflow-hidden">
                      <div className="flex items-center gap-2 px-3 py-2 border-b border-[#B8975A]/10">
-                        <div className="w-4 h-4 rounded-full border border-black/10" style={{ backgroundColor: c.hex }} />
-                        <p className="text-[11px] font-mono text-[#5E5F60] flex-1">{c.hex}</p>
-                        <button onClick={() => onRemoveColor(c.hex)} className="text-[#5E5F60] hover:text-red-500 transition-colors">
+                        <div className="w-4 h-4 rounded-full border border-black/10" style={{ backgroundColor: c.hex.code }} />
+                        <p className="text-[11px] font-mono text-[#5E5F60] flex-1">{c.hex.code}</p>
+                        <button onClick={() => onRemoveColor(c.hex.code)} className="text-[#5E5F60] hover:text-red-500 transition-colors">
                            <svg width="11" height="11" viewBox="0 0 14 14" fill="none">
                               <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
                            </svg>
@@ -342,7 +342,7 @@ function VariantCard({ variant, onRemove, onRemoveColor, onRemoveColorImage }: {
                            <div key={i} className="relative group aspect-square rounded-lg overflow-hidden border border-[#B8975A]/10 bg-[#F5F0E8]">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img src={img} alt="" className="w-full h-full object-cover" />
-                              <button onClick={() => onRemoveColorImage(c.hex, i)} className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button onClick={() => onRemoveColorImage(c.hex.code, i)} className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                  <svg width="7" height="7" viewBox="0 0 8 8" fill="none">
                                     <path d="M1 1l6 6M7 1L1 7" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
                                  </svg>

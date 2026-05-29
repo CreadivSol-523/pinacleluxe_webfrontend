@@ -19,7 +19,16 @@ body {
   /* box-sizing: border-box; */
   /* margin: 0; */
 }
+@keyframes hide-bar {
+  from { height: 44px; }
+  to { height: 0px; overflow: hidden; }
+}
 
+#topbar {
+  animation: hide-bar linear both;
+  animation-timeline: scroll();
+  animation-range: 0px 44px;
+}
 /* Custom Colors */
 @theme {
   /* Static Backgrounds */

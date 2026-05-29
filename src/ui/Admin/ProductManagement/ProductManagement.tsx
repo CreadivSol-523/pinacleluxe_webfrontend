@@ -61,7 +61,7 @@ const columns = [
                variant.colors
                   ?.filter((c) => c.hex)
                   .slice(0, 5)
-                  .map((c) => <div key={c.hex} className="w-4 h-4 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: c.hex }} />),
+                  .map((c) => <div key={c.hex.code} className="w-4 h-4 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: c.hex.code }} />),
             )}
 
             {(item?.VariantSchema?.[0]?.colors?.length ?? 0) > 5 && <span className="text-[10px] text-[#5E5F60]">+{(item?.VariantSchema?.[0]?.colors?.length || 0) - 5}</span>}
