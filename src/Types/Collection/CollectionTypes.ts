@@ -24,7 +24,7 @@ export interface productCart {
 // }
 
 export interface Product {
-   id?: string;
+   _id?: string;
    name?: string;
    slug?: string;
    description?: string;
@@ -38,7 +38,7 @@ export interface Product {
 }
 
 export interface colorVariants {
-   hex: string;
+   hex: { code: string; colorName: string };
    images: string[];
 }
 
@@ -47,7 +47,7 @@ export interface VariantSchema {
    price: number | null;
    colors?: colorVariants[];
    discountPrice?: number;
-   discountValue?: number;
+   discountedValue?: number;
    discountMode?: "percentage" | "static";
    stock?: number;
 }

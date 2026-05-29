@@ -418,7 +418,7 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
          VariantSchema: initialData?.VariantSchema ?? [],
       });
       // eslint-disable-next-line react-hooks/exhaustive-deps
-   }, [initialData?.id, isOpen]);
+   }, [initialData?._id, isOpen]);
 
    useEffect(() => {
       const handler = (e: KeyboardEvent) => {

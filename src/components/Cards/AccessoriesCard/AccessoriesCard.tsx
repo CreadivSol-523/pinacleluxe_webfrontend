@@ -7,10 +7,10 @@ import Image from "next/image";
 const AccessoriesCard = ({ product, isButton = true, selectedColor, selectedMaterials }: { product: Product; isButton: boolean; selectedColor: { hex: string; images: string[] }; selectedMaterials: VariantSchema }) => {
    const { addToCart, updateQuantity } = useCartStore();
 
-   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === product?.id && item.colorVariants === selectedColor.hex && item.material === selectedMaterials.material));
+   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === product?._id && item.colorVariants === selectedColor.hex && item.material === selectedMaterials.material));
 
    return (
-      <div className="flex items-center gap-6 " key={product?.id}>
+      <div className="flex items-center gap-6 " key={product?._id}>
          <Image src={product?.images?.[0] || "/Dummy/Product/ProductImg.png"} alt="sidebar card" width={80} height={100} />
          <div className="flex flex-col justify-between  gap-2.5 ">
             <p className="text-headingColor">{product?.name || "Easy Zipper Tote"}</p>
@@ -27,7 +27,7 @@ const AccessoriesCard = ({ product, isButton = true, selectedColor, selectedMate
                      onClick={() => {
                         addToCart(
                            {
-                              id: product?.id || "",
+                              id: product?._id || "",
                               name: product?.name || "",
                               images: product?.images?.[0] || "",
                               colorVariants: selectedColor.hex,

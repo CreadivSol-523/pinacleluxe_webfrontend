@@ -16,7 +16,7 @@
                "stock": 2,
                "colors": [
                   {
-                     "hex": "#8E4B2E",
+                     "hex": { "code": "#A9746E", "colorName": "Brown" },
                      "images": [
                         "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600",
                         "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600",
@@ -27,9 +27,9 @@
                         "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
                      ]
                   },
-                  { "hex": "#A9746E", "images": ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"] },
-                  { "hex": "#5A3E36", "images": ["https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"] },
-                  { "hex": "#6F4E37", "images": ["https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"] }
+                  { "hex": { "code": "#A9746E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"] },
+                  { "hex": { "code": "#A9746E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"] },
+                  { "hex": { "code": "#A9746E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"] }
                ]
             }
          ]
@@ -49,10 +49,10 @@
                "discountPrice": 4999,
                "stock": 18,
                "colors": [
-                  { "hex": "#8E4B2E", "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] },
-                  { "hex": "#A9746E", "images": ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"] },
-                  { "hex": "#5A3E36", "images": ["https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"] },
-                  { "hex": "#6F4E37", "images": ["https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"] }
+                  { "hex": { "code": "#A9746E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] },
+                  { "hex": { "code": "#A9746E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"] },
+                  { "hex": { "code": "#A9746E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"] },
+                  { "hex": { "code": "#A9746E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"] }
                ]
             },
             {
@@ -60,14 +60,14 @@
                "price": 12999,
                "discountPrice": 4999,
                "stock": 18,
-               "colors": [{ "hex": "#8E4B2E", "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] }]
+               "colors": [{ "hex": { "code": "#A9746E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] }]
             },
             {
                "material": "canvas",
                "price": 14999,
                "discountPrice": 4999,
                "stock": 18,
-               "colors": [{ "hex": "#8E4B2E", "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] }]
+               "colors": [{ "hex": { "code": "#A9746E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] }]
             }
          ]
       },
@@ -87,10 +87,10 @@
                "discountPrice": 3200,
                "stock": 40,
                "colors": [
-                  { "hex": "#8E4B2E", "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] },
-                  { "hex": "#A9746E", "images": ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"] },
-                  { "hex": "#5A3E36", "images": ["https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"] },
-                  { "hex": "#6F4E37", "images": ["https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"] }
+                  { "hex": { "code": "#A9746E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] },
+                  { "hex": { "code": "#A9746E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"] },
+                  { "hex": { "code": "#A9746E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"] },
+                  { "hex": { "code": "#A9746E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"] }
                ]
             }
          ]
@@ -111,10 +111,10 @@
                "discountPrice": 7200,
                "stock": 12,
                "colors": [
-                  { "hex": "#8E4B2E", "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] },
-                  { "hex": "#A9746E", "images": ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"] },
-                  { "hex": "#5A3E36", "images": ["https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"] },
-                  { "hex": "#6F4E37", "images": ["https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"] }
+                  { "hex": { "code": "#A9746E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] },
+                  { "hex": { "code": "#A9746E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"] },
+                  { "hex": { "code": "#A9746E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"] },
+                  { "hex": { "code": "#A9746E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"] }
                ]
             }
          ]
@@ -134,10 +134,10 @@
                "discountPrice": 4100,
                "stock": 5,
                "colors": [
-                  { "hex": "#8E4B2E", "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] },
-                  { "hex": "#A9746E", "images": ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"] },
-                  { "hex": "#5A3E36", "images": ["https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"] },
-                  { "hex": "#6F4E37", "images": ["https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"] }
+                  { "hex": { "code": "#A9746E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] },
+                  { "hex": { "code": "#A9746E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"] },
+                  { "hex": { "code": "#A9746E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"] },
+                  { "hex": { "code": "#A9746E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"] }
                ]
             },
             {
@@ -145,14 +145,14 @@
                "price": 12999,
                "discountPrice": 4100,
                "stock": 30,
-               "colors": [{ "hex": "#8E4B2E", "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] }]
+               "colors": [{ "hex": { "code": "#A9746E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] }]
             },
             {
                "material": "canvas",
                "price": 14999,
                "discountPrice": 4100,
                "stock": 30,
-               "colors": [{ "hex": "#8E4B2E", "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] }]
+               "colors": [{ "hex": { "code": "#A9746E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] }]
             }
          ]
       },
@@ -172,10 +172,10 @@
                "discountPrice": 10999,
                "stock": 10,
                "colors": [
-                  { "hex": "#8E4B2E", "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] },
-                  { "hex": "#A9746E", "images": ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"] },
-                  { "hex": "#5A3E36", "images": ["https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"] },
-                  { "hex": "#6F4E37", "images": ["https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"] }
+                  { "hex": { "code": "#A9746E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] },
+                  { "hex": { "code": "#A7A46E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"] },
+                  { "hex": { "code": "#A9446E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"] },
+                  { "hex": { "code": "#B9146E", "colorName": "Brown" }, "images": ["https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"] }
                ]
             }
          ]
