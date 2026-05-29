@@ -57,14 +57,14 @@ const MainLayout = ({ children, isHeader = true, isFooter = true, isFilter, setI
             </div>
          </div>
          {isHeader ? (
-            <div className={`h-28.5 relative  ${isCartOpen || isFavoriteOpen ? "z-50 " : "z-60 delay-500"}`}>
+            <div className={`${isCartOpen || isFavoriteOpen ? "fixed w-full z-50" : "fixed w-full z-60 delay-500"}`}>
                <TopBar />
                <Header setIsSidebarOpen={setIsCartOpen} setIsFavoriteOpen={setIsFavoriteOpen} />
             </div>
          ) : (
             <TopBar />
          )}
-         <div>{children}</div>
+         <div className="pt-28.5!">{children}</div>
          {isFooter && <Footer />}
       </main>
    );

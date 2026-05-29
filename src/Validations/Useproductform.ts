@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Product, VariantSchema, colorVariants } from "@/Types/Collection/CollectionTypes";
 
 export interface ColorVariant {
-   hex: string;
+   hex: { code: string; colorName: string };
    images: string[];
 }
 
@@ -133,7 +133,10 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
    const [variantDraft, setVariantDraft] = useState<VariantDraft>(emptyVariantDraft());
 
    // colorDraft is shared — used for both single & multi mode
-   const [colorDraft, setColorDraft] = useState<ColorVariant>({ hex: "#000000", images: [] });
+   const [colorDraft, setColorDraft] = useState<ColorVariant>({
+      hex: { code: "#000000", colorName: "" },
+      images: [],
+   });
 
    // ── Product-level ─────────────────────────────────────────────────────────
    const setField = <K extends keyof ProductFormData>(key: K, value: ProductFormData[K]) => {
@@ -155,7 +158,7 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       setForm((prev) => ({ ...prev, isVariable: !prev.isVariable, VariantSchema: [] }));
       setSingleVariant(emptySingleVariant());
       setVariantDraft(emptyVariantDraft());
-      setColorDraft({ hex: "#000000", images: [] });
+      setColorDraft({ hex: { code: "#000000", colorName: "" }, images: [] });
       setErrors({});
    };
 
@@ -201,6 +204,7 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       setColorDraft((prev) => ({ ...prev, images: prev.images.filter((_, i) => i !== idx) }));
    };
 
+   // addColorToTarget — hex compare fix
    const addColorToTarget = (target: "single" | "draft") => {
       if (!colorDraft.images.length) {
          setErrors((prev) => ({ ...prev, colorImage: "Add at least one image" }));
@@ -208,44 +212,44 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       }
 
       if (target === "single") {
-         if (singleVariant.colors.some((c) => c.hex === colorDraft.hex)) {
+         if (singleVariant.colors.some((c) => c.hex.code === colorDraft.hex.code)) {
             setErrors((prev) => ({ ...prev, colorHex: "Color already added" }));
             return;
          }
          setSingleVariant((prev) => ({ ...prev, colors: [...prev.colors, { ...colorDraft }] }));
       } else {
-         if (variantDraft.colors.some((c) => c.hex === colorDraft.hex)) {
+         if (variantDraft.colors.some((c) => c.hex.code === colorDraft.hex.code)) {
             setErrors((prev) => ({ ...prev, colorHex: "Color already added" }));
             return;
          }
          setVariantDraft((prev) => ({ ...prev, colors: [...prev.colors, { ...colorDraft }] }));
       }
 
-      setColorDraft({ hex: "#000000", images: [] });
+      setColorDraft({ hex: { code: "#000000", colorName: "" }, images: [] });
       setErrors((prev) => ({ ...prev, colorHex: undefined, colorImage: undefined }));
    };
 
    // Remove color from single variant
    const removeSingleColor = (hex: string) => {
-      setSingleVariant((prev) => ({ ...prev, colors: prev.colors.filter((c) => c.hex !== hex) }));
+      setSingleVariant((prev) => ({ ...prev, colors: prev.colors.filter((c) => c.hex.code !== hex) }));
    };
 
    const removeSingleColorImage = (hex: string, idx: number) => {
       setSingleVariant((prev) => ({
          ...prev,
-         colors: prev.colors.map((c) => (c.hex === hex ? { ...c, images: c.images.filter((_, i) => i !== idx) } : c)),
+         colors: prev.colors.map((c) => (c.hex.code === hex ? { ...c, images: c.images.filter((_, i) => i !== idx) } : c)),
       }));
    };
 
    // Remove color from variant draft
    const removeColorFromVariantDraft = (hex: string) => {
-      setVariantDraft((prev) => ({ ...prev, colors: prev.colors.filter((c) => c.hex !== hex) }));
+      setVariantDraft((prev) => ({ ...prev, colors: prev.colors.filter((c) => c.hex.code !== hex) }));
    };
 
    const removeColorImageFromVariantDraft = (hex: string, idx: number) => {
       setVariantDraft((prev) => ({
          ...prev,
-         colors: prev.colors.map((c) => (c.hex === hex ? { ...c, images: c.images.filter((_, i) => i !== idx) } : c)),
+         colors: prev.colors.map((c) => (c.hex.code === hex ? { ...c, images: c.images.filter((_, i) => i !== idx) } : c)),
       }));
    };
 
@@ -269,11 +273,11 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
          stock: variantDraft.stock,
          discountMode: variantDraft.discountMode,
          discountPrice: variantDraft.discountPrice,
-         colors: variantDraft.colors.map((c) => ({ hex: c.hex, images: c.images })),
+         colors: variantDraft.colors.map((c) => ({ hex: { code: c.hex.code, colorName: c.hex.colorName }, images: c.images })),
       };
       setForm((prev) => ({ ...prev, VariantSchema: [...prev.VariantSchema, newVariant] }));
       setVariantDraft(emptyVariantDraft());
-      setColorDraft({ hex: "#000000", images: [] });
+      setColorDraft({ hex: { code: "#000000", colorName: "" }, images: [] });
       setErrors((prev) => ({ ...prev, variantMaterial: undefined, variantPrice: undefined, variantStock: undefined }));
    };
 
@@ -284,14 +288,14 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
    const removeColorFromVariant = (material: string, hex: string) => {
       setForm((prev) => ({
          ...prev,
-         VariantSchema: prev.VariantSchema.map((v) => (v.material === material ? { ...v, colors: v.colors?.filter((c) => c.hex !== hex) } : v)),
+         VariantSchema: prev.VariantSchema.map((v) => (v.material === material ? { ...v, colors: v.colors?.filter((c) => c.hex.code !== hex) } : v)),
       }));
    };
 
    const removeColorVariantImage = (material: string, hex: string, idx: number) => {
       setForm((prev) => ({
          ...prev,
-         VariantSchema: prev.VariantSchema.map((v) => (v.material === material ? { ...v, colors: v.colors?.map((c) => (c.hex === hex ? { ...c, images: c.images.filter((_, i) => i !== idx) } : c)) } : v)),
+         VariantSchema: prev.VariantSchema.map((v) => (v.material === material ? { ...v, colors: v.colors?.map((c) => (c.hex.code === hex ? { ...c, images: c.images.filter((_, i) => i !== idx) } : c)) } : v)),
       }));
    };
 
@@ -337,7 +341,7 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
                stock: singleVariant.stock,
                discountMode: singleVariant.discountMode,
                discountPrice: singleVariant.discountPrice,
-               colors: singleVariant.colors.map((c) => ({ hex: c.hex, images: c.images })),
+               colors: singleVariant.colors.map((c) => ({ hex: { code: c.hex.code, colorName: c.hex.colorName }, images: c.images })),
             },
          ];
       }
@@ -356,7 +360,7 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       setErrors({});
       setSingleVariant(emptySingleVariant());
       setVariantDraft(emptyVariantDraft());
-      setColorDraft({ hex: "#000000", images: [] });
+      setColorDraft({ hex: { code: "#000000", colorName: "" }, images: [] });
    };
 
    const subCategories = CATEGORY_TREE.find((c) => c.id === form.category)?.children ?? [];

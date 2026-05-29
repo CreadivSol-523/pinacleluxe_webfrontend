@@ -7,7 +7,7 @@ import { colorVariants } from "@/Types/Collection/CollectionTypes";
 
 const TabsSection = ({ isFilter, setIsFilter }: { isFilter: boolean; setIsFilter: (value: boolean) => void }) => {
    const [selectedTab, setSelectedTab] = useState("Hot Sellers");
-   const [selectedColor, setSelectedColor] = useState<colorVariants>({ hex: "", images: [] });
+   const [selectedColor, setSelectedColor] = useState<colorVariants>({ hex: { code: "", colorName: "" }, images: [] });
 
    const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -77,12 +77,12 @@ const TabsSection = ({ isFilter, setIsFilter }: { isFilter: boolean; setIsFilter
                   <h4 className="text-textBlack">Colors</h4>
                   <div className="flex items-center flex-wrap gap-2">
                      {products?.[0]?.VariantSchema?.[0]?.colors?.map((item, i) =>
-                        selectedColor.hex === item.hex ? (
-                           <div className="w-6 h-6 border-2 border-gray-500 cursor-pointer  rounded-full flex items-center justify-center" key={item.hex}>
-                              <div className={`w-4 h-4 rounded-full bg-[${item.hex}]`} style={{ background: item.hex }} />
+                        selectedColor.hex.code === item.hex.code ? (
+                           <div className="w-6 h-6 border-2 border-gray-500 cursor-pointer  rounded-full flex items-center justify-center" key={item.hex.code}>
+                              <div className={`w-4 h-4 rounded-full bg-[${item.hex.code}]`} style={{ background: item.hex.code }} />
                            </div>
                         ) : (
-                           <div onClick={() => setSelectedColor({ hex: item.hex, images: item.images })} className={`w-6 h-6 cursor-pointer rounded-full ${item.hex}`} style={{ background: item.hex }} key={i} />
+                           <div onClick={() => setSelectedColor({ hex: item.hex, images: item.images })} className={`w-6 h-6 cursor-pointer rounded-full ${item.hex.code}`} style={{ background: item.hex.code }} key={i} />
                         ),
                      )}
                   </div>

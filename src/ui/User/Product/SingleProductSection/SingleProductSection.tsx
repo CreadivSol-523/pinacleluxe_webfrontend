@@ -11,13 +11,13 @@ import { VariantSchema } from "@/Types/Collection/CollectionTypes";
 import AccessoriesCard from "@/components/Cards/AccessoriesCard/AccessoriesCard";
 
 const SingleProductSection = () => {
-   const [selectedColor, setSelectedColor] = useState<{ hex: string; images: string[] }>({ hex: "", images: [] });
+   const [selectedColor, setSelectedColor] = useState<{ hex: { code: string; colorName: string }; images: string[] }>({ hex: { code: "", colorName: "" }, images: [] });
    const [selectedMaterials, setSelectedMaterials] = useState<VariantSchema>({
       material: "",
       price: 0,
       discountPrice: 0,
       stock: 0,
-      colors: [{ hex: "", images: [] }],
+      colors: [{ hex: { code: "", colorName: "" }, images: [] }],
    });
    const [showAccessories, setShowAccessories] = useState<boolean>(false);
    const [quantity, setQuantity] = useState(1);
@@ -54,7 +54,7 @@ const SingleProductSection = () => {
 
    const findProduct = products.find((item) => item.slug === id);
 
-   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === findProduct?.id && item.colorVariants === selectedColor.hex && item.material === selectedMaterials.material));
+   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === findProduct?.id && item.colorVariants === selectedColor.hex?.code && item.material === selectedMaterials.material));
 
    const GetQuantitySelected = useEffectEvent(() => {
       setQuantity(GetCartSingleItem?.quantity || 1);
@@ -91,7 +91,7 @@ const SingleProductSection = () => {
    }, [GetCartSingleItem]);
 
    useEffect(() => {
-      setSelectedColor({ hex: findProduct?.VariantSchema?.[0]?.colors?.[0].hex || "", images: findProduct?.VariantSchema?.[0]?.colors?.[0].images || [] });
+      setSelectedColor({ hex: { code: "", colorName: "" }, images: findProduct?.VariantSchema?.[0]?.colors?.[0].images || [] });
       setSelectedMaterials({
          material: findProduct?.VariantSchema?.[0]?.material || "",
          price: findProduct?.VariantSchema?.[0]?.price || 0,
@@ -106,13 +106,13 @@ const SingleProductSection = () => {
    const handleIncreaseQuantity = () => {
       const updateProductQuantity = quantity < (selectedMaterials?.stock ?? 0) ? quantity + 1 : quantity;
       setQuantity(updateProductQuantity);
-      updateQuantity(findProduct?.id || "", updateProductQuantity, selectedColor.hex, selectedMaterials.material);
+      updateQuantity(findProduct?.id || "", updateProductQuantity, selectedColor.hex?.code, selectedMaterials.material);
    };
 
    const handleDecreaseQuantity = () => {
       const updateProductQuantity = quantity <= 1 ? 1 : quantity - 1;
       setQuantity(updateProductQuantity);
-      updateQuantity(findProduct?.id || "", updateProductQuantity, selectedColor.hex, selectedMaterials.material);
+      updateQuantity(findProduct?.id || "", updateProductQuantity, selectedColor.hex?.code, selectedMaterials.material);
    };
 
    const images = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -200,12 +200,12 @@ const SingleProductSection = () => {
                   <p className="text-headingColor">Color - Green</p>
                   <div className="flex items-center flex-wrap gap-2">
                      {selectedMaterials?.colors?.map((item, i) =>
-                        selectedColor.hex === item.hex ? (
-                           <div className="w-6 h-6 border-2 border-gray-500 cursor-pointer  rounded-full flex items-center justify-center" key={item.hex}>
-                              <div className={`w-4 h-4 rounded-full ${item.hex}`} style={{ background: item.hex }} />
+                        selectedColor.hex?.code === item.hex?.code ? (
+                           <div className="w-6 h-6 border-2 border-gray-500 cursor-pointer  rounded-full flex items-center justify-center" key={item.hex?.code}>
+                              <div className={`w-4 h-4 rounded-full ${item.hex?.code}`} style={{ background: item.hex?.code }} />
                            </div>
                         ) : (
-                           <div onClick={() => setSelectedColor({ hex: item.hex, images: item.images })} className={`w-6 h-6 cursor-pointer rounded-full ${item.hex}`} style={{ background: item.hex }} key={i} />
+                           <div onClick={() => setSelectedColor({ hex: item.hex, images: item.images })} className={`w-6 h-6 cursor-pointer rounded-full ${item.hex?.code}`} style={{ background: item.hex?.code }} key={i} />
                         ),
                      )}
                   </div>
@@ -255,7 +255,7 @@ const SingleProductSection = () => {
                            id: findProduct?.id || "",
                            name: findProduct?.name || "",
                            images: findProduct?.images?.[0] || "",
-                           colorVariants: selectedColor.hex || "",
+                           colorVariants: selectedColor.hex?.code || "",
                            material: selectedMaterials.material,
                            price: selectedMaterials.price ?? 0,
                            stock: selectedMaterials?.stock || 0,
