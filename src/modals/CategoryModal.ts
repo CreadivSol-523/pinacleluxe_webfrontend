@@ -71,13 +71,13 @@ export const useUpdateCategoryHandler = () => {
    const [UpdateCategory, { isLoading }] = useUpdateCategoryMutation();
    const { show } = useNotification();
 
-   const handleUpdateCategory = async ({ form, id }: { form: Omit<Category, "_id" | "createdAt">; id: string }) => {
+   const handleUpdateCategory = async ({ form, id, partialFields = false }: { form: Omit<Partial<Category>, "_id" | "createdAt">; id: string; partialFields?: boolean }) => {
       try {
          const { image, isActive, name, slug, parentId } = form;
 
          const isEmpty = [image, isActive, name, slug].some((v) => v === "" || v === null || v === undefined);
 
-         if (isEmpty) {
+         if (isEmpty && !partialFields) {
             return show({
                type: "banner",
                variant: "error",
@@ -86,11 +86,11 @@ export const useUpdateCategoryHandler = () => {
          }
 
          const formData = new FormData();
-         formData.append("name", name);
-         formData.append("slug", slug);
-         formData.append("isActive", String(isActive));
+         if (name) formData.append("name", name);
+         if (slug) formData.append("slug", slug);
+         if (isActive !== undefined) formData.append("isActive", String(isActive));
          if (parentId) formData.append("parentId", parentId);
-         formData.append("image", image);
+         if (image) formData.append("image", image);
 
          const res = await UpdateCategory({ data: formData, id });
 

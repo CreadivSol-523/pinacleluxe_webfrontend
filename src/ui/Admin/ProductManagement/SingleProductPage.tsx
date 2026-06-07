@@ -37,7 +37,14 @@ export default function SingleProductPage() {
    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
    const [selectedMaterials, setSelectedMaterials] = useState<VariantSchema>({
       material: "",
-      price: 0,
+      price: [
+         {
+            price: 0,
+            region: "",
+            discountedValue: 0,
+            discountMode: "",
+         },
+      ],
       discountPrice: 0,
       stock: 0,
       colors: [{ hex: { code: "", colorName: "" }, images: [] }],

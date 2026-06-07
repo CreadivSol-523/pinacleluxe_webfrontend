@@ -36,6 +36,13 @@ export const CATEGORY_TREE = [
 
 export type DiscountMode = "static" | "percentage";
 
+export interface RegionPrice {
+   region: string;
+   price: number;
+   discountMode?: DiscountMode;
+   discountedValue?: number;
+}
+
 export interface ProductFormData extends Omit<Product, "id"> {
    description: string;
    category: string;
@@ -43,45 +50,48 @@ export interface ProductFormData extends Omit<Product, "id"> {
    isVariable: boolean;
 }
 
-// Single variant — one material/price/stock/discount + optional colors
+// Single variant — one material/stock + region prices + optional colors
 export interface SingleVariantForm {
    material: string;
-   price: number | undefined;
+   price: RegionPrice[];
    stock: number | undefined;
-   discount: number | undefined;
-   discountMode: DiscountMode;
-   discountPrice: number | undefined;
    colors: ColorVariant[];
 }
 
-// Multi variant draft — same as single but gets pushed to VariantSchema[]
+// Multi variant draft
 export interface VariantDraft {
    material: string;
-   price: number | undefined;
+   price: RegionPrice[];
    stock: number | undefined;
-   discount: number | undefined;
-   discountMode: DiscountMode;
-   discountPrice: number | undefined;
    colors: ColorVariant[];
 }
+
+// Draft for building a single RegionPrice entry
+export interface RegionPriceDraft {
+   region: string;
+   price: number | undefined;
+   discountMode: DiscountMode;
+   discountedValue: number | undefined;
+}
+
+const emptyRegionPriceDraft = (): RegionPriceDraft => ({
+   region: "",
+   price: undefined,
+   discountMode: "static",
+   discountedValue: undefined,
+});
 
 const emptySingleVariant = (): SingleVariantForm => ({
    material: "",
-   price: undefined,
+   price: [],
    stock: undefined,
-   discount: undefined,
-   discountMode: "static",
-   discountPrice: undefined,
    colors: [],
 });
 
 const emptyVariantDraft = (): VariantDraft => ({
    material: "",
-   price: undefined,
+   price: [],
    stock: undefined,
-   discount: undefined,
-   discountMode: "static",
-   discountPrice: undefined,
    colors: [],
 });
 
@@ -108,6 +118,8 @@ export type FormErrors = Partial<
       variantStock: string;
       colorHex: string;
       colorImage: string;
+      regionRegion: string;
+      regionPrice: string;
    }
 >;
 
@@ -119,11 +131,6 @@ function toSlug(name: string) {
       .replace(/[^a-z0-9-]/g, "");
 }
 
-function calcDiscountPrice(price: number | undefined, discount: number | undefined, mode: DiscountMode): number | undefined {
-   if (!price || discount === undefined) return undefined;
-   return mode === "percentage" ? Math.round(price - (price * discount) / 100) : Math.round(price - discount);
-}
-
 export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
    const [form, setForm] = useState<ProductFormData>(emptyForm());
    const [errors, setErrors] = useState<FormErrors>({});
@@ -132,7 +139,10 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
    const [singleVariant, setSingleVariant] = useState<SingleVariantForm>(emptySingleVariant());
    const [variantDraft, setVariantDraft] = useState<VariantDraft>(emptyVariantDraft());
 
-   // colorDraft is shared — used for both single & multi mode
+   // Region price draft — shared for both single & multi mode
+   const [regionDraft, setRegionDraft] = useState<RegionPriceDraft>(emptyRegionPriceDraft());
+
+   // Color draft — shared for both single & multi mode
    const [colorDraft, setColorDraft] = useState<ColorVariant>({
       hex: { code: "#000000", colorName: "" },
       images: [],
@@ -158,40 +168,84 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       setForm((prev) => ({ ...prev, isVariable: !prev.isVariable, VariantSchema: [] }));
       setSingleVariant(emptySingleVariant());
       setVariantDraft(emptyVariantDraft());
+      setRegionDraft(emptyRegionPriceDraft());
       setColorDraft({ hex: { code: "#000000", colorName: "" }, images: [] });
       setErrors({});
    };
 
-   // ── Single variant setters ────────────────────────────────────────────────
-   const setSingleField = <K extends keyof SingleVariantForm>(key: K, value: SingleVariantForm[K]) => {
-      setSingleVariant((prev) => {
-         const updated = { ...prev, [key]: value };
-         if (key === "price" || key === "discount" || key === "discountMode") {
-            updated.discountPrice = calcDiscountPrice(key === "price" ? (value as number) : prev.price, key === "discount" ? (value as number) : prev.discount, key === "discountMode" ? (value as DiscountMode) : prev.discountMode);
-         }
-         return updated;
-      });
-      setErrors((prev) => ({ ...prev, [`single${key.charAt(0).toUpperCase() + key.slice(1)}`]: undefined }));
+   // ── Region price draft setters ────────────────────────────────────────────
+   const setRegionDraftField = <K extends keyof RegionPriceDraft>(key: K, value: RegionPriceDraft[K]) => {
+      setRegionDraft((prev) => ({
+         ...prev,
+         [key]: value,
+         // reset discountedValue when mode changes
+         ...(key === "discountMode" ? { discountedValue: undefined } : {}),
+      }));
+      setErrors((prev) => ({ ...prev, regionRegion: undefined, regionPrice: undefined }));
    };
 
-   const handleSingleDiscountModeChange = (mode: DiscountMode) => {
-      setSingleVariant((prev) => ({ ...prev, discountMode: mode, discount: undefined, discountPrice: undefined }));
+   // Add region price to target (single or draft)
+   const addRegionPrice = (target: "single" | "draft") => {
+      const e: FormErrors = {};
+      if (!regionDraft.region.trim()) e.regionRegion = "Region is required";
+      if (!regionDraft.price || regionDraft.price <= 0) e.regionPrice = "Valid price required";
+      if (Object.keys(e).length) {
+         setErrors((prev) => ({ ...prev, ...e }));
+         return;
+      }
+
+      const newRegionPrice: RegionPrice = {
+         region: regionDraft.region.trim(),
+         price: regionDraft.price!,
+         discountMode: regionDraft.discountMode,
+         discountedValue: regionDraft.discountedValue,
+      };
+
+      if (target === "single") {
+         if (singleVariant.price.some((r) => r.region === newRegionPrice.region)) {
+            setErrors((prev) => ({ ...prev, regionRegion: "Region already added" }));
+            return;
+         }
+         setSingleVariant((prev) => ({ ...prev, price: [...prev.price, newRegionPrice] }));
+      } else {
+         if (variantDraft.price.some((r) => r.region === newRegionPrice.region)) {
+            setErrors((prev) => ({ ...prev, regionRegion: "Region already added" }));
+            return;
+         }
+         setVariantDraft((prev) => ({ ...prev, price: [...prev.price, newRegionPrice] }));
+      }
+
+      setRegionDraft(emptyRegionPriceDraft());
+      setErrors((prev) => ({ ...prev, regionRegion: undefined, regionPrice: undefined }));
+   };
+
+   // Remove region price
+   const removeRegionPrice = (target: "single" | "draft", region: string) => {
+      if (target === "single") {
+         setSingleVariant((prev) => ({ ...prev, price: prev.price.filter((r) => r.region !== region) }));
+      } else {
+         setVariantDraft((prev) => ({ ...prev, price: prev.price.filter((r) => r.region !== region) }));
+      }
+   };
+
+   // Remove region from committed variant in form
+   const removeRegionFromVariant = (material: string, region: string) => {
+      setForm((prev) => ({
+         ...prev,
+         VariantSchema: prev.VariantSchema.map((v) => (v.material === material ? { ...v, price: v.price.filter((r) => r.region !== region) } : v)),
+      }));
+   };
+
+   // ── Single variant setters ────────────────────────────────────────────────
+   const setSingleField = <K extends keyof SingleVariantForm>(key: K, value: SingleVariantForm[K]) => {
+      setSingleVariant((prev) => ({ ...prev, [key]: value }));
+      setErrors((prev) => ({ ...prev, [`single${key.charAt(0).toUpperCase() + key.slice(1)}`]: undefined }));
    };
 
    // ── Multi variant draft setters ───────────────────────────────────────────
    const setVariantDraftField = <K extends keyof VariantDraft>(key: K, value: VariantDraft[K]) => {
-      setVariantDraft((prev) => {
-         const updated = { ...prev, [key]: value };
-         if (key === "price" || key === "discount" || key === "discountMode") {
-            updated.discountPrice = calcDiscountPrice(key === "price" ? (value as number) : prev.price, key === "discount" ? (value as number) : prev.discount, key === "discountMode" ? (value as DiscountMode) : prev.discountMode);
-         }
-         return updated;
-      });
+      setVariantDraft((prev) => ({ ...prev, [key]: value }));
       setErrors((prev) => ({ ...prev, [`variant${key.charAt(0).toUpperCase() + key.slice(1)}`]: undefined }));
-   };
-
-   const handleVariantDiscountModeChange = (mode: DiscountMode) => {
-      setVariantDraft((prev) => ({ ...prev, discountMode: mode, discount: undefined, discountPrice: undefined }));
    };
 
    // ── Color draft (shared, target-aware) ───────────────────────────────────
@@ -204,7 +258,6 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       setColorDraft((prev) => ({ ...prev, images: prev.images.filter((_, i) => i !== idx) }));
    };
 
-   // addColorToTarget — hex compare fix
    const addColorToTarget = (target: "single" | "draft") => {
       if (!colorDraft.images.length) {
          setErrors((prev) => ({ ...prev, colorImage: "Add at least one image" }));
@@ -229,7 +282,6 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       setErrors((prev) => ({ ...prev, colorHex: undefined, colorImage: undefined }));
    };
 
-   // Remove color from single variant
    const removeSingleColor = (hex: string) => {
       setSingleVariant((prev) => ({ ...prev, colors: prev.colors.filter((c) => c.hex.code !== hex) }));
    };
@@ -241,7 +293,6 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       }));
    };
 
-   // Remove color from variant draft
    const removeColorFromVariantDraft = (hex: string) => {
       setVariantDraft((prev) => ({ ...prev, colors: prev.colors.filter((c) => c.hex.code !== hex) }));
    };
@@ -257,7 +308,7 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
    const addVariant = () => {
       const e: FormErrors = {};
       if (!variantDraft.material) e.variantMaterial = "Select a material";
-      if (!variantDraft.price || variantDraft.price <= 0) e.variantPrice = "Valid price required";
+      if (!variantDraft.price.length) e.variantPrice = "Add at least one region price";
       if (variantDraft.stock === undefined || variantDraft.stock < 0) e.variantStock = "Stock is required";
       if (Object.keys(e).length) {
          setErrors((prev) => ({ ...prev, ...e }));
@@ -267,16 +318,17 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
          setErrors((prev) => ({ ...prev, variantMaterial: "Variant with this material already exists" }));
          return;
       }
+
       const newVariant: VariantSchema = {
          material: variantDraft.material,
-         price: variantDraft.price ?? null,
+         price: variantDraft.price,
          stock: variantDraft.stock,
-         discountMode: variantDraft.discountMode,
-         discountPrice: variantDraft.discountPrice,
          colors: variantDraft.colors.map((c) => ({ hex: { code: c.hex.code, colorName: c.hex.colorName }, images: c.images })),
       };
+
       setForm((prev) => ({ ...prev, VariantSchema: [...prev.VariantSchema, newVariant] }));
       setVariantDraft(emptyVariantDraft());
+      setRegionDraft(emptyRegionPriceDraft());
       setColorDraft({ hex: { code: "#000000", colorName: "" }, images: [] });
       setErrors((prev) => ({ ...prev, variantMaterial: undefined, variantPrice: undefined, variantStock: undefined }));
    };
@@ -319,7 +371,7 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       if (!form.images.length) e.images = "Add at least one image";
       if (!form.isVariable) {
          if (!singleVariant.material) e.singleMaterial = "Select a material";
-         if (!singleVariant.price || singleVariant.price <= 0) e.singlePrice = "Valid price required";
+         if (!singleVariant.price.length) e.singlePrice = "Add at least one region price";
          if (singleVariant.stock === undefined || singleVariant.stock < 0) e.singleStock = "Stock is required";
       } else {
          if (!form.VariantSchema.length) e.VariantSchema = "Add at least one variant";
@@ -337,10 +389,8 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
          finalForm.VariantSchema = [
             {
                material: singleVariant.material,
-               price: singleVariant.price ?? null,
+               price: singleVariant.price,
                stock: singleVariant.stock,
-               discountMode: singleVariant.discountMode,
-               discountPrice: singleVariant.discountPrice,
                colors: singleVariant.colors.map((c) => ({ hex: { code: c.hex.code, colorName: c.hex.colorName }, images: c.images })),
             },
          ];
@@ -360,6 +410,7 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       setErrors({});
       setSingleVariant(emptySingleVariant());
       setVariantDraft(emptyVariantDraft());
+      setRegionDraft(emptyRegionPriceDraft());
       setColorDraft({ hex: { code: "#000000", colorName: "" }, images: [] });
    };
 
@@ -379,17 +430,21 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       // single
       singleVariant,
       setSingleField,
-      handleSingleDiscountModeChange,
       removeSingleColor,
       removeSingleColorImage,
       // multi
       variantDraft,
       setVariantDraftField,
-      handleVariantDiscountModeChange,
       addVariant,
       removeVariant,
       removeColorFromVariant,
       removeColorVariantImage,
+      removeRegionFromVariant,
+      // region price draft (shared)
+      regionDraft,
+      setRegionDraftField,
+      addRegionPrice,
+      removeRegionPrice,
       // color draft (shared)
       colorDraft,
       setColorDraft,

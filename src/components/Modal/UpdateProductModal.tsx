@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useProductForm, DiscountMode, ColorVariant, VariantDraft } from "@/Validations/Useproductform";
+import { useProductForm, DiscountMode, ColorVariant, RegionPrice, RegionPriceDraft } from "@/Validations/Useproductform";
 import { Product } from "@/Types/Collection/CollectionTypes";
 
 interface UpdateProductModalProps {
@@ -116,32 +116,87 @@ function ImageUploader({ label, images, onAdd, onRemove, error, firstLabel }: { 
    );
 }
 
-// ── Discount Block ────────────────────────────────────────────────────────────
-function DiscountBlock({ discount, discountMode, discountPrice, onDiscountChange, onModeChange }: { discount: number | undefined; discountMode: DiscountMode; discountPrice: number | undefined; onDiscountChange: (v: string) => void; onModeChange: (m: DiscountMode) => void }) {
+// ── Region Price Section ──────────────────────────────────────────────────────
+function RegionPriceSection({
+   regionDraft,
+   setRegionDraftField,
+   addRegionPrice,
+   removeRegionPrice,
+   addedPrices,
+   errors,
+   target,
+}: {
+   regionDraft: RegionPriceDraft;
+   setRegionDraftField: (key: keyof RegionPriceDraft, value: RegionPriceDraft[keyof RegionPriceDraft]) => void;
+   addRegionPrice: (target: "single" | "draft") => void;
+   removeRegionPrice: (target: "single" | "draft", region: string) => void;
+   addedPrices: RegionPrice[];
+   errors: { regionRegion?: string; regionPrice?: string };
+   target: "single" | "draft";
+}) {
    return (
-      <div className="bg-staticSecondaryBG rounded-xl p-3.5 flex flex-col gap-3">
-         <div className="flex items-center justify-between">
-            <p className="text-[11px] tracking-[0.08em] uppercase text-[#5E5F60]">
-               Discount <span className="normal-case">(optional)</span>
-            </p>
-            <div className="flex items-center bg-[#F5F0E8] border border-[#B8975A]/20 rounded-lg overflow-hidden">
-               {(["static", "percentage"] as DiscountMode[]).map((mode) => (
-                  <button key={mode} onClick={() => onModeChange(mode)} className={`px-3 py-1.5 text-[11px] transition-colors ${discountMode === mode ? "bg-primaryBG text-[#B8975A]" : "text-[#5E5F60] hover:text-headingColor"}`}>
-                     {mode === "static" ? "Fixed" : "Percentage %"}
-                  </button>
+      <div className="flex flex-col gap-3">
+         <p className="text-[11px] font-medium text-headingColor tracking-[0.04em]">Region Pricing *</p>
+
+         <div className="bg-staticSecondaryBG rounded-lg p-3 flex flex-col gap-3 border border-[#B8975A]/10">
+            <div className="grid grid-cols-2 gap-3">
+               <div>
+                  <Label>Region</Label>
+                  <FieldInput value={regionDraft.region} onChange={(v) => setRegionDraftField("region", v)} placeholder="e.g. PK, UAE, UK" error={errors.regionRegion} />
+               </div>
+               <div>
+                  <Label>Price *</Label>
+                  <FieldInput type="number" value={regionDraft.price} onChange={(v) => setRegionDraftField("price", v ? Number(v) : undefined)} placeholder="11000" error={errors.regionPrice} />
+               </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+               <div className="flex border border-[#B8975A]/25 rounded-md overflow-hidden text-[11px]">
+                  {(["static", "percentage"] as DiscountMode[]).map((m) => (
+                     <button key={m} onClick={() => setRegionDraftField("discountMode", m)} className={`px-3 py-1.5 transition-colors ${regionDraft.discountMode === m ? "bg-[#B8975A] text-white" : "text-[#5E5F60] hover:text-headingColor"}`}>
+                        {m === "static" ? "Rs Off" : "% Off"}
+                     </button>
+                  ))}
+               </div>
+               <div className="flex-1">
+                  <FieldInput type="number" value={regionDraft.discountedValue} onChange={(v) => setRegionDraftField("discountedValue", v ? Number(v) : undefined)} placeholder={regionDraft.discountMode === "percentage" ? "e.g. 10" : "e.g. 500"} />
+               </div>
+               {regionDraft.discountedValue && regionDraft.price ? (
+                  <span className="text-[11px] text-[#5E5F60] whitespace-nowrap">
+                     = {regionDraft.discountMode === "percentage" ? Math.round(regionDraft.price - (regionDraft.price * regionDraft.discountedValue) / 100).toLocaleString() : Math.round(regionDraft.price - regionDraft.discountedValue).toLocaleString()}
+                  </span>
+               ) : null}
+            </div>
+
+            <button onClick={() => addRegionPrice(target)} className="w-full py-2 text-[11px] font-medium text-[#B8975A] border border-[#B8975A]/30 rounded-lg hover:bg-[#B8975A]/10 transition-colors">
+               + Add Region
+            </button>
+         </div>
+
+         {addedPrices.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+               {addedPrices.map((r) => (
+                  <div key={r.region} className="flex items-center justify-between px-3 py-2 bg-[#F5F0E8] rounded-lg border border-[#B8975A]/10">
+                     <div className="flex items-center gap-3 flex-wrap">
+                        <span className="text-[11px] font-medium text-[#B8975A] uppercase tracking-widest">{r.region}</span>
+                        <span className="text-[12px] text-headingColor">Rs {r.price?.toLocaleString()}</span>
+                        {r.discountedValue && (
+                           <span className="text-[11px] text-[#5E5F60]">
+                              -{r.discountMode === "percentage" ? `${r.discountedValue}%` : `Rs ${r.discountedValue.toLocaleString()}`}
+                              {" → "}
+                              {r.discountMode === "percentage" ? Math.round(r.price - (r.price * r.discountedValue) / 100).toLocaleString() : Math.round(r.price - r.discountedValue).toLocaleString()}
+                           </span>
+                        )}
+                     </div>
+                     <button onClick={() => removeRegionPrice(target, r.region)} className="text-[#5E5F60] hover:text-red-500 transition-colors">
+                        <svg width="11" height="11" viewBox="0 0 14 14" fill="none">
+                           <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                        </svg>
+                     </button>
+                  </div>
                ))}
             </div>
-         </div>
-         <div className="grid grid-cols-2 gap-3">
-            <div>
-               <p className="text-[10px] text-[#5E5F60] mb-1">{discountMode === "percentage" ? "Discount %" : "Discount Amount (Rs)"}</p>
-               <FieldInput type="number" value={discount} onChange={onDiscountChange} placeholder={discountMode === "percentage" ? "e.g. 20" : "e.g. 500"} />
-            </div>
-            <div>
-               <p className="text-[10px] text-[#5E5F60] mb-1">Final Price (Rs)</p>
-               <div className="px-3.5 py-2.5 bg-[#F5F0E8] border border-[#B8975A]/15 rounded-lg text-[13px] text-[#5E5F60]">{discountPrice ? `Rs ${discountPrice.toLocaleString()}` : "—"}</div>
-            </div>
-         </div>
+         )}
       </div>
    );
 }
@@ -190,7 +245,7 @@ function ColorSection({
          <div>
             <div className="flex gap-2 mb-1.5">
                <input
-                  id="colorUrlInput"
+                  id="colorUrlInputUpdate"
                   type="text"
                   placeholder="Paste image URL..."
                   className={`flex-1 px-3.5 py-2 text-[13px] bg-staticSecondaryBG border rounded-lg text-headingColor placeholder:text-[#5E5F60]/60 focus:outline-none transition-colors
@@ -204,7 +259,7 @@ function ColorSection({
                />
                <button
                   onClick={() => {
-                     const el = document.getElementById("colorUrlInput") as HTMLInputElement;
+                     const el = document.getElementById("colorUrlInputUpdate") as HTMLInputElement;
                      if (el) {
                         addColorImage(el.value);
                         el.value = "";
@@ -295,18 +350,32 @@ function ColorSection({
    );
 }
 
-// ── Added Variant Card ────────────────────────────────────────────────────────
-function VariantCard({ variant, onRemove, onRemoveColor, onRemoveColorImage }: { variant: import("@/Types/Collection/CollectionTypes").VariantSchema; onRemove: () => void; onRemoveColor: (hex: string) => void; onRemoveColorImage: (hex: string, i: number) => void }) {
+// ── Variant Card ──────────────────────────────────────────────────────────────
+function VariantCard({
+   variant,
+   onRemove,
+   onRemoveColor,
+   onRemoveColorImage,
+   onRemoveRegion,
+}: {
+   variant: import("@/Types/Collection/CollectionTypes").VariantSchema;
+   onRemove: () => void;
+   onRemoveColor: (hex: string) => void;
+   onRemoveColorImage: (hex: string, i: number) => void;
+   onRemoveRegion: (region: string) => void;
+}) {
    const [expanded, setExpanded] = useState(false);
    const hasColors = (variant.colors?.length ?? 0) > 0;
+   const hasPrices = (variant.price?.length ?? 0) > 0;
+
    return (
       <div className="bg-[#F5F0E8] rounded-xl border border-[#B8975A]/10 overflow-hidden">
+         {/* Header */}
          <div className="flex items-center gap-3 px-3.5 py-3">
             <div className="flex-1 flex items-center gap-3 flex-wrap">
                <span className="text-[12px] font-medium text-headingColor">{variant.material}</span>
-               <span className="text-[11px] text-[#5E5F60]">Rs {variant.price?.toLocaleString()}</span>
                <span className="text-[11px] text-[#5E5F60]">Stock: {variant.stock ?? 0}</span>
-               {variant.discountPrice && <span className="text-[10px] bg-[#B8975A]/10 text-[#B8975A] px-2 py-0.5 rounded-full">→ Rs {variant.discountPrice.toLocaleString()}</span>}
+               {hasPrices && <span className="text-[11px] text-[#5E5F60]">{variant.price.map((r) => r.region).join(", ")}</span>}
             </div>
             {hasColors && (
                <button onClick={() => setExpanded((p) => !p)} className="flex items-center gap-1 text-[11px] text-[#5E5F60] hover:text-headingColor transition-colors">
@@ -322,13 +391,44 @@ function VariantCard({ variant, onRemove, onRemoveColor, onRemoveColorImage }: {
                </svg>
             </button>
          </div>
+
+         {/* Region prices */}
+         {hasPrices && (
+            <div className="border-t border-[#B8975A]/10 px-3.5 py-2.5 flex flex-col gap-1.5">
+               {variant.price.map((r) => (
+                  <div key={r.region} className="flex items-center justify-between">
+                     <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[10px] font-medium text-[#B8975A] uppercase tracking-widest">{r.region}</span>
+                        <span className="text-[12px] text-headingColor">Rs {r.price?.toLocaleString()}</span>
+                        {r.discountedValue && (
+                           <span className="text-[11px] text-[#5E5F60]">
+                              -{r.discountMode === "percentage" ? `${r.discountedValue}%` : `Rs ${r.discountedValue.toLocaleString()}`}
+                              {" → "}
+                              {r.discountMode === "percentage" ? Math.round(r.price - (r.price * r.discountedValue) / 100).toLocaleString() : Math.round(r.price - r.discountedValue).toLocaleString()}
+                           </span>
+                        )}
+                     </div>
+                     <button onClick={() => onRemoveRegion(r.region)} className="text-[#5E5F60] hover:text-red-500 transition-colors">
+                        <svg width="11" height="11" viewBox="0 0 14 14" fill="none">
+                           <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                        </svg>
+                     </button>
+                  </div>
+               ))}
+            </div>
+         )}
+
+         {/* Colors expanded */}
          {expanded && hasColors && (
             <div className="border-t border-[#B8975A]/10 p-2.5 flex flex-col gap-2">
                {variant.colors!.map((c) => (
                   <div key={c.hex.code} className="bg-staticSecondaryBG rounded-xl border border-[#B8975A]/10 overflow-hidden">
                      <div className="flex items-center gap-2 px-3 py-2 border-b border-[#B8975A]/10">
                         <div className="w-4 h-4 rounded-full border border-black/10" style={{ backgroundColor: c.hex.code }} />
-                        <p className="text-[11px] font-mono text-[#5E5F60] flex-1">{c.hex.code}</p>
+                        <p className="text-[11px] text-[#5E5F60] flex-1">
+                           {c.hex.colorName && <span className="font-medium text-headingColor">{c.hex.colorName} · </span>}
+                           <span className="font-mono">{c.hex.code}</span>
+                        </p>
                         <button onClick={() => onRemoveColor(c.hex.code)} className="text-[#5E5F60] hover:text-red-500 transition-colors">
                            <svg width="11" height="11" viewBox="0 0 14 14" fill="none">
                               <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
@@ -371,25 +471,33 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
       handleVariableToggle,
       addImage,
       removeImage,
+      // single
       singleVariant,
       setSingleField,
-      handleSingleDiscountModeChange,
       removeSingleColor,
       removeSingleColorImage,
+      // multi
       variantDraft,
       setVariantDraftField,
-      handleVariantDiscountModeChange,
       addVariant,
       removeVariant,
       removeColorFromVariant,
       removeColorVariantImage,
       removeColorFromVariantDraft,
       removeColorImageFromVariantDraft,
+      removeRegionFromVariant,
+      // region price
+      regionDraft,
+      setRegionDraftField,
+      addRegionPrice,
+      removeRegionPrice,
+      // color draft
       colorDraft,
       setColorDraft,
       addColorImage,
       removeColorImage,
       addColorToTarget,
+      // misc
       handleSubmit,
       reset,
       setForm,
@@ -412,7 +520,7 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
          description: initialData?.description ?? "",
          category: initialData?.category ?? "",
          subCategory: initialData?.subCategory ?? "",
-         isVariable: initialData?.VariantSchema?.length === 0 ? false : true,
+         isVariable: (initialData?.VariantSchema?.length ?? 0) > 1,
          images: initialData?.images ?? [],
          gallery: initialData?.gallery ?? [],
          VariantSchema: initialData?.VariantSchema ?? [],
@@ -563,6 +671,7 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
                                  Single variant — enable <span className="text-[#B8975A]">Variable Product</span> in Basic Info for multiple
                               </p>
                            </div>
+
                            <div>
                               <Label>Material *</Label>
                               <select value={singleVariant.material} onChange={(e) => setSingleField("material", e.target.value)} className={selectCls(errors.singleMaterial)}>
@@ -575,17 +684,23 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
                               </select>
                               {errors.singleMaterial && <p className="text-[11px] text-red-500 mt-1">{errors.singleMaterial}</p>}
                            </div>
-                           <div className="grid grid-cols-2 gap-3">
-                              <div>
-                                 <Label>Price (Rs) *</Label>
-                                 <FieldInput type="number" value={singleVariant.price} onChange={(v) => setSingleField("price", v ? Number(v) : undefined)} placeholder="11000" error={errors.singlePrice} />
-                              </div>
-                              <div>
-                                 <Label>Stock *</Label>
-                                 <FieldInput type="number" value={singleVariant.stock} onChange={(v) => setSingleField("stock", v ? Number(v) : undefined)} placeholder="0" error={errors.singleStock} />
-                              </div>
+
+                           <div>
+                              <Label>Stock *</Label>
+                              <FieldInput type="number" value={singleVariant.stock} onChange={(v) => setSingleField("stock", v ? Number(v) : undefined)} placeholder="0" error={errors.singleStock} />
                            </div>
-                           <DiscountBlock discount={singleVariant.discount} discountMode={singleVariant.discountMode} discountPrice={singleVariant.discountPrice} onDiscountChange={(v) => setSingleField("discount", v ? Number(v) : undefined)} onModeChange={handleSingleDiscountModeChange} />
+
+                           <RegionPriceSection
+                              regionDraft={regionDraft}
+                              setRegionDraftField={setRegionDraftField}
+                              addRegionPrice={addRegionPrice}
+                              removeRegionPrice={removeRegionPrice}
+                              addedPrices={singleVariant.price}
+                              errors={{ regionRegion: errors.regionRegion, regionPrice: errors.regionPrice }}
+                              target="single"
+                           />
+                           {errors.singlePrice && <p className="text-[11px] text-red-500 -mt-2">{errors.singlePrice}</p>}
+
                            <ColorSection
                               colorDraft={colorDraft}
                               setColorDraft={setColorDraft}
@@ -605,6 +720,7 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
                         <div className="flex flex-col gap-5">
                            <div className="bg-[#F5F0E8] rounded-xl p-4 flex flex-col gap-4 border border-[#B8975A]/10">
                               <p className="text-[12px] font-medium text-headingColor tracking-[0.04em]">New Variant</p>
+
                               <div>
                                  <Label>Material *</Label>
                                  <select value={variantDraft.material} onChange={(e) => setVariantDraftField("material", e.target.value)} className={selectCls(errors.variantMaterial)}>
@@ -618,17 +734,23 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
                                  </select>
                                  {errors.variantMaterial && <p className="text-[11px] text-red-500 mt-1">{errors.variantMaterial}</p>}
                               </div>
-                              <div className="grid grid-cols-2 gap-3">
-                                 <div>
-                                    <Label>Price (Rs) *</Label>
-                                    <FieldInput type="number" value={variantDraft.price} onChange={(v) => setVariantDraftField("price", v ? Number(v) : undefined)} placeholder="11000" error={errors.variantPrice} />
-                                 </div>
-                                 <div>
-                                    <Label>Stock *</Label>
-                                    <FieldInput type="number" value={variantDraft.stock} onChange={(v) => setVariantDraftField("stock", v ? Number(v) : undefined)} placeholder="0" error={errors.variantStock} />
-                                 </div>
+
+                              <div>
+                                 <Label>Stock *</Label>
+                                 <FieldInput type="number" value={variantDraft.stock} onChange={(v) => setVariantDraftField("stock", v ? Number(v) : undefined)} placeholder="0" error={errors.variantStock} />
                               </div>
-                              <DiscountBlock discount={variantDraft.discount} discountMode={variantDraft.discountMode} discountPrice={variantDraft.discountPrice} onDiscountChange={(v) => setVariantDraftField("discount", v ? Number(v) : undefined)} onModeChange={handleVariantDiscountModeChange} />
+
+                              <RegionPriceSection
+                                 regionDraft={regionDraft}
+                                 setRegionDraftField={setRegionDraftField}
+                                 addRegionPrice={addRegionPrice}
+                                 removeRegionPrice={removeRegionPrice}
+                                 addedPrices={variantDraft.price}
+                                 errors={{ regionRegion: errors.regionRegion, regionPrice: errors.regionPrice }}
+                                 target="draft"
+                              />
+                              {errors.variantPrice && <p className="text-[11px] text-red-500 -mt-2">{errors.variantPrice}</p>}
+
                               <ColorSection
                                  colorDraft={colorDraft}
                                  setColorDraft={setColorDraft}
@@ -640,6 +762,7 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
                                  addedColors={variantDraft.colors}
                                  errors={{ colorHex: errors.colorHex, colorImage: errors.colorImage }}
                               />
+
                               <button onClick={addVariant} className="w-full py-2.5 bg-primaryBG text-[#B8975A] text-[12px] font-medium rounded-lg hover:bg-headingColor transition-colors mt-1">
                                  + Add Variant
                               </button>
@@ -651,7 +774,14 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
                               <div className="flex flex-col gap-3">
                                  <p className="text-[10px] tracking-widest uppercase text-[#5E5F60]">Added Variants ({form.VariantSchema.length})</p>
                                  {form.VariantSchema.map((v) => (
-                                    <VariantCard key={v.material} variant={v} onRemove={() => removeVariant(v.material)} onRemoveColor={(hex) => removeColorFromVariant(v.material, hex)} onRemoveColorImage={(hex, i) => removeColorVariantImage(v.material, hex, i)} />
+                                    <VariantCard
+                                       key={v.material}
+                                       variant={v}
+                                       onRemove={() => removeVariant(v.material)}
+                                       onRemoveColor={(hex) => removeColorFromVariant(v.material, hex)}
+                                       onRemoveColorImage={(hex, i) => removeColorVariantImage(v.material, hex, i)}
+                                       onRemoveRegion={(region) => removeRegionFromVariant(v.material, region)}
+                                    />
                                  ))}
                               </div>
                            )}
