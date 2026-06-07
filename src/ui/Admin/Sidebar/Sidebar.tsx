@@ -88,6 +88,17 @@ const navSections = [
             ),
          },
          {
+            label: "Regions",
+            href: "/admin/commerce/regions",
+            icon: (
+               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.4" />
+                  <path d="M8 2c-2 2-2 8 0 12M8 2c2 2 2 8 0 12" stroke="currentColor" strokeWidth="1.4" />
+                  <path d="M2.5 6h11M2.5 10h11" stroke="currentColor" strokeWidth="1.4" />
+               </svg>
+            ),
+         },
+         {
             label: "Customers",
             href: "/admin/customers",
             icon: (

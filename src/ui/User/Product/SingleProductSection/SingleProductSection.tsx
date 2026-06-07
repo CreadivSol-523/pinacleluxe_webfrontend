@@ -14,7 +14,7 @@ const SingleProductSection = () => {
    const [selectedColor, setSelectedColor] = useState<{ hex: { code: string; colorName: string }; images: string[] }>({ hex: { code: "", colorName: "" }, images: [] });
    const [selectedMaterials, setSelectedMaterials] = useState<VariantSchema>({
       material: "",
-      price: 0,
+      price: [{ price: 0, region: "", discountedValue: 0, discountMode: "" }],
       discountPrice: 0,
       stock: 0,
       colors: [{ hex: { code: "", colorName: "" }, images: [] }],
@@ -94,9 +94,15 @@ const SingleProductSection = () => {
       setSelectedColor({ hex: { code: "", colorName: "" }, images: findProduct?.VariantSchema?.[0]?.colors?.[0].images || [] });
       setSelectedMaterials({
          material: findProduct?.VariantSchema?.[0]?.material || "",
-         price: findProduct?.VariantSchema?.[0]?.price || 0,
+         price: [
+            {
+               price: findProduct?.VariantSchema?.[0]?.price?.[0]?.price || 0,
+               region: findProduct?.VariantSchema?.[0]?.price?.[0]?.region || "",
+               discountedValue: findProduct?.VariantSchema?.[0]?.price?.[0]?.discountedValue || 0,
+               discountMode: findProduct?.VariantSchema?.[0]?.price?.[0]?.discountMode || "",
+            },
+         ],
          discountMode: "static",
-         discountPrice: findProduct?.VariantSchema?.[0]?.discountPrice,
          colors: findProduct?.VariantSchema?.[0]?.colors,
          stock: findProduct?.VariantSchema?.[0]?.stock,
       });
@@ -188,7 +194,7 @@ const SingleProductSection = () => {
             <p className="text-[#5E5F60]! lg:flex hidden">Cart / Shipping / {id}</p>
             <div className="flex flex-col gap-2.5">
                <h2 className="text-headingColor">{findProduct?.name}</h2>
-               <h3 className="text-[20px]! text-headingColor">Rs {selectedMaterials.material !== "" ? selectedMaterials.price : findProduct?.VariantSchema[0]?.price}</h3>
+               <h3 className="text-[20px]! text-headingColor">Rs {selectedMaterials.material !== "" ? selectedMaterials.price?.[0]?.price : findProduct?.VariantSchema[0]?.price?.[0]?.price}</h3>
             </div>
             <p className="text-textBlack">
                A lightweight Italian leather carryall with the most crucial feature A lightweight Italian leather carryall with the most crucial feature A lightweight Italian leather carryall with the most crucial feature A lightweight Italian leather carryall with the most crucial feature A
@@ -257,7 +263,7 @@ const SingleProductSection = () => {
                            images: findProduct?.images?.[0] || "",
                            colorVariants: selectedColor.hex?.code || "",
                            material: selectedMaterials.material,
-                           price: selectedMaterials.price ?? 0,
+                           price: selectedMaterials.price?.[0]?.price ?? 0,
                            stock: selectedMaterials?.stock || 0,
                         },
                         quantity,

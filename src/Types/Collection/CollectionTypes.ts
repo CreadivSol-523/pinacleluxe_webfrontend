@@ -2,27 +2,6 @@ export interface productCart {
    data: Product;
 }
 
-// export interface Product {
-//    id?: string;
-//    name?: string;
-//    slug?: string;
-//    description?: string;
-//    category?: string;
-//    subCategory?: string;
-//    badge?: string;
-//    isVariable?: boolean;
-//    price?: number;
-//    discountPrice?: number;
-//    discount?: number;
-//    stock?: number;
-//    material: material[];
-//    images: string[];
-//    gallery: string[];
-//    colorVariants: colorVariants[];
-//    discountMode?: "percentage" | "static";
-//    VariantSchema: VariantSchema[];
-// }
-
 export interface Product {
    _id?: string;
    name?: string;
@@ -42,9 +21,16 @@ export interface colorVariants {
    images: string[];
 }
 
+export interface RegionPrice {
+   region: string;
+   price: number;
+   discountMode?: string;
+   discountedValue?: number;
+}
+
 export interface VariantSchema {
    material: string;
-   price: number | null;
+   price: RegionPrice[];
    colors?: colorVariants[];
    discountPrice?: number;
    discountedValue?: number;

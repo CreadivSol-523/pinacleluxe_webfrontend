@@ -11,7 +11,14 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
    const [selectedColor, setSelectedColor] = useState<colorVariants>({ hex: { code: "", colorName: "" }, images: [] });
    const [selectedMaterials, setSelectedMaterials] = useState<VariantSchema>({
       material: selectedProduct?.VariantSchema?.[0]?.material || "",
-      price: selectedProduct?.VariantSchema?.[0].price || 0,
+      price: [
+         {
+            price: selectedProduct?.VariantSchema?.[0].price?.[0]?.price || 0,
+            region: selectedProduct?.VariantSchema?.[0].price?.[0]?.region || "",
+            discountedValue: selectedProduct?.VariantSchema?.[0].price?.[0]?.discountedValue || 0,
+            discountMode: selectedProduct?.VariantSchema?.[0].price?.[0]?.discountMode || "",
+         },
+      ],
       discountPrice: selectedProduct?.VariantSchema?.[0].discountPrice,
       stock: selectedProduct?.VariantSchema?.[0].stock,
       colors: selectedProduct?.VariantSchema?.[0].colors,
@@ -53,7 +60,14 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
       setSelectedColor({ hex: { code: selectedProduct?.VariantSchema?.[0]?.colors?.[0]?.hex?.code || "", colorName: selectedProduct?.VariantSchema?.[0]?.colors?.[0]?.hex?.colorName || "" }, images: selectedProduct?.images || [] });
       setSelectedMaterials({
          material: selectedProduct?.VariantSchema?.[0]?.material || "",
-         price: selectedProduct?.VariantSchema?.[0].price || 0,
+         price: [
+            {
+               price: selectedProduct?.VariantSchema?.[0].price?.[0]?.price || 0,
+               region: selectedProduct?.VariantSchema?.[0].price?.[0]?.region || "",
+               discountedValue: selectedProduct?.VariantSchema?.[0].price?.[0]?.discountedValue || 0,
+               discountMode: selectedProduct?.VariantSchema?.[0].price?.[0]?.discountMode || "",
+            },
+         ],
          discountPrice: selectedProduct?.VariantSchema?.[0].discountPrice,
          stock: selectedProduct?.VariantSchema?.[0].stock,
          colors: selectedProduct?.VariantSchema?.[0].colors,
@@ -169,7 +183,7 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
             <div className=" md:p-10 px-5 flex flex-col gap-10 md:w-200 top-0 sticky md:max-h-[calc(100vh-50px)] pb-10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                <div className="flex flex-col gap-2.5">
                   <h2 className="text-headingColor">{selectedProduct?.name}</h2>
-                  <h3 className="text-[20px]! text-headingColor">Rs {selectedMaterials?.price}</h3>
+                  <h3 className="text-[20px]! text-headingColor">Rs {selectedMaterials?.price?.[0]?.price}</h3>
                </div>
 
                <div className="flex flex-col gap-5">
@@ -237,7 +251,7 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                                     images: selectedProduct?.images?.[0] || "",
                                     colorVariants: selectedColor.hex?.code || "",
                                     material: selectedMaterials.material,
-                                    price: selectedMaterials?.price ?? 0,
+                                    price: selectedMaterials?.price?.[0]?.price ?? 0,
                                     stock: selectedMaterials?.stock || 0,
                                  },
                                  quantity,

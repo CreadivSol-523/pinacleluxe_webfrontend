@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useState } from "react";
 
 type ProductCardProps = {
-   // data: Omit<Product, "VariantSchema">;
    data: Product;
    isCart?: (value: boolean) => void;
    AddCartDetail?: (value: any) => void;
@@ -62,7 +61,7 @@ const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
                               id: data._id || "",
                               name: data.name || "",
                               images: data.images?.[0] || "",
-                              price: data.VariantSchema?.[0]?.price || 0,
+                              price: data.VariantSchema?.[0]?.price?.[0]?.price || 0,
                               discountPrice: data.VariantSchema?.[0]?.discountPrice || 0,
                               stock: data.VariantSchema?.[0]?.stock || 0,
                               colorVariants: data.VariantSchema?.[0]?.colors?.[0]?.hex?.code || "",
@@ -110,7 +109,7 @@ const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
                </div>
                <h3 className="2xl:text-[20px]! xl:text-[19px]! text-[16px]! fontInterRegular">{data.name || "Easy Zipper Tote Bag"}</h3>
                <div className="flex items-center gap-4">
-                  <p>Rs {data?.VariantSchema?.[0]?.price || "11,999"}</p>
+                  <p>Rs {data?.VariantSchema?.[0]?.price?.[0]?.price || "11,999"}</p>
                   <span className="py-0.5 px-2 bg-BtnBlack">
                      <p className="text-white">-80% Rs {data?.VariantSchema?.[0]?.discountPrice || "2500"}</p>
                   </span>

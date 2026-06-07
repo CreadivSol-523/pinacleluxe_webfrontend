@@ -58,11 +58,11 @@ export default function CategoryPage() {
    };
 
    const ToggleActiveCat = (_id: string) => {
-      const findCat = categories.find((c) => c._id === _id);
+      const findCat = categories.find((c) => c._id === _id) || categories.find((c) => c.children?.some((sc) => sc._id === _id))?.children?.find((sc) => sc._id === _id);
 
       if (!findCat) return;
 
-      handleUpdateCategory({ form: { isActive: !findCat.isActive, image: findCat.image, name: findCat.name, parentId: findCat.parentId, slug: findCat.slug }, id: findCat._id });
+      handleUpdateCategory({ form: { isActive: !findCat.isActive }, id: findCat._id, partialFields: true });
    };
 
    const handleDelete = async (_id?: string) => {
@@ -82,7 +82,7 @@ export default function CategoryPage() {
          setCategories(data.categories);
       }
    }, [tree]);
-
+   console.log({ APIData: data?.categories, tree, categories });
    return (
       <AdminLayout>
          <div className="flex flex-col gap-6">
