@@ -4,14 +4,14 @@ import { Cart } from "@/Types/Cart/CartTypes";
 import { Product, VariantSchema } from "@/Types/Collection/CollectionTypes";
 import Image from "next/image";
 
-const AccessoriesCard = ({ product, isButton = true, selectedColor, selectedMaterials }: { product: Product; isButton: boolean; selectedColor: { hex: { code: string }; images: string[] }; selectedMaterials: VariantSchema }) => {
+const AccessoriesCard = ({ product, isButton = true, selectedColor, selectedMaterials }: { product: Product; isButton: boolean; selectedColor: { hex: { code: string }; images: (string | File)[] }; selectedMaterials: VariantSchema }) => {
    const { addToCart, updateQuantity } = useCartStore();
 
    const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === product?._id && item.colorVariants === selectedColor.hex.code && item.material === selectedMaterials.material));
 
    return (
       <div className="flex items-center gap-6 " key={product?._id}>
-         <Image src={product?.images?.[0] || "/Dummy/Product/ProductImg.png"} alt="sidebar card" width={80} height={100} />
+         <Image src={(product?.images?.[0] as string) || "/Dummy/Product/ProductImg.png"} alt="sidebar card" width={80} height={100} />
          <div className="flex flex-col justify-between  gap-2.5 ">
             <p className="text-headingColor">{product?.name || "Easy Zipper Tote"}</p>
             <p style={{ fontFamily: "InterMedium", fontWeight: 500 }} className="text-lg! text-headingColor">
@@ -29,7 +29,7 @@ const AccessoriesCard = ({ product, isButton = true, selectedColor, selectedMate
                            {
                               id: product?._id || "",
                               name: product?.name || "",
-                              images: product?.images?.[0] || "",
+                              images: (product?.images?.[0] as any) || "",
                               colorVariants: selectedColor.hex.code,
                               material: selectedMaterials.material,
                               price: selectedMaterials?.price?.[0]?.price ?? 0,

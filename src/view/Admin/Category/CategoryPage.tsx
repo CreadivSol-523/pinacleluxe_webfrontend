@@ -49,11 +49,14 @@ export default function CategoryPage() {
    // Delete Category
    const { handleDeleteCategory, isLoading: deleting } = useDeleteCategoryHandler();
 
-   const handleSubmitCategory = () => {
+   const handleSubmitCategory = async () => {
       if (!editingId) {
-         handleCreateCategory({ form });
+         const result = await handleCreateCategory({ form });
+         if (result.success) {
+            closeModal();
+         }
       } else {
-         handleUpdateCategory({ form, id: editingId });
+         const result = await handleUpdateCategory({ form, id: editingId });
       }
    };
 
@@ -82,7 +85,7 @@ export default function CategoryPage() {
          setCategories(data.categories);
       }
    }, [tree]);
-   console.log({ APIData: data?.categories, tree, categories });
+
    return (
       <AdminLayout>
          <div className="flex flex-col gap-6">

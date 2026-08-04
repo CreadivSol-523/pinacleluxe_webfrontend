@@ -1,7 +1,7 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import Modal from "./Modal";
 import Image from "next/image";
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, X } from "lucide-react";
 import Button from "../Button/Button";
 import { ModalType } from "@/Types/Modal/ModalType";
 import { useCartStore } from "@/Storage/UseCartStore";
@@ -136,6 +136,28 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
          }}
       >
          <div className="fixed z-70 top-1/2 left-1/2 w-[90vw] h-[90vh] max-md:flex-col max-[950px]:gap-10 -translate-x-1/2 -translate-y-1/2 bg-white flex   rounded-lg overflow-y-scroll [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex items-center justify-center absolute top-5 right-5 ">
+               <div
+                  className="cursor-pointer z-50 border border-textBlack p-1 rounded-full"
+                  onClick={() => {
+                     setOpenModal(false);
+                     setQuantity(1);
+                  }}
+               >
+                  <X size={20} />
+               </div>
+               {/* <Button
+                  name={"Close"}
+                  className="w-[calc(100%-200px)] border border-textBlack"
+                  bgcolor="bg-white!"
+                  pClass="text-textBlack!"
+                  disabled={GetCartSingleItem ? true : false}
+                  onClick={() => {
+                     setOpenModal(false);
+                     setQuantity(1);
+                  }}
+               /> */}
+            </div>
             <div className="pl-5 max-[950px]:pl-0 flex flex-col xl:w-auto w-15 gap-2 max-xl:items-center max-xl:justify-center sticky top-10 max-xl:h-[calc(100vh-150px)]  overflow-scroll [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-[950px]:hidden">
                {images.map((_, i) => (
                   <div
@@ -248,7 +270,7 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                                  {
                                     id: selectedProduct?._id || "",
                                     name: selectedProduct?.name || "",
-                                    images: selectedProduct?.images?.[0] || "",
+                                    images: (selectedProduct?.images?.[0] as any) || "",
                                     colorVariants: selectedColor.hex?.code || "",
                                     material: selectedMaterials.material,
                                     price: selectedMaterials?.price?.[0]?.price ?? 0,
@@ -258,17 +280,6 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                               );
                               setOpenModal(false);
                            }
-                        }}
-                     />
-                     <Button
-                        name={"Close"}
-                        className="w-full border border-textBlack"
-                        bgcolor="bg-white!"
-                        pClass="text-textBlack!"
-                        disabled={GetCartSingleItem ? true : false}
-                        onClick={() => {
-                           setOpenModal(false);
-                           setQuantity(1);
                         }}
                      />
                   </div>

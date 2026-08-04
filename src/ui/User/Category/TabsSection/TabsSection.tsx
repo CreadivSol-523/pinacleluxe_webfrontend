@@ -10,8 +10,9 @@ const TabsSection = ({ isFilter, setIsFilter }: { isFilter: boolean; setIsFilter
    const [selectedColor, setSelectedColor] = useState<colorVariants>({ hex: { code: "", colorName: "" }, images: [] });
 
    const scrollRef = useRef<HTMLDivElement>(null);
+   const stickyRef = useRef<HTMLDivElement>(null);
 
-   const Tabs = ["Hot Sellers", "Pinacle Special", "New Arrival", "New Arrival", "New Arrival", "New Arrival", "New Arrival", "New Arrival"];
+   const Tabs = ["Hot Sellers", "Pinacle Special", "New Arrival"];
 
    const scroll = (dir: "left" | "right") => {
       if (scrollRef.current) {
@@ -20,40 +21,58 @@ const TabsSection = ({ isFilter, setIsFilter }: { isFilter: boolean; setIsFilter
    };
 
    useEffect(() => {
-      if (isFilter) {
-         // Disable scroll
-         document.body.style.overflow = "hidden";
-      } else {
-         // Enable scroll
+      if (!isFilter) {
          document.body.style.overflow = "auto";
+         return;
       }
 
-      // Clean up in case component unmounts
+      const el = stickyRef.current;
+      const isDesktopSticky = window.matchMedia("(min-width: 640px)").matches; // sm: breakpoint jahan sticky/filter active hote hain
+
+      let needsScroll = false;
+
+      if (el && isDesktopSticky) {
+         const rect = el.getBoundingClientRect();
+         const stickyTop = parseFloat(getComputedStyle(el).top) || 0;
+
+         // agar element abhi apni sticky-top position par "stuck" nahi hua (yani abhi neeche hai)
+         needsScroll = rect.top > stickyTop + 1;
+
+         if (needsScroll) {
+            window.scrollBy({ top: rect.top - stickyTop, behavior: "smooth" });
+         }
+      }
+
+      const lockScroll = () => {
+         document.body.style.overflow = "hidden";
+      };
+
+      if (needsScroll) {
+         // scroll animation complete hone ke baad hi body scroll lock karo,
+         // warna overflow:hidden lagते hi smooth-scroll beech mein cut ho jayegi
+         window.addEventListener("scrollend", lockScroll, { once: true });
+      } else {
+         lockScroll();
+      }
+
       return () => {
+         window.removeEventListener("scrollend", lockScroll);
          document.body.style.overflow = "auto";
       };
    }, [isFilter]);
 
    return (
-      <div className={`sm:sticky relative  z-50! top-17.5  bg-white`}>
+      <div ref={stickyRef} className={`sm:sticky relative z-50! top-17.5  bg-white`}>
          <div className="w-full flex flex-col gap-4 pt-4 ">
             <div className="flex md:items-center justify-between max-md:flex-col max-md:gap-4 py-2  bg-white ">
                <div className="flex items-center gap-2">
-                  <button onClick={() => scroll("left")} className="shrink-0 p-1 rounded-full hover:bg-gray-100 transition">
-                     <ChevronLeft className="text-[#8D8D8D]" size={20} />
-                  </button>
-
-                  <div ref={scrollRef} className="flex items-center gap-4.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-1 xl:max-w-200 lg:max-w-130 md:max-w-100 max-w-full">
+                  <div ref={scrollRef} className="flex flex-wrap items-center gap-4.5  [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-1 xl:max-w-200 lg:max-w-130 md:max-w-100 max-w-full">
                      {Tabs.map((tab, i) => (
                         <div key={i} className={`cursor-pointer active:scale-99 py-2 px-6 rounded-full border-2 shrink-0 ${selectedTab === tab ? "border-BtnBlack bg-BtnBlack" : "border-BtnBlack bg-white"}`} onClick={() => setSelectedTab(tab)}>
                            <p className={`${selectedTab === tab ? "text-white" : "text-textBlack"} fontInterMedium! font-semibold! tracking-wide`}>{tab}</p>
                         </div>
                      ))}
                   </div>
-
-                  <button onClick={() => scroll("right")} className="shrink-0 p-1 rounded-full hover:bg-gray-100 transition">
-                     <ChevronRight className="text-[#8D8D8D]" size={20} />
-                  </button>
                </div>
                <div className="flex items-center sm:gap-20 gap-5">
                   <span className="flex items-center gap-1.5 cursor-pointer">
