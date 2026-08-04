@@ -2,13 +2,32 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useProductForm, DiscountMode, ColorVariant, RegionPrice, RegionPriceDraft } from "@/Validations/Useproductform";
-import { Product } from "@/Types/Collection/CollectionTypes";
+import { Product, VariantSchema } from "@/Types/Collection/CollectionTypes";
+import { Region } from "@/Types/Region/Region";
+import { useGetRegionHandler } from "@/modals/RegionModal";
+import { Category } from "@/Types/Category/Category";
+
+const toRegionPriceArray = (prices: any[] = []): RegionPrice[] =>
+   (prices ?? []).map((r) => ({
+      region: {
+         _id: r._id ?? r.region?._id ?? "",
+         name: r.region?.name ?? r.region ?? "",
+         code: r.code ?? r.region?.code ?? "",
+         currency: r.region?.currency ?? "",
+         description: r.region?.description ?? "",
+         isActive: r.region?.isActive ?? true,
+      },
+      price: r.price,
+      discountMode: r.discountMode,
+      discountValue: r.discountValue,
+   }));
 
 interface UpdateProductModalProps {
    isOpen: boolean;
    onClose: () => void;
    onSuccess?: (product: any) => void;
    initialData?: Product;
+   categoryData?: Category[];
 }
 
 type Tab = "basic" | "media" | "variants";
@@ -50,14 +69,14 @@ const Toggle = ({ active, onChange, label }: { active: boolean; onChange: () => 
 );
 
 // ── Image Uploader ────────────────────────────────────────────────────────────
-function ImageUploader({ label, images, onAdd, onRemove, error, firstLabel }: { label: string; images: string[]; onAdd: (url: string) => void; onRemove: (i: number) => void; error?: string; firstLabel?: string }) {
+function ImageUploader({ label, images, onAdd, onRemove, error, firstLabel, multiple = true }: { label: string; images: string[] | File[]; onAdd: (url: string, file?: File) => void; onRemove: (i: number) => void; error?: string; firstLabel?: string; multiple?: boolean }) {
    const [urlInput, setUrlInput] = useState("");
    const fileRef = useRef<HTMLInputElement>(null);
 
    const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
       Array.from(e.target.files || []).forEach((file) => {
          const reader = new FileReader();
-         reader.onload = () => onAdd(reader.result as string);
+         reader.onload = () => onAdd(reader.result as string, file);
          reader.readAsDataURL(file);
       });
       e.target.value = "";
@@ -94,11 +113,11 @@ function ImageUploader({ label, images, onAdd, onRemove, error, firstLabel }: { 
                </svg>
                Upload
             </button>
-            <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFile} />
+            <input ref={fileRef} type="file" accept="image/*" multiple={multiple} className="hidden" onChange={handleFile} />
          </div>
          {images.length > 0 && (
             <div className="grid grid-cols-4 gap-2 mt-2">
-               {images.map((url, i) => (
+               {(images as string[]).map((url, i) => (
                   <div key={i} className="relative group rounded-lg overflow-hidden bg-[#F5F0E8] aspect-square border border-[#B8975A]/10">
                      {/* eslint-disable-next-line @next/next/no-img-element */}
                      <img src={url} alt="" className="w-full h-full object-cover" />
@@ -134,6 +153,10 @@ function RegionPriceSection({
    errors: { regionRegion?: string; regionPrice?: string };
    target: "single" | "draft";
 }) {
+   // Region list ab API se aati hai (Region object), plain text input nahi
+   const { data } = useGetRegionHandler();
+   const regions = data?.regions || [];
+
    return (
       <div className="flex flex-col gap-3">
          <p className="text-[11px] font-medium text-headingColor tracking-[0.04em]">Region Pricing *</p>
@@ -142,7 +165,30 @@ function RegionPriceSection({
             <div className="grid grid-cols-2 gap-3">
                <div>
                   <Label>Region</Label>
-                  <FieldInput value={regionDraft.region} onChange={(v) => setRegionDraftField("region", v)} placeholder="e.g. PK, UAE, UK" error={errors.regionRegion} />
+                  <select
+                     value={regionDraft.region?._id ?? ""}
+                     onChange={(e) => {
+                        const selectedRegion = regions.find((r) => r._id === e.target.value);
+                        if (!selectedRegion) return;
+                        setRegionDraftField("region", {
+                           _id: selectedRegion._id,
+                           name: selectedRegion.name,
+                           currency: selectedRegion.currency,
+                           description: selectedRegion.description,
+                           isActive: selectedRegion.isActive,
+                           code: selectedRegion.code,
+                        } as any);
+                     }}
+                     className={selectCls(errors.regionRegion)}
+                  >
+                     <option value="">Select region...</option>
+                     {regions.map((m) => (
+                        <option key={m._id} value={m._id}>
+                           {m.name}
+                        </option>
+                     ))}
+                  </select>
+                  {errors.regionRegion && <p className="text-[11px] text-red-500 mt-1">{errors.regionRegion}</p>}
                </div>
                <div>
                   <Label>Price *</Label>
@@ -159,11 +205,11 @@ function RegionPriceSection({
                   ))}
                </div>
                <div className="flex-1">
-                  <FieldInput type="number" value={regionDraft.discountedValue} onChange={(v) => setRegionDraftField("discountedValue", v ? Number(v) : undefined)} placeholder={regionDraft.discountMode === "percentage" ? "e.g. 10" : "e.g. 500"} />
+                  <FieldInput type="number" value={regionDraft.discountValue} onChange={(v) => setRegionDraftField("discountValue", v ? Number(v) : undefined)} placeholder={regionDraft.discountMode === "percentage" ? "e.g. 10" : "e.g. 500"} />
                </div>
-               {regionDraft.discountedValue && regionDraft.price ? (
+               {regionDraft.discountValue && regionDraft.price ? (
                   <span className="text-[11px] text-[#5E5F60] whitespace-nowrap">
-                     = {regionDraft.discountMode === "percentage" ? Math.round(regionDraft.price - (regionDraft.price * regionDraft.discountedValue) / 100).toLocaleString() : Math.round(regionDraft.price - regionDraft.discountedValue).toLocaleString()}
+                     = {regionDraft.discountMode === "percentage" ? Math.round(regionDraft.price - (regionDraft.price * regionDraft.discountValue) / 100).toLocaleString() : Math.round(regionDraft.price - regionDraft.discountValue).toLocaleString()}
                   </span>
                ) : null}
             </div>
@@ -176,19 +222,19 @@ function RegionPriceSection({
          {addedPrices.length > 0 && (
             <div className="flex flex-col gap-1.5">
                {addedPrices.map((r) => (
-                  <div key={r.region} className="flex items-center justify-between px-3 py-2 bg-[#F5F0E8] rounded-lg border border-[#B8975A]/10">
+                  <div key={r.region._id} className="flex items-center justify-between px-3 py-2 bg-[#F5F0E8] rounded-lg border border-[#B8975A]/10">
                      <div className="flex items-center gap-3 flex-wrap">
-                        <span className="text-[11px] font-medium text-[#B8975A] uppercase tracking-widest">{r.region}</span>
+                        <span className="text-[11px] font-medium text-[#B8975A] uppercase tracking-widest">{r.region.code}</span>
                         <span className="text-[12px] text-headingColor">Rs {r.price?.toLocaleString()}</span>
-                        {r.discountedValue && (
+                        {r.discountValue && (
                            <span className="text-[11px] text-[#5E5F60]">
-                              -{r.discountMode === "percentage" ? `${r.discountedValue}%` : `Rs ${r.discountedValue.toLocaleString()}`}
+                              -{r.discountMode === "percentage" ? `${r.discountValue}%` : `Rs ${r.discountValue.toLocaleString()}`}
                               {" → "}
-                              {r.discountMode === "percentage" ? Math.round(r.price - (r.price * r.discountedValue) / 100).toLocaleString() : Math.round(r.price - r.discountedValue).toLocaleString()}
+                              {r.discountMode === "percentage" ? Math.round(r.price - (r.price * r.discountValue) / 100).toLocaleString() : Math.round(r.price - r.discountValue).toLocaleString()}
                            </span>
                         )}
                      </div>
-                     <button onClick={() => removeRegionPrice(target, r.region)} className="text-[#5E5F60] hover:text-red-500 transition-colors">
+                     <button onClick={() => removeRegionPrice(target, r.region._id)} className="text-[#5E5F60] hover:text-red-500 transition-colors">
                         <svg width="11" height="11" viewBox="0 0 14 14" fill="none">
                            <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
                         </svg>
@@ -204,6 +250,7 @@ function RegionPriceSection({
 // ── Color Section ─────────────────────────────────────────────────────────────
 function ColorSection({
    colorDraft,
+   showColorDraft,
    setColorDraft,
    addColorImage,
    removeColorImage,
@@ -214,8 +261,9 @@ function ColorSection({
    errors,
 }: {
    colorDraft: ColorVariant;
+   showColorDraft: { hex: { code: string; colorName: string }; images?: string[] };
    setColorDraft: React.Dispatch<React.SetStateAction<ColorVariant>>;
-   addColorImage: (url: string) => void;
+   addColorImage: (url: string, file?: string | File) => void;
    removeColorImage: (i: number) => void;
    onAddColor: () => void;
    onRemoveColor: (hex: string) => void;
@@ -236,8 +284,14 @@ function ColorSection({
                </div>
                <p className="text-[9px] text-[#5E5F60] font-mono">{colorDraft.hex.code}</p>
             </div>
-            <div className="flex-1">
-               <p className="text-[11px] font-medium text-headingColor">Pick a color</p>
+            <div className="flex-1 flex flex-col gap-1.5">
+               <input
+                  type="text"
+                  value={colorDraft.hex.colorName}
+                  onChange={(e) => setColorDraft((p) => ({ ...p, hex: { ...p.hex, colorName: e.target.value } }))}
+                  placeholder="Color name (e.g. Midnight Black)"
+                  className="w-full px-3 py-1.5 text-[12px] bg-[#F5F0E8] border border-[#B8975A]/20 rounded-lg text-headingColor placeholder:text-[#5E5F60]/60 focus:outline-none focus:border-[#B8975A]/60 transition-colors"
+               />
                <p className="text-[10px] text-[#5E5F60]">Add images then click Add Swatch</p>
             </div>
             {errors.colorHex && <p className="text-[10px] text-red-500">{errors.colorHex}</p>}
@@ -283,7 +337,7 @@ function ColorSection({
                      onChange={(e) => {
                         Array.from(e.target.files || []).forEach((f) => {
                            const r = new FileReader();
-                           r.onload = () => addColorImage(r.result as string);
+                           r.onload = () => addColorImage(r.result as string, e.target.files ? f : undefined);
                            r.readAsDataURL(f);
                         });
                         e.target.value = "";
@@ -292,9 +346,9 @@ function ColorSection({
                </label>
             </div>
             {errors.colorImage && <p className="text-[10px] text-red-500 mb-1">{errors.colorImage}</p>}
-            {colorDraft.images.length > 0 && (
+            {(showColorDraft as any)?.images?.length > 0 && (
                <div className="grid grid-cols-5 gap-1.5 mb-2">
-                  {colorDraft.images.map((img, i) => (
+                  {(showColorDraft as any)?.images.map((img: string, i: number) => (
                      <div key={i} className="relative group aspect-square rounded-lg overflow-hidden border border-[#B8975A]/15 bg-staticSecondaryBG">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={img} alt="" className="w-full h-full object-cover" />
@@ -319,9 +373,12 @@ function ColorSection({
                   <div key={c.hex.code} className="bg-staticSecondaryBG rounded-xl border border-[#B8975A]/10 overflow-hidden">
                      <div className="flex items-center gap-3 px-3 py-2 border-b border-[#B8975A]/10">
                         <div className="w-5 h-5 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: c.hex.code }} />
-                        <p className="text-[11px] font-mono text-[#5E5F60] flex-1">{c.hex.code}</p>
+                        <p className="text-[11px] font-mono text-[#5E5F60] flex-1">
+                           {c.hex.colorName && <span className="font-medium text-headingColor not-italic">{c.hex.colorName} · </span>}
+                           {c.hex.code}
+                        </p>
                         <p className="text-[11px] text-[#5E5F60]">
-                           {c.images.length} img{c.images.length !== 1 ? "s" : ""}
+                           {c.images?.length ?? 0} img{(c.images?.length ?? 0) !== 1 ? "s" : ""}
                         </p>
                         <button onClick={() => onRemoveColor(c.hex.code)} className="text-[#5E5F60] hover:text-red-500 transition-colors">
                            <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
@@ -330,10 +387,10 @@ function ColorSection({
                         </button>
                      </div>
                      <div className="p-2 grid grid-cols-5 gap-1.5">
-                        {c.images.map((img, i) => (
+                        {(c.images ?? []).map((img, i) => (
                            <div key={i} className="relative group aspect-square rounded-lg overflow-hidden border border-[#B8975A]/10 bg-[#F5F0E8]">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={img} alt="" className="w-full h-full object-cover" />
+                              <img src={img as any} alt="" className="w-full h-full object-cover" />
                               <button onClick={() => onRemoveColorImage(c.hex.code, i)} className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                  <svg width="7" height="7" viewBox="0 0 8 8" fill="none">
                                     <path d="M1 1l6 6M7 1L1 7" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
@@ -352,14 +409,18 @@ function ColorSection({
 
 // ── Variant Card ──────────────────────────────────────────────────────────────
 function VariantCard({
+   initialData,
    variant,
    onRemove,
+   onEdit,
    onRemoveColor,
    onRemoveColorImage,
    onRemoveRegion,
 }: {
+   initialData?: Product;
    variant: import("@/Types/Collection/CollectionTypes").VariantSchema;
    onRemove: () => void;
+   onEdit: () => void;
    onRemoveColor: (hex: string) => void;
    onRemoveColorImage: (hex: string, i: number) => void;
    onRemoveRegion: (region: string) => void;
@@ -374,8 +435,7 @@ function VariantCard({
          <div className="flex items-center gap-3 px-3.5 py-3">
             <div className="flex-1 flex items-center gap-3 flex-wrap">
                <span className="text-[12px] font-medium text-headingColor">{variant.material}</span>
-               <span className="text-[11px] text-[#5E5F60]">Stock: {variant.stock ?? 0}</span>
-               {hasPrices && <span className="text-[11px] text-[#5E5F60]">{variant.price.map((r) => r.region).join(", ")}</span>}
+               {hasPrices && <span className="text-[11px] text-[#5E5F60]">{variant.price.map((r: any) => r.code).join(", ")}</span>}
             </div>
             {hasColors && (
                <button onClick={() => setExpanded((p) => !p)} className="flex items-center gap-1 text-[11px] text-[#5E5F60] hover:text-headingColor transition-colors">
@@ -385,7 +445,12 @@ function VariantCard({
                   </svg>
                </button>
             )}
-            <button onClick={onRemove} className="text-[#5E5F60] hover:text-red-500 transition-colors shrink-0">
+            <button onClick={onEdit} title="Edit variant" className="text-[#5E5F60] hover:text-[#B8975A] transition-colors shrink-0">
+               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M9.5 1.5l3 3-8 8H1.5v-3l8-8z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+               </svg>
+            </button>
+            <button onClick={onRemove} title="Remove variant" className="text-[#5E5F60] hover:text-red-500 transition-colors shrink-0">
                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                   <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
                </svg>
@@ -395,20 +460,20 @@ function VariantCard({
          {/* Region prices */}
          {hasPrices && (
             <div className="border-t border-[#B8975A]/10 px-3.5 py-2.5 flex flex-col gap-1.5">
-               {variant.price.map((r) => (
-                  <div key={r.region} className="flex items-center justify-between">
+               {variant.price.map((r: any, i) => (
+                  <div key={r._id + i} className="flex items-center justify-between">
                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-[10px] font-medium text-[#B8975A] uppercase tracking-widest">{r.region}</span>
+                        <span className="text-[10px] font-medium text-[#B8975A] uppercase tracking-widest">{r.code}</span>
                         <span className="text-[12px] text-headingColor">Rs {r.price?.toLocaleString()}</span>
-                        {r.discountedValue && (
+                        {r.discountValue && (
                            <span className="text-[11px] text-[#5E5F60]">
-                              -{r.discountMode === "percentage" ? `${r.discountedValue}%` : `Rs ${r.discountedValue.toLocaleString()}`}
+                              -{r.discountMode === "percentage" ? `${r.discountValue}%` : `Rs ${r.discountValue.toLocaleString()}`}
                               {" → "}
-                              {r.discountMode === "percentage" ? Math.round(r.price - (r.price * r.discountedValue) / 100).toLocaleString() : Math.round(r.price - r.discountedValue).toLocaleString()}
+                              {r.discountMode === "percentage" ? Math.round(r.price - (r.price * r.discountValue) / 100).toLocaleString() : Math.round(r.price - r.discountValue).toLocaleString()}
                            </span>
                         )}
                      </div>
-                     <button onClick={() => onRemoveRegion(r.region)} className="text-[#5E5F60] hover:text-red-500 transition-colors">
+                     <button onClick={() => onRemoveRegion(r._id)} className="text-[#5E5F60] hover:text-red-500 transition-colors">
                         <svg width="11" height="11" viewBox="0 0 14 14" fill="none">
                            <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
                         </svg>
@@ -457,7 +522,7 @@ function VariantCard({
 }
 
 // ── Main Modal ────────────────────────────────────────────────────────────────
-export default function UpdateProductModal({ isOpen, onClose, onSuccess, initialData }: UpdateProductModalProps) {
+export default function UpdateProductModal({ isOpen, onClose, onSuccess, initialData, categoryData }: UpdateProductModalProps) {
    const [activeTab, setActiveTab] = useState<Tab>("basic");
    const overlayRef = useRef<HTMLDivElement>(null);
 
@@ -471,11 +536,11 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
       handleVariableToggle,
       addImage,
       removeImage,
+      imageURLs,
+      setImageURLs,
       // single
       singleVariant,
       setSingleField,
-      removeSingleColor,
-      removeSingleColorImage,
       // multi
       variantDraft,
       setVariantDraftField,
@@ -494,6 +559,7 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
       // color draft
       colorDraft,
       setColorDraft,
+      showColorDraft,
       addColorImage,
       removeColorImage,
       addColorToTarget,
@@ -503,7 +569,6 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
       setForm,
       subCategories,
       BADGES,
-      MATERIALS,
       CATEGORY_TREE,
    } = useProductForm((product) => {
       onSuccess?.(product);
@@ -514,19 +579,38 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
    useEffect(() => {
       if (!initialData && !isOpen) return;
       setForm({
+         _id: initialData?._id ?? "",
          name: initialData?.name ?? "",
          slug: initialData?.slug ?? "",
          badge: initialData?.badge ?? "",
+         stock: initialData?.stock ?? 0,
          description: initialData?.description ?? "",
-         category: initialData?.category ?? "",
-         subCategory: initialData?.subCategory ?? "",
-         isVariable: (initialData?.VariantSchema?.length ?? 0) > 1,
-         images: initialData?.images ?? [],
-         gallery: initialData?.gallery ?? [],
-         VariantSchema: initialData?.VariantSchema ?? [],
+         categories: (initialData as any)?.categories?.[0]?.parentId ? (initialData as any)?.categories?.[0]?.parentId : ((initialData as any)?.categories?.[0]?._id ?? ""),
+         subCategory: (initialData as any)?.categories?.[0]?._id ?? "",
+         isVariable: initialData?.isVariable ?? false,
+         images: (initialData as unknown as { thumbnail: string[] })?.thumbnail ?? [],
+         gallery: (initialData as unknown as { images: string[] })?.images ?? [],
+         variants: initialData?.variants ?? [],
       });
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+
+      setImageURLs({
+         images: (((initialData as unknown as { thumbnail: string[] })?.thumbnail as unknown as string[]) ?? []).filter((u): u is string => typeof u === "string"),
+         gallery: ((initialData?.images as unknown as string[]) ?? []).filter((u): u is string => typeof u === "string"),
+         colorImages: [],
+      });
+
+      if (!initialData?.isVariable) {
+         setSingleField("price", toRegionPriceArray((initialData as any).pricing));
+      }
    }, [initialData?._id, isOpen]);
+
+   const handleEditVariant = (v: VariantSchema) => {
+      const anyV = v as any;
+      setVariantDraftField("material", anyV.material ?? "");
+      setVariantDraftField("price", toRegionPriceArray(anyV.price));
+      setVariantDraftField("colors", anyV.colors ?? []);
+      removeVariant(anyV.material);
+   };
 
    useEffect(() => {
       const handler = (e: KeyboardEvent) => {
@@ -575,7 +659,7 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
                         ${activeTab === t.key ? "border-[#B8975A] text-[#B8975A]" : "border-transparent text-[#5E5F60] hover:text-headingColor"}`}
                   >
                      {t.label}
-                     {t.key === "variants" && form.VariantSchema.length > 0 && <span className="ml-1.5 text-[10px] bg-[#B8975A]/15 text-[#B8975A] px-1.5 py-0.5 rounded-full">{form.VariantSchema.length}</span>}
+                     {t.key === "variants" && form.variants.length > 0 && <span className="ml-1.5 text-[10px] bg-[#B8975A]/15 text-[#B8975A] px-1.5 py-0.5 rounded-full">{form.variants.length}</span>}
                   </button>
                ))}
             </div>
@@ -595,35 +679,41 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
                            <FieldInput value={form.slug} onChange={(v) => setField("slug", v)} placeholder="auto-generated" error={errors.slug} />
                         </div>
                      </div>
-                     <div>
-                        <Label>Description</Label>
-                        <textarea
-                           value={form.description}
-                           onChange={(e) => setField("description", e.target.value)}
-                           placeholder="Product description..."
-                           rows={3}
-                           className="w-full px-3.5 py-2.5 text-[13px] bg-[#F5F0E8] border border-[#B8975A]/20 rounded-lg text-headingColor placeholder:text-[#5E5F60]/60 focus:outline-none focus:border-[#B8975A]/60 transition-colors resize-none"
-                        />
+                     <div className="flex flex-col gap-4">
+                        <div>
+                           <Label>Stock *</Label>
+                           <FieldInput type="number" value={form.stock} onChange={(v) => setField("stock", parseInt(v))} placeholder="0" error={errors.stock} />
+                        </div>
+                        <div>
+                           <Label>Description</Label>
+                           <textarea
+                              value={form.description}
+                              onChange={(e) => setField("description", e.target.value)}
+                              placeholder="Product description..."
+                              rows={3}
+                              className="w-full px-3.5 py-2.5 text-[13px] bg-[#F5F0E8] border border-[#B8975A]/20 rounded-lg text-headingColor placeholder:text-[#5E5F60]/60 focus:outline-none focus:border-[#B8975A]/60 transition-colors resize-none"
+                           />
+                        </div>
                      </div>
                      <div className="grid grid-cols-2 gap-4">
                         <div>
                            <Label>Category *</Label>
-                           <select value={form.category} onChange={(e) => handleCategoryChange(e.target.value)} className={selectCls(errors.category)}>
+                           <select value={form.categories} onChange={(e) => handleCategoryChange(e.target.value)} className={selectCls(errors.categories)}>
                               <option value="">Select category...</option>
-                              {CATEGORY_TREE.map((c) => (
-                                 <option key={c.id} value={c.id}>
+                              {CATEGORY_TREE?.map((c) => (
+                                 <option key={c._id} value={c._id}>
                                     {c.name}
                                  </option>
                               ))}
                            </select>
-                           {errors.category && <p className="text-[11px] text-red-500 mt-1">{errors.category}</p>}
+                           {errors.categories && <p className="text-[11px] text-red-500 mt-1">{errors.categories}</p>}
                         </div>
                         <div>
                            <Label>Sub-Category</Label>
                            <select value={form.subCategory} onChange={(e) => setField("subCategory", e.target.value)} disabled={!subCategories.length} className={`${selectCls()} disabled:opacity-40 disabled:cursor-not-allowed`}>
-                              <option value="">{!form.category ? "Select category first" : subCategories.length === 0 ? "No subcategories" : "Select sub-category..."}</option>
+                              <option value="">{!form.categories ? "Select category first" : subCategories.length === 0 ? "No subcategories" : "Select sub-category..."}</option>
                               {subCategories.map((s) => (
-                                 <option key={s.id} value={s.id}>
+                                 <option key={s._id} value={s._id}>
                                     {s.name}
                                  </option>
                               ))}
@@ -653,9 +743,9 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
                {/* ══ TAB 2: Images ══ */}
                {activeTab === "media" && (
                   <div className="flex flex-col gap-6">
-                     <ImageUploader label="Main Images * (shown on product card)" images={form.images} onAdd={(url) => addImage("images", url)} onRemove={(i) => removeImage("images", i)} error={errors.images} firstLabel="Main" />
+                     <ImageUploader label="Main Image * (shown on product card)" multiple={false} images={imageURLs.images} onAdd={(url, file) => addImage("images", url, file)} onRemove={(i) => removeImage("images", i)} error={errors.images} firstLabel="Main" />
                      <div className="border-t border-[#B8975A]/10" />
-                     <ImageUploader label="Gallery Images (shown on hover)" images={form.gallery} onAdd={(url) => addImage("gallery", url)} onRemove={(i) => removeImage("gallery", i)} />
+                     <ImageUploader label="Gallery Images (shown on hover)" images={imageURLs.gallery} onAdd={(url, file) => addImage("gallery", url, file)} onRemove={(i) => removeImage("gallery", i)} />
                   </div>
                )}
 
@@ -672,24 +762,6 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
                               </p>
                            </div>
 
-                           <div>
-                              <Label>Material *</Label>
-                              <select value={singleVariant.material} onChange={(e) => setSingleField("material", e.target.value)} className={selectCls(errors.singleMaterial)}>
-                                 <option value="">Select material...</option>
-                                 {MATERIALS.map((m) => (
-                                    <option key={m} value={m}>
-                                       {m}
-                                    </option>
-                                 ))}
-                              </select>
-                              {errors.singleMaterial && <p className="text-[11px] text-red-500 mt-1">{errors.singleMaterial}</p>}
-                           </div>
-
-                           <div>
-                              <Label>Stock *</Label>
-                              <FieldInput type="number" value={singleVariant.stock} onChange={(v) => setSingleField("stock", v ? Number(v) : undefined)} placeholder="0" error={errors.singleStock} />
-                           </div>
-
                            <RegionPriceSection
                               regionDraft={regionDraft}
                               setRegionDraftField={setRegionDraftField}
@@ -700,18 +772,6 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
                               target="single"
                            />
                            {errors.singlePrice && <p className="text-[11px] text-red-500 -mt-2">{errors.singlePrice}</p>}
-
-                           <ColorSection
-                              colorDraft={colorDraft}
-                              setColorDraft={setColorDraft}
-                              addColorImage={addColorImage}
-                              removeColorImage={removeColorImage}
-                              onAddColor={() => addColorToTarget("single")}
-                              onRemoveColor={removeSingleColor}
-                              onRemoveColorImage={removeSingleColorImage}
-                              addedColors={singleVariant.colors}
-                              errors={{ colorHex: errors.colorHex, colorImage: errors.colorImage }}
-                           />
                         </div>
                      )}
 
@@ -723,22 +783,13 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
 
                               <div>
                                  <Label>Material *</Label>
-                                 <select value={variantDraft.material} onChange={(e) => setVariantDraftField("material", e.target.value)} className={selectCls(errors.variantMaterial)}>
-                                    <option value="">Select material...</option>
-                                    {MATERIALS.map((m) => (
-                                       <option key={m} value={m} disabled={form.VariantSchema.some((v) => v.material === m)}>
-                                          {m}
-                                          {form.VariantSchema.some((v) => v.material === m) ? " (added)" : ""}
-                                       </option>
-                                    ))}
-                                 </select>
-                                 {errors.variantMaterial && <p className="text-[11px] text-red-500 mt-1">{errors.variantMaterial}</p>}
+                                 <FieldInput type="text" value={variantDraft.material} onChange={(v) => setVariantDraftField("material", v)} placeholder="Enter material..." error={errors.variantMaterial} />
                               </div>
 
-                              <div>
+                              {/* <div>
                                  <Label>Stock *</Label>
                                  <FieldInput type="number" value={variantDraft.stock} onChange={(v) => setVariantDraftField("stock", v ? Number(v) : undefined)} placeholder="0" error={errors.variantStock} />
-                              </div>
+                              </div> */}
 
                               <RegionPriceSection
                                  regionDraft={regionDraft}
@@ -753,8 +804,9 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
 
                               <ColorSection
                                  colorDraft={colorDraft}
+                                 showColorDraft={showColorDraft}
                                  setColorDraft={setColorDraft}
-                                 addColorImage={addColorImage}
+                                 addColorImage={(url, file) => addColorImage(url, file as any)}
                                  removeColorImage={removeColorImage}
                                  onAddColor={() => addColorToTarget("draft")}
                                  onRemoveColor={removeColorFromVariantDraft}
@@ -768,16 +820,18 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
                               </button>
                            </div>
 
-                           {errors.VariantSchema && <p className="text-[11px] text-red-500 -mt-3">{errors.VariantSchema}</p>}
+                           {errors.variants && <p className="text-[11px] text-red-500 -mt-3">{errors.variants}</p>}
 
-                           {form.VariantSchema.length > 0 && (
+                           {form.variants.length > 0 && (
                               <div className="flex flex-col gap-3">
-                                 <p className="text-[10px] tracking-widest uppercase text-[#5E5F60]">Added Variants ({form.VariantSchema.length})</p>
-                                 {form.VariantSchema.map((v) => (
+                                 <p className="text-[10px] tracking-widest uppercase text-[#5E5F60]">Added Variants ({form.variants.length})</p>
+                                 {form.variants.map((v) => (
                                     <VariantCard
+                                       initialData={initialData}
                                        key={v.material}
                                        variant={v}
                                        onRemove={() => removeVariant(v.material)}
+                                       onEdit={() => handleEditVariant(v)}
                                        onRemoveColor={(hex) => removeColorFromVariant(v.material, hex)}
                                        onRemoveColorImage={(hex, i) => removeColorVariantImage(v.material, hex, i)}
                                        onRemoveRegion={(region) => removeRegionFromVariant(v.material, region)}
@@ -786,7 +840,7 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
                               </div>
                            )}
 
-                           {form.VariantSchema.length === 0 && (
+                           {form.variants.length === 0 && (
                               <div className="flex flex-col items-center justify-center py-8 text-center border border-dashed border-[#B8975A]/20 rounded-xl">
                                  <svg className="text-[#B8975A]/40 mb-2" width="28" height="28" viewBox="0 0 28 28" fill="none">
                                     <rect x="4" y="4" width="20" height="20" rx="4" stroke="currentColor" strokeWidth="1.5" />
@@ -826,7 +880,11 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
                   <button onClick={handleClose} className="px-5 py-2.5 text-[12px] text-[#5E5F60] border border-[#B8975A]/20 rounded-lg hover:text-headingColor transition-colors">
                      Cancel
                   </button>
-                  <button onClick={handleSubmit} disabled={loading} className="flex items-center gap-2 px-5 py-2.5 bg-primaryBG text-[#B8975A] text-[12px] font-medium tracking-[0.04em] rounded-lg hover:bg-headingColor transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+                  <button
+                     onClick={() => handleSubmit({ type: "update" })}
+                     disabled={loading}
+                     className="flex items-center gap-2 px-5 py-2.5 bg-primaryBG text-[#B8975A] text-[12px] font-medium tracking-[0.04em] rounded-lg hover:bg-headingColor transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
                      {loading ? (
                         <>
                            <svg className="animate-spin" width="14" height="14" viewBox="0 0 14 14" fill="none">

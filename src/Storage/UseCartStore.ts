@@ -6,6 +6,13 @@ export const useCartStore = create<CartStore>()(
    persist(
       (set, get) => ({
          items: [],
+         isCartOpen: false,
+         setCartOpen: (open: boolean) => set({ isCartOpen: open }),
+
+         toggleCart: () =>
+            set((state) => ({
+               isCartOpen: !state.isCartOpen,
+            })),
 
          addToCart: (product: Product, quantity: number = 1) => {
             const { items } = get();

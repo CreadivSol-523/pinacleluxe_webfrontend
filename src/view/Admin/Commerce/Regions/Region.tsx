@@ -25,7 +25,6 @@ function RegionModal({ mode, initial, onClose, onSave, isLoading }: { mode: Moda
    });
    const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
    // API Integration will go here
-   console.log(initial, "initialinitialinitialinitialinitialinitialinitialinitial");
 
    const set = (k: string, v: string | boolean) => {
       setForm((p) => ({ ...p, [k]: v }));
@@ -219,12 +218,14 @@ export default function RegionsPage() {
       await handleCreateRegion({ form: data, partialFields: true });
       setModal(null);
    };
+
    const handleEdit = async (data: Region & { isValidate: boolean }) => {
       setRegions((p) => p.map((r) => (r._id === editTarget?._id ? { ...r, ...data } : r)));
       await handleUpdateCategory({ form: data, id: editTarget?._id ?? "", partialFields: true });
       setModal(null);
       setEditTarget(undefined);
    };
+
    const handleDelete = async (id: string) => {
       await handleDeleteRegion({ id });
       setDeleteTarget(undefined);

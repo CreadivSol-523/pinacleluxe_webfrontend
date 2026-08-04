@@ -2,50 +2,29 @@
 
 import { useState } from "react";
 import { Product, VariantSchema, colorVariants } from "@/Types/Collection/CollectionTypes";
+import { useGetCategoryHandler } from "@/modals/CategoryModal";
+import { useCreateProductHandler, useUpdateProductHandler } from "@/modals/ProductModal";
 
 export interface ColorVariant {
    hex: { code: string; colorName: string };
-   images: string[];
+   images: (string | File)[];
 }
 
 export const BADGES = ["Hot Sellers", "New Arrival", "Pinacle Special", "Archive Sale"];
 export const MATERIALS = ["Leather", "Canvas", "Suede", "Satin", "Nylon", "Velvet"];
 
-export const CATEGORY_TREE = [
-   {
-      id: "cat_totes",
-      name: "Totes",
-      children: [
-         { id: "cat_leather_totes", name: "Leather Totes" },
-         { id: "cat_canvas_totes", name: "Canvas Totes" },
-      ],
-   },
-   { id: "cat_shoulder", name: "Shoulder Bags", children: [{ id: "cat_mini_shoulder", name: "Mini Shoulder" }] },
-   { id: "cat_crossbody", name: "Crossbody", children: [] },
-   { id: "cat_hobo", name: "Hobo", children: [] },
-   { id: "cat_clutch", name: "Clutch", children: [] },
-   {
-      id: "cat_small",
-      name: "Small Leather Goods",
-      children: [
-         { id: "cat_wallets", name: "Wallets" },
-         { id: "cat_cardholders", name: "Card Holders" },
-      ],
-   },
-];
-
 export type DiscountMode = "static" | "percentage";
 
 export interface RegionPrice {
-   region: string;
+   region: { _id: string; name: string; currency: string; description: string; isActive: boolean; code: string };
    price: number;
    discountMode?: DiscountMode;
-   discountedValue?: number;
+   discountValue?: number;
 }
 
 export interface ProductFormData extends Omit<Product, "id"> {
    description: string;
-   category: string;
+   categories: string;
    subCategory: string;
    isVariable: boolean;
 }
@@ -54,7 +33,7 @@ export interface ProductFormData extends Omit<Product, "id"> {
 export interface SingleVariantForm {
    material: string;
    price: RegionPrice[];
-   stock: number | undefined;
+   // stock: number | undefined;
    colors: ColorVariant[];
 }
 
@@ -62,36 +41,35 @@ export interface SingleVariantForm {
 export interface VariantDraft {
    material: string;
    price: RegionPrice[];
-   stock: number | undefined;
+   // stock: number | undefined;
    colors: ColorVariant[];
 }
 
 // Draft for building a single RegionPrice entry
 export interface RegionPriceDraft {
-   region: string;
+   region: { _id: string; name: string; currency: string; description: string; isActive: boolean; code: string };
    price: number | undefined;
    discountMode: DiscountMode;
-   discountedValue: number | undefined;
+   discountValue: number | undefined;
 }
 
 const emptyRegionPriceDraft = (): RegionPriceDraft => ({
-   region: "",
+   region: { _id: "", name: "", currency: "", description: "", isActive: false, code: "" },
    price: undefined,
    discountMode: "static",
-   discountedValue: undefined,
+   discountValue: undefined,
 });
 
 const emptySingleVariant = (): SingleVariantForm => ({
    material: "",
    price: [],
-   stock: undefined,
+   // stock: undefined,
    colors: [],
 });
 
 const emptyVariantDraft = (): VariantDraft => ({
    material: "",
    price: [],
-   stock: undefined,
    colors: [],
 });
 
@@ -99,14 +77,21 @@ const emptyForm = (): ProductFormData => ({
    name: "",
    slug: "",
    badge: "",
+   stock: 0,
    description: "",
-   category: "",
+   categories: "",
    subCategory: "",
    isVariable: false,
    images: [],
    gallery: [],
-   VariantSchema: [],
+   variants: [],
 });
+
+const emptyImageURLs = (): {
+   images: string[];
+   gallery: string[];
+   colorImages: string[]; // sab colors ke images
+} => ({ images: [], gallery: [], colorImages: [] });
 
 export type FormErrors = Partial<
    Record<keyof ProductFormData, string> & {
@@ -117,6 +102,7 @@ export type FormErrors = Partial<
       variantPrice: string;
       variantStock: string;
       colorHex: string;
+      colorName: string;
       colorImage: string;
       regionRegion: string;
       regionPrice: string;
@@ -135,6 +121,11 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
    const [form, setForm] = useState<ProductFormData>(emptyForm());
    const [errors, setErrors] = useState<FormErrors>({});
    const [loading, setLoading] = useState(false);
+   const [imageURLs, setImageURLs] = useState<{
+      images: string[];
+      gallery: string[];
+      colorImages: string[]; // sab colors ke images
+   }>(emptyImageURLs());
 
    const [singleVariant, setSingleVariant] = useState<SingleVariantForm>(emptySingleVariant());
    const [variantDraft, setVariantDraft] = useState<VariantDraft>(emptyVariantDraft());
@@ -148,6 +139,16 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       images: [],
    });
 
+   const [showColorDraft, setShowColorDraft] = useState<{ hex: { code: string; colorName: string }; images?: string[] }>({
+      hex: { code: "#000000", colorName: "" },
+      images: [],
+   });
+
+   // Get Category Tree From API
+   const { data, error, isError, isLoading, refetch } = useGetCategoryHandler();
+
+   const CATEGORY_TREE = data?.categories;
+
    // ── Product-level ─────────────────────────────────────────────────────────
    const setField = <K extends keyof ProductFormData>(key: K, value: ProductFormData[K]) => {
       setForm((prev) => ({ ...prev, [key]: value }));
@@ -160,16 +161,17 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
    };
 
    const handleCategoryChange = (catId: string) => {
-      setForm((prev) => ({ ...prev, category: catId, subCategory: "" }));
-      setErrors((prev) => ({ ...prev, category: undefined }));
+      setForm((prev) => ({ ...prev, categories: catId, subCategory: "" }));
+      setErrors((prev) => ({ ...prev, categories: undefined }));
    };
 
    const handleVariableToggle = () => {
-      setForm((prev) => ({ ...prev, isVariable: !prev.isVariable, VariantSchema: [] }));
+      setForm((prev) => ({ ...prev, isVariable: !prev.isVariable, variants: [] }));
       setSingleVariant(emptySingleVariant());
       setVariantDraft(emptyVariantDraft());
       setRegionDraft(emptyRegionPriceDraft());
       setColorDraft({ hex: { code: "#000000", colorName: "" }, images: [] });
+      setShowColorDraft({ hex: { code: "#000000", colorName: "" }, images: [] });
       setErrors({});
    };
 
@@ -179,7 +181,7 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
          ...prev,
          [key]: value,
          // reset discountedValue when mode changes
-         ...(key === "discountMode" ? { discountedValue: undefined } : {}),
+         ...(key === "discountMode" ? { discountValue: undefined } : {}),
       }));
       setErrors((prev) => ({ ...prev, regionRegion: undefined, regionPrice: undefined }));
    };
@@ -187,7 +189,7 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
    // Add region price to target (single or draft)
    const addRegionPrice = (target: "single" | "draft") => {
       const e: FormErrors = {};
-      if (!regionDraft.region.trim()) e.regionRegion = "Region is required";
+      if (!regionDraft?.region?.name?.trim()) e.regionRegion = "Region is required";
       if (!regionDraft.price || regionDraft.price <= 0) e.regionPrice = "Valid price required";
       if (Object.keys(e).length) {
          setErrors((prev) => ({ ...prev, ...e }));
@@ -195,20 +197,20 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       }
 
       const newRegionPrice: RegionPrice = {
-         region: regionDraft.region.trim(),
+         region: { name: regionDraft.region.name?.trim() || "", _id: regionDraft.region._id || "", currency: regionDraft.region.currency || "", description: regionDraft.region.description || "", isActive: regionDraft.region.isActive || false, code: regionDraft.region.code || "" },
          price: regionDraft.price!,
          discountMode: regionDraft.discountMode,
-         discountedValue: regionDraft.discountedValue,
+         discountValue: regionDraft.discountValue,
       };
 
       if (target === "single") {
-         if (singleVariant.price.some((r) => r.region === newRegionPrice.region)) {
+         if (singleVariant.price.some((r) => r.region?._id === newRegionPrice.region._id)) {
             setErrors((prev) => ({ ...prev, regionRegion: "Region already added" }));
             return;
          }
          setSingleVariant((prev) => ({ ...prev, price: [...prev.price, newRegionPrice] }));
       } else {
-         if (variantDraft.price.some((r) => r.region === newRegionPrice.region)) {
+         if (variantDraft.price.some((r) => r.region?._id === newRegionPrice.region._id)) {
             setErrors((prev) => ({ ...prev, regionRegion: "Region already added" }));
             return;
          }
@@ -222,9 +224,9 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
    // Remove region price
    const removeRegionPrice = (target: "single" | "draft", region: string) => {
       if (target === "single") {
-         setSingleVariant((prev) => ({ ...prev, price: prev.price.filter((r) => r.region !== region) }));
+         setSingleVariant((prev) => ({ ...prev, price: prev.price.filter((r) => r.region._id !== region) }));
       } else {
-         setVariantDraft((prev) => ({ ...prev, price: prev.price.filter((r) => r.region !== region) }));
+         setVariantDraft((prev) => ({ ...prev, price: prev.price.filter((r) => r.region._id !== region) }));
       }
    };
 
@@ -232,7 +234,7 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
    const removeRegionFromVariant = (material: string, region: string) => {
       setForm((prev) => ({
          ...prev,
-         VariantSchema: prev.VariantSchema.map((v) => (v.material === material ? { ...v, price: v.price.filter((r) => r.region !== region) } : v)),
+         variants: prev.variants.map((v) => (v.material === material ? { ...v, price: v.price.filter((r) => r._id !== region) } : v)),
       }));
    };
 
@@ -249,13 +251,17 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
    };
 
    // ── Color draft (shared, target-aware) ───────────────────────────────────
-   const addColorImage = (url: string) => {
+   const addColorImage = (url: string, file: string | File) => {
       if (!url.trim()) return;
-      setColorDraft((prev) => ({ ...prev, images: [...prev.images, url.trim()] }));
+      setColorDraft((prev) => ({ ...prev, images: [...prev.images, file] }));
+      setShowColorDraft((prev) => ({ ...prev, images: [...(prev?.images as any), url.trim()] }));
+      setImageURLs((prev) => ({ ...prev, colorImages: [...prev.colorImages, url.trim()] }));
    };
 
    const removeColorImage = (idx: number) => {
       setColorDraft((prev) => ({ ...prev, images: prev.images.filter((_, i) => i !== idx) }));
+      setShowColorDraft((prev) => ({ ...prev, images: prev?.images?.filter((_, i) => i !== idx) }));
+      setImageURLs((prev) => ({ ...prev, colorImages: prev.colorImages.filter((_, i) => i !== idx) }));
    };
 
    const addColorToTarget = (target: "single" | "draft") => {
@@ -279,6 +285,7 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       }
 
       setColorDraft({ hex: { code: "#000000", colorName: "" }, images: [] });
+      setShowColorDraft({ hex: { code: "#000000", colorName: "" }, images: [] });
       setErrors((prev) => ({ ...prev, colorHex: undefined, colorImage: undefined }));
    };
 
@@ -309,57 +316,71 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       const e: FormErrors = {};
       if (!variantDraft.material) e.variantMaterial = "Select a material";
       if (!variantDraft.price.length) e.variantPrice = "Add at least one region price";
-      if (variantDraft.stock === undefined || variantDraft.stock < 0) e.variantStock = "Stock is required";
+      if (!variantDraft.colors.length) e.colorImage = "Add at least one color image";
+      // if (!variantDraft.colors.some(ch => ch.hex?.find(cn => cn.))) e.colorName = "Add color Name";
+      // if (!variantDraft.colors.length) e.colorHex = "Add color hex";
+      // if (variantDraft.stock === undefined || variantDraft.stock < 0) e.variantStock = "Stock is required";
       if (Object.keys(e).length) {
          setErrors((prev) => ({ ...prev, ...e }));
          return;
       }
-      if (form.VariantSchema.some((v) => v.material === variantDraft.material)) {
+      if (form.variants.some((v) => v.material === variantDraft.material)) {
          setErrors((prev) => ({ ...prev, variantMaterial: "Variant with this material already exists" }));
          return;
       }
 
       const newVariant: VariantSchema = {
          material: variantDraft.material,
-         price: variantDraft.price,
-         stock: variantDraft.stock,
+         price: variantDraft.price.map((r) => ({
+            _id: r.region._id, // ✅ yeh hai
+            region: r.region.name,
+            price: r.price,
+            discountMode: r.discountMode,
+            discountValue: r.discountValue,
+            code: r.region.code,
+         })),
+         // stock: variantDraft.stock,
          colors: variantDraft.colors.map((c) => ({ hex: { code: c.hex.code, colorName: c.hex.colorName }, images: c.images })),
       };
 
-      setForm((prev) => ({ ...prev, VariantSchema: [...prev.VariantSchema, newVariant] }));
+      setForm((prev) => ({ ...prev, variants: [...prev.variants, newVariant] }));
       setVariantDraft(emptyVariantDraft());
       setRegionDraft(emptyRegionPriceDraft());
       setColorDraft({ hex: { code: "#000000", colorName: "" }, images: [] });
+      setShowColorDraft({ hex: { code: "#000000", colorName: "" }, images: [] });
       setErrors((prev) => ({ ...prev, variantMaterial: undefined, variantPrice: undefined, variantStock: undefined }));
    };
 
    const removeVariant = (material: string) => {
-      setForm((prev) => ({ ...prev, VariantSchema: prev.VariantSchema.filter((v) => v.material !== material) }));
+      setForm((prev) => ({ ...prev, variants: prev.variants.filter((v) => v.material !== material) }));
    };
 
    const removeColorFromVariant = (material: string, hex: string) => {
       setForm((prev) => ({
          ...prev,
-         VariantSchema: prev.VariantSchema.map((v) => (v.material === material ? { ...v, colors: v.colors?.filter((c) => c.hex.code !== hex) } : v)),
+         variants: prev.variants.map((v) => (v.material === material ? { ...v, colors: v.colors?.filter((c) => c.hex.code !== hex) } : v)),
       }));
    };
 
    const removeColorVariantImage = (material: string, hex: string, idx: number) => {
       setForm((prev) => ({
          ...prev,
-         VariantSchema: prev.VariantSchema.map((v) => (v.material === material ? { ...v, colors: v.colors?.map((c) => (c.hex.code === hex ? { ...c, images: c.images.filter((_, i) => i !== idx) } : c)) } : v)),
+         variants: prev.variants.map((v) => (v.material === material ? { ...v, colors: v.colors?.map((c) => (c.hex.code === hex ? { ...c, images: c.images.filter((_, i) => i !== idx) } : c)) } : v)),
       }));
    };
 
    // ── Product images ────────────────────────────────────────────────────────
-   const addImage = (key: "images" | "gallery", url: string) => {
-      if (!url.trim()) return;
-      setForm((prev) => ({ ...prev, [key]: [...(prev[key] as string[]), url.trim()] }));
+   const addImage = (key: "images" | "gallery", url: string, file?: File) => {
+      if (!url.trim() || !file) return;
+
+      setForm((prev) => ({ ...prev, [key]: key === "images" ? [file] : [...(prev[key] as File[]), file] }));
+      setImageURLs((prev) => ({ ...prev, [key]: key === "images" ? [url.trim()] : [...prev[key], url.trim()] }));
       setErrors((prev) => ({ ...prev, [key]: undefined }));
    };
 
    const removeImage = (key: "images" | "gallery", idx: number) => {
       setForm((prev) => ({ ...prev, [key]: (prev[key] as string[]).filter((_, i) => i !== idx) }));
+      setImageURLs((prev) => ({ ...prev, [key]: (prev[key] as string[]).filter((_, i) => i !== idx) }));
    };
 
    // ── Validate ──────────────────────────────────────────────────────────────
@@ -367,39 +388,53 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       const e: FormErrors = {};
       if (!form.name?.trim()) e.name = "Name is required";
       if (!form.slug?.trim()) e.slug = "Slug is required";
-      if (!form.category) e.category = "Category is required";
+      if (!form.stock) e.stock = "Stock is required";
+      if (!form.categories) e.categories = "Category is required";
       if (!form.images.length) e.images = "Add at least one image";
       if (!form.isVariable) {
-         if (!singleVariant.material) e.singleMaterial = "Select a material";
          if (!singleVariant.price.length) e.singlePrice = "Add at least one region price";
-         if (singleVariant.stock === undefined || singleVariant.stock < 0) e.singleStock = "Stock is required";
+         // if (singleVariant.stock === undefined || singleVariant.stock < 0) e.singleStock = "Stock is required";
       } else {
-         if (!form.VariantSchema.length) e.VariantSchema = "Add at least one variant";
+         if (!form.variants.length) e.variants = "Add at least one variant";
       }
       setErrors(e);
       return Object.keys(e).length === 0;
    };
 
+   // ── Handle API Calls ────────────────────────────────────────────────────────
+
+   // Create Product API
+   const { handleCreateProduct, isLoading: createProductLoading } = useCreateProductHandler();
+
+   // Update Product API
+   const { handleUpdateProduct, isLoading: updateProductLoading } = useUpdateProductHandler();
+
    // ── Submit ────────────────────────────────────────────────────────────────
-   const handleSubmit = async () => {
+   const handleSubmit = async ({ type }: { type: "create" | "update" }) => {
       if (!validate()) return;
       setLoading(true);
       let finalForm = { ...form };
+
       if (!form.isVariable) {
-         finalForm.VariantSchema = [
+         finalForm.variants = [
             {
                material: singleVariant.material,
-               price: singleVariant.price,
-               stock: singleVariant.stock,
+               price: singleVariant.price.map((r) => ({ _id: r.region._id, region: r.region.name, price: r.price, discountMode: r.discountMode, discountValue: r.discountValue, code: r.region.code })),
                colors: singleVariant.colors.map((c) => ({ hex: { code: c.hex.code, colorName: c.hex.colorName }, images: c.images })),
             },
          ];
       }
       try {
-         await new Promise((r) => setTimeout(r, 600));
+
+         if (type === "create") {
+            await handleCreateProduct({ form: finalForm });
+         } else {
+            await handleUpdateProduct({ form: finalForm });
+         }
          onSuccess?.(finalForm);
          setForm(emptyForm());
          setSingleVariant(emptySingleVariant());
+         setImageURLs(emptyImageURLs());
       } finally {
          setLoading(false);
       }
@@ -412,9 +447,10 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       setVariantDraft(emptyVariantDraft());
       setRegionDraft(emptyRegionPriceDraft());
       setColorDraft({ hex: { code: "#000000", colorName: "" }, images: [] });
+      setShowColorDraft({ hex: { code: "#000000", colorName: "" }, images: [] });
    };
 
-   const subCategories = CATEGORY_TREE.find((c) => c.id === form.category)?.children ?? [];
+   const subCategories = CATEGORY_TREE?.find((c) => c?._id === form.categories)?.children ?? [];
 
    return {
       form,
@@ -426,6 +462,8 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       handleCategoryChange,
       handleVariableToggle,
       addImage,
+      imageURLs,
+      setImageURLs,
       removeImage,
       // single
       singleVariant,
@@ -448,6 +486,8 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       // color draft (shared)
       colorDraft,
       setColorDraft,
+      setShowColorDraft,
+      showColorDraft,
       addColorImage,
       removeColorImage,
       addColorToTarget,

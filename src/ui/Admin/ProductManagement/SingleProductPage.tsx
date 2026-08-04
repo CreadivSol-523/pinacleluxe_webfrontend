@@ -7,6 +7,7 @@ import Products from "@/DummyData/Products.json";
 import { Product, VariantSchema } from "@/Types/Collection/CollectionTypes";
 import UpdateProductModal from "@/components/Modal/UpdateProductModal";
 import { useProductForm } from "@/Validations/Useproductform";
+import { useGetSingleProductHandler } from "@/modals/ProductModal";
 
 // ── Stock badge ───────────────────────────────────────────────────────────────
 function StockBadge({ stock }: { stock?: number }) {
@@ -32,7 +33,7 @@ function InfoRow({ label, children }: { label: string; children: React.ReactNode
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function SingleProductPage() {
    const [editOpen, setEditOpen] = useState(false);
-   const [activeImage, setActiveImage] = useState<string>("");
+   const [activeImage, setActiveImage] = useState<string | File>("");
    const [activeColor, setActiveColor] = useState(0);
    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
    const [selectedMaterials, setSelectedMaterials] = useState<VariantSchema>({
@@ -41,24 +42,46 @@ export default function SingleProductPage() {
          {
             price: 0,
             region: "",
-            discountedValue: 0,
+            discountValue: 0,
             discountMode: "",
          },
       ],
-      discountPrice: 0,
       stock: 0,
       colors: [{ hex: { code: "", colorName: "" }, images: [] }],
    });
 
    const router = useRouter();
    const params = useParams();
-   const id = params?.id;
+   const id = params?.id ?? "";
 
-   const allProducts: Product[] = Products.products;
-   const product = useMemo(() => allProducts.find((p) => p._id === id), [allProducts, id]);
+   // ---------- Handle API -------------
+   // Get single product from API
+   const { data, error, isError, isLoading } = useGetSingleProductHandler({ id: (id as string) ?? "" });
+
+   const product: Product | undefined = data?.product;
+
+   useEffect(() => {
+      setSelectedMaterials({
+         material: product?.variants?.[0]?.material || "",
+         price: product?.variants?.[0]?.price || [],
+         colors: product?.variants?.[0]?.colors,
+         stock: product?.variants?.[0]?.stock,
+      });
+   }, [product, isLoading]);
+
+   // colors[i].images is string[] (multiple images per color)
+   const colorImages: string[] = (selectedMaterials?.colors?.[activeColor] as any)?.images ?? ((selectedMaterials?.colors?.[activeColor] as any)?.image ? [(selectedMaterials?.colors?.[activeColor] as any).image] : []);
+
+   // All thumbnails: color images first, then main images, then gallery — all deduped
+   const allThumbnails: (string | File)[] = [...colorImages, ...(product?.images ?? []), ...(product?.gallery ?? [])].filter((img, idx, arr) => img && arr.indexOf(img) === idx);
+
+   // Displayed main image
+   const displayImage = activeImage || allThumbnails[0] || "";
+
+   const { errors } = useProductForm(() => {});
 
    // ── Not found ─────────────────────────────────────────────────────────────
-   if (!product) {
+   if (!product || isError) {
       return (
          <div className="flex flex-col items-center justify-center py-32 text-center">
             <svg className="text-[#B8975A]/30 mb-4" width="48" height="48" viewBox="0 0 48 48" fill="none">
@@ -74,27 +97,17 @@ export default function SingleProductPage() {
       );
    }
 
-   useEffect(() => {
-      setSelectedMaterials({
-         material: product?.VariantSchema?.[0]?.material || "",
-         price: product?.VariantSchema?.[0]?.price || 0,
-         discountPrice: product?.VariantSchema?.[0]?.discountPrice || 0,
-         colors: product?.VariantSchema?.[0]?.colors,
-         discountMode: "static",
-         stock: product?.VariantSchema?.[0]?.stock,
-      });
-   }, []);
-
-   // colors[i].images is string[] (multiple images per color)
-   const colorImages: string[] = (selectedMaterials?.colors?.[activeColor] as any)?.images ?? ((selectedMaterials?.colors?.[activeColor] as any)?.image ? [(selectedMaterials?.colors?.[activeColor] as any).image] : []);
-
-   // All thumbnails: color images first, then main images, then gallery — all deduped
-   const allThumbnails: string[] = [...colorImages, ...(product.images ?? []), ...(product.gallery ?? [])].filter((img, idx, arr) => img && arr.indexOf(img) === idx);
-
-   // Displayed main image
-   const displayImage = activeImage || allThumbnails[0] || "";
-
-   const { errors } = useProductForm(() => {});
+   if (isLoading) {
+      return (
+         <div className="flex items-center justify-center py-32">
+            <svg className="animate-spin text-[#B8975A]/30" width="48" height="48" viewBox="0 0 48 48" fill="none">
+               <path d="M24 4a20 20 0 1 0 20 20A20.022 20.022 0 0 0 24 4Zm0 36a16 16 0 1 1 16-16 16.019 16.019 0 0 1-16 16Z" fill="currentColor" />
+               <path d="M26.828 6.343a1.5 1.5 0 1 0-2.121-2.121l-3.536 3.536a1.5 1.5 0 1 0 2.121 2.121Z" fill="currentColor" />
+               <path d="M24 10a1.5 1.5 0 0 0-1.5 1.5v6a1.5 1.5 0 0 0 3 0v-6A1.5 1.5 0 0 0 24 10Z" fill="currentColor" />
+            </svg>
+         </div>
+      );
+   }
 
    return (
       <div className="flex flex-col gap-6">
@@ -148,7 +161,7 @@ export default function SingleProductPage() {
                {/* Main image */}
                <div className="relative bg-staticSecondaryBG rounded-2xl overflow-hidden border border-[#B8975A]/15 aspect-square">
                   {displayImage ? (
-                     <Image src={displayImage} alt={product.name ?? "Product"} fill className="object-cover" />
+                     <Image src={displayImage as unknown as string} alt={product.name ?? "Product"} fill className="object-contain" />
                   ) : (
                      <div className="w-full h-full flex items-center justify-center">
                         <svg className="text-[#B8975A]/30" width="48" height="48" viewBox="0 0 48 48" fill="none">
@@ -171,7 +184,7 @@ export default function SingleProductPage() {
                            className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition-all shrink-0
                               ${displayImage === img ? "border-[#B8975A]" : "border-transparent opacity-60 hover:opacity-100"}`}
                         >
-                           <Image src={img} alt="" width={64} height={64} className="w-full h-full object-cover" />
+                           <Image src={img as unknown as string} alt="" width={64} height={64} className="w-full h-full object-cover" />
                         </button>
                      ))}
                   </div>
@@ -190,14 +203,16 @@ export default function SingleProductPage() {
                <div className="bg-staticSecondaryBG rounded-xl p-4 border border-[#B8975A]/15 flex items-center justify-between">
                   <div>
                      <p className="text-[10px] tracking-[0.12em] uppercase text-[#5E5F60] mb-1">Price</p>
-                     <p className="font-serif text-[26px] font-semibold text-headingColor leading-none">Rs {selectedMaterials.price?.toLocaleString()}</p>
+                     <p className="font-serif text-[26px] font-semibold text-headingColor leading-none">Rs {selectedMaterials?.price?.[0]?.price?.toLocaleString()}</p>
                   </div>
                   {selectedMaterials && (
                      <div className="text-right">
                         <p className="text-[10px] tracking-[0.12em] uppercase text-[#5E5F60] mb-1">After Discount</p>
                         <div className="flex items-center gap-2 justify-end">
-                           <p className="font-serif text-[22px] font-semibold text-green-700 leading-none">Rs {selectedMaterials?.discountPrice?.toLocaleString()}</p>
-                           {selectedMaterials?.discountPrice && <span className="text-[11px] bg-primaryBG text-[#B8975A] px-2 py-0.5 rounded">-{selectedMaterials?.discountPrice}%</span>}
+                           {/* {console.log(selectedMaterials?.price, "selectedMaterials?.price?.[0]?.discountedValueselectedMaterials?.price?.[0]?.discountedValueselectedMaterials?.price?.[0]?.discountedValueselectedMaterials?.price?.[0]?.discountedValue")} */}
+                           {!selectedMaterials?.price?.[0]?.discountValue && <p className="font-serif text-[22px] font-semibold text-green-700 leading-none">Rs {Math.round(selectedMaterials?.price?.[0]?.price)}</p>}
+                           {selectedMaterials?.price?.[0]?.discountValue && <p className="font-serif text-[22px] font-semibold text-green-700 leading-none">Rs {Math.round(selectedMaterials?.price?.[0]?.price - selectedMaterials?.price?.[0]?.discountValue)}</p>}
+                           {selectedMaterials?.price?.[0]?.discountValue && <span className="text-[11px] bg-primaryBG text-[#B8975A] px-2 py-0.5 rounded">-{Math.round((selectedMaterials?.price?.[0]?.discountValue / selectedMaterials?.price?.[0]?.price) * 100)}%</span>}
                         </div>
                      </div>
                   )}
@@ -206,14 +221,14 @@ export default function SingleProductPage() {
                {/* Details card */}
                <div className="bg-staticSecondaryBG rounded-xl border border-[#B8975A]/15 px-4">
                   <InfoRow label="Stock">
-                     <StockBadge stock={product.VariantSchema?.[0]?.stock} />
+                     <StockBadge stock={(product as any)?.stock} />
                   </InfoRow>
                   <InfoRow label="Materials">
                      <select
                         value={selectedMaterials.material}
                         className={selectCls(errors.singleMaterial)}
                         onChange={(e) => {
-                           const selected = product.VariantSchema.find((m) => m.material === e.target.value);
+                           const selected = product.variants.find((m) => m.material === e.target.value);
 
                            if (selected) {
                               setSelectedMaterials(selected);
@@ -221,7 +236,7 @@ export default function SingleProductPage() {
                         }}
                      >
                         <option value="">Select material...</option>
-                        {product.VariantSchema.map((m) => (
+                        {product.variants.map((m) => (
                            <option key={m.material} value={m.material}>
                               {m.material}
                            </option>

@@ -194,7 +194,7 @@ export default function ChangeSalesBanner() {
                </div>
 
                <div className="grid grid-cols-2 gap-5">
-                  <ColorPicker label="Button Background" value={banner.btnBgColor} onChange={(v) => update("btnBgColor", v)} presets={[...BG_PRESETS, "#B8975A"]} />
+                  <ColorPicker label="Button Background" value={banner.btnBgColor} onChange={(v) => update("btnBgColor", v)} presets={[...BG_PRESETS]} />
                   <ColorPicker label="Button Text Color" value={banner.btnTextColor} onChange={(v) => update("btnTextColor", v)} presets={TEXT_PRESETS} />
                </div>
             </div>

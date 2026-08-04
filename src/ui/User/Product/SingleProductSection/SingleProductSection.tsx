@@ -11,11 +11,10 @@ import { VariantSchema } from "@/Types/Collection/CollectionTypes";
 import AccessoriesCard from "@/components/Cards/AccessoriesCard/AccessoriesCard";
 
 const SingleProductSection = () => {
-   const [selectedColor, setSelectedColor] = useState<{ hex: { code: string; colorName: string }; images: string[] }>({ hex: { code: "", colorName: "" }, images: [] });
+   const [selectedColor, setSelectedColor] = useState<{ hex: { code: string; colorName: string }; images: (string | File)[] }>({ hex: { code: "", colorName: "" }, images: [] });
    const [selectedMaterials, setSelectedMaterials] = useState<VariantSchema>({
       material: "",
       price: [{ price: 0, region: "", discountedValue: 0, discountMode: "" }],
-      discountPrice: 0,
       stock: 0,
       colors: [{ hex: { code: "", colorName: "" }, images: [] }],
    });
@@ -50,7 +49,7 @@ const SingleProductSection = () => {
       },
    ];
 
-   const { addToCart, updateQuantity } = useCartStore();
+   const { addToCart, updateQuantity, setCartOpen } = useCartStore();
 
    const findProduct = products.find((item) => item.slug === id);
 
@@ -89,7 +88,7 @@ const SingleProductSection = () => {
    useEffect(() => {
       GetQuantitySelected();
    }, [GetCartSingleItem]);
-
+   console.log(findProduct);
    useEffect(() => {
       setSelectedColor({ hex: { code: "", colorName: "" }, images: findProduct?.VariantSchema?.[0]?.colors?.[0].images || [] });
       setSelectedMaterials({
@@ -102,7 +101,6 @@ const SingleProductSection = () => {
                discountMode: findProduct?.VariantSchema?.[0]?.price?.[0]?.discountMode || "",
             },
          ],
-         discountMode: "static",
          colors: findProduct?.VariantSchema?.[0]?.colors,
          stock: findProduct?.VariantSchema?.[0]?.stock,
       });
@@ -148,11 +146,7 @@ const SingleProductSection = () => {
       <section className="  flex relative items-start xl:gap-12 gap-5 max-md:flex-col">
          <div className="lg:pl-5 pl-0 flex flex-col xl:w-auto w-15 gap-2 max-xl:items-center max-xl:justify-center sticky top-30 max-xl:h-[calc(100vh-150px)] overflow-scroll [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-[950px]:hidden">
             {images.map((_, i) => (
-               <div
-                  key={i}
-                  onClick={() => scrollToImage(i)} // 👈 yeh add karo
-                  className="cursor-pointer"
-               >
+               <div key={i} onClick={() => scrollToImage(i)} className="cursor-pointer">
                   <Image src={"/Dummy/Product/ProductImg2.png"} width={100} height={120} alt="Product side image" className={`xl:flex hidden border transition-all duration-300 ${activeIndex === i ? "border-textBlack" : "border-transparent"}`} />
                   <div className={`w-4 h-4 bg-transparent border border-textBlack rounded-full xl:hidden flex justify-center items-center `}>
                      <div className={`rounded-full transition-all duration-300 ${activeIndex === i ? "bg-textBlack  w-full h-full" : "bg-transparent  w-0 h-0"}`} />
@@ -252,22 +246,29 @@ const SingleProductSection = () => {
                   />
                </div>
                <Button
-                  name={GetCartSingleItem ? "Already In Bag" : "Add To Bag"}
+                  // name={GetCartSingleItem ? "Already In Bag" : "Add To Bag"}
+                  name={GetCartSingleItem ? "Add more" : "Add To Bag"}
                   className="w-full"
-                  disabled={GetCartSingleItem ? true : false}
+                  // disabled={!!GetCartSingleItem}
                   onClick={() => {
-                     addToCart(
-                        {
-                           id: findProduct?.id || "",
-                           name: findProduct?.name || "",
-                           images: findProduct?.images?.[0] || "",
-                           colorVariants: selectedColor.hex?.code || "",
-                           material: selectedMaterials.material,
-                           price: selectedMaterials.price?.[0]?.price ?? 0,
-                           stock: selectedMaterials?.stock || 0,
-                        },
-                        quantity,
-                     );
+                     if (GetCartSingleItem) {
+                        handleIncreaseQuantity();
+                        setCartOpen(true);
+                     } else {
+                        setCartOpen(true);
+                        addToCart(
+                           {
+                              id: findProduct?.id || "",
+                              name: findProduct?.name || "",
+                              images: findProduct?.images?.[0] || "",
+                              colorVariants: selectedColor.hex?.code == "" ? (findProduct?.VariantSchema[0]?.colors?.[0]?.hex.code as string) : selectedColor.hex?.code || "",
+                              material: selectedMaterials.material,
+                              price: selectedMaterials.price?.[0]?.price ?? 0,
+                              stock: selectedMaterials?.stock || 0,
+                           },
+                           quantity,
+                        );
+                     }
                   }}
                />
             </div>

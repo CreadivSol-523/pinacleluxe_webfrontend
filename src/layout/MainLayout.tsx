@@ -1,4 +1,5 @@
 "use client";
+import { useCartStore } from "@/Storage/UseCartStore";
 import Cart from "@/ui/User/Cart/Cart";
 import Favorite from "@/ui/User/Favorite/Favorite";
 import FilterSheet from "@/ui/User/FilterSheet/FilterSheet";
@@ -12,12 +13,16 @@ type MainLayoutType = {
    isHeader?: boolean;
    isFooter?: boolean;
    isFilter?: boolean;
+   isStyle?: boolean;
    setIsFilter?: (value: boolean) => void;
 };
 
-const MainLayout = ({ children, isHeader = true, isFooter = true, isFilter, setIsFilter }: MainLayoutType) => {
-   const [isCartOpen, setIsCartOpen] = useState(false);
+const MainLayout = ({ children, isHeader = true, isFooter = true, isFilter, setIsFilter, isStyle = true }: MainLayoutType) => {
+   // const [isCartOpen, setIsCartOpen] = useState(false);
    const [isFavoriteOpen, setIsFavoriteOpen] = useState(false);
+
+   const { setCartOpen } = useCartStore();
+   const isCartOpen = useCartStore((state) => state.isCartOpen);
 
    useEffect(() => {
       if (isCartOpen || isFavoriteOpen) {
@@ -36,9 +41,9 @@ const MainLayout = ({ children, isHeader = true, isFooter = true, isFilter, setI
 
    return (
       <main>
-         <div onClick={() => setIsCartOpen(false)} className={isCartOpen ? "fixed w-full h-full z-60! bg-black/20 transition-all duration-500" : "fixed w-full h-full z-60! bg-transparent transition-all duration-500 pointer-events-none"}>
+         <div onClick={() => setCartOpen(false)} className={isCartOpen ? "fixed w-full h-full z-60! bg-black/20 transition-all duration-500" : "fixed w-full h-full z-60! bg-transparent transition-all duration-500 pointer-events-none"}>
             <div onClick={(e) => e.stopPropagation()}>
-               <Cart isOpen={isCartOpen} setIsSidebarOpen={setIsCartOpen} />
+               <Cart isOpen={isCartOpen} setIsSidebarOpen={setCartOpen} />
             </div>
          </div>
          <div onClick={() => setIsFavoriteOpen(false)} className={isFavoriteOpen ? "fixed w-full h-full z-60! bg-black/20 transition-all duration-500" : "fixed w-full h-full z-60! bg-transparent transition-all duration-500 pointer-events-none"}>
@@ -59,12 +64,12 @@ const MainLayout = ({ children, isHeader = true, isFooter = true, isFilter, setI
          {isHeader ? (
             <div className={`${isCartOpen || isFavoriteOpen ? "fixed w-full z-50" : "fixed w-full z-60 delay-500"}`}>
                <TopBar />
-               <Header setIsSidebarOpen={setIsCartOpen} setIsFavoriteOpen={setIsFavoriteOpen} />
+               <Header setIsSidebarOpen={setCartOpen} setIsFavoriteOpen={setIsFavoriteOpen} />
             </div>
          ) : (
             <TopBar />
          )}
-         <div className="pt-28.5!">{children}</div>
+         {isStyle ? <div className="pt-28.5!">{children}</div> : <div>{children}</div>}
          {isFooter && <Footer />}
       </main>
    );

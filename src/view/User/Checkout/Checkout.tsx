@@ -12,13 +12,13 @@ import React, { useState } from "react";
 const Checkout = () => {
    const [mobileCheckout, setMobileCheckout] = useState<Boolean>(false);
    const [isShipping, setIsShipping] = useState<Boolean>(false);
-   const [paymentThrough, setPaymentThrough] = useState<"bank" | "cash" | "">("");
+   const [paymentThrough, setPaymentThrough] = useState<"bank" | "cash" | "">("bank");
 
    const cartItems = useCartStore((state) => state.items);
 
    return (
-      <MainLayout isHeader={false} isFooter={false}>
-         <div className="lg:flex lg:flex-row flex-col ">
+      <MainLayout isHeader={false} isFooter={false} isStyle={false}>
+         <div className="lg:flex lg:flex-row flex-col justify-end">
             <div className=" py-5 border-b border-gray-200 lg:px-0 sm:px-20 px-5 lg:hidden flex">
                <Image src={"/Common/Logo.png"} width={250} height={250} alt="website logo" />
             </div>
@@ -83,7 +83,7 @@ const Checkout = () => {
                   </span>
                </div>
             </div>
-            <div className="lg:w-2/4 w-full bg-white 2xl:px-40 xl:px-20 sm:px-20 px-5 lg:py-18 py-5 flex-col lg:gap-10 gap-6 flex">
+            <div className="lg:w-[50%] w-full bg-white pl-70! 2xl:px-20 xl:px-20 sm:px-20 px-5 lg:py-18 py-5 flex-col lg:gap-10 gap-6 flex">
                <div className="flex flex-col gap-4">
                   <h4 className="text-lightText lg:hidden flex">Cart / Shipping / Payment</h4>
                   <p className="text-lightText lg:flex hidden">Cart / Shipping / Payment</p>
@@ -97,7 +97,7 @@ const Checkout = () => {
                      <Field type="number" placeHolder="Enter Phone Number" />
                   </div>
                </div>
-               <div className="flex flex-col gap-3">
+               {/* <div className="flex flex-col gap-3">
                   <h3 className="lg:text-[20px]! text-headingColor">Delivery Method</h3>
                   <div className=" gap-2 border-2 border-gray-200 flex items-center rounded-sm px-3 py-3 cursor-pointer group " onClick={() => setIsShipping(!isShipping)}>
                      <div className="w-4 h-4 flex items-center justify-center rounded-full border-2 border-gray-500">
@@ -105,7 +105,7 @@ const Checkout = () => {
                      </div>
                      <p className={`${isShipping ? "text-textBlack" : "text-gray-400"} transition-all duration-300 text-sm! font-normal! group-active:scale-95`}>Shipping</p>
                   </div>
-               </div>
+               </div> */}
                <div className="flex flex-col gap-3">
                   <h3 className="lg:text-[20px]! text-headingColor">Shipping Information</h3>
                   <div className="flex flex-col gap-4.5">
@@ -116,7 +116,7 @@ const Checkout = () => {
                         </div>
                         <div className="flex flex-col gap-2 w-full">
                            <h4 className="text-headingColor">Last name</h4>
-                           <Field type="number" placeHolder="Enter last name" />
+                           <Field type="text" placeHolder="Enter last name" />
                         </div>
                      </div>
                      <div className="flex flex-col gap-2">
@@ -185,7 +185,7 @@ const Checkout = () => {
                   </div>
                </div>
             </div>
-            <div className="lg:flex hidden w-2/4 bg-staticSecondaryBG xl:px-20 px-20 py-18  flex-col gap-10">
+            <div className="lg:flex hidden w-[45%] bg-staticSecondaryBG xl:px-20 px-20 py-18  flex-col gap-10">
                <div className="flex flex-col gap-4">
                   <Image src={"/Common/Logo.png"} width={250} height={250} alt="website logo" />
                   <h3 className="uppercase md:text-[20px]! text-headingColor">Review your Bag</h3>

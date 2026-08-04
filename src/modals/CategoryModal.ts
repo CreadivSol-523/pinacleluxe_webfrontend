@@ -19,18 +19,26 @@ export const useCreateCategoryHandler = () => {
    const [CreateCategory, { isLoading }] = useCreateCategoryMutation();
    const { show } = useNotification();
 
-   const handleCreateCategory = async ({ form }: { form: Omit<Category, "_id" | "createdAt"> }) => {
+   const handleCreateCategory = async ({
+      form,
+   }: {
+      form: Omit<Category, "_id" | "createdAt">;
+   }): Promise<{
+      success: boolean;
+      data?: unknown;
+   }> => {
       try {
          const { image, isActive, name, slug, parentId } = form;
 
          const isEmpty = [image, isActive, name, slug].some((v) => v === "" || v === null || v === undefined);
 
          if (isEmpty) {
-            return show({
+            show({
                type: "banner",
                variant: "error",
                message: "All fields are required.",
             });
+            return { success: false };
          }
 
          const formData = new FormData();
@@ -48,12 +56,15 @@ export const useCreateCategoryHandler = () => {
                variant: "error",
                message: "Category is Not Created! Please try again.",
             });
+            return { success: false };
          } else {
             show({
                type: "banner",
                variant: "success",
                message: "Category created successfully.",
             });
+
+            return { success: true, data: res.data };
          }
       } catch (error) {
          show({
@@ -61,6 +72,7 @@ export const useCreateCategoryHandler = () => {
             variant: "error",
             message: "Category is Not Created! Please try again.",
          });
+         return { success: false };
       }
    };
 
