@@ -8,13 +8,89 @@ import { useCartStore } from "@/Storage/UseCartStore";
 import { ChevronDown } from "lucide-react";
 import Image from "next/image";
 import React, { useState } from "react";
+import { createOrderApi } from "@/services/api";
 
 const Checkout = () => {
    const [mobileCheckout, setMobileCheckout] = useState<Boolean>(false);
-   const [isShipping, setIsShipping] = useState<Boolean>(false);
-   const [paymentThrough, setPaymentThrough] = useState<"bank" | "cash" | "">("");
+   const [isShipping, setIsShipping] = useState<Boolean>(true);
+   const [paymentThrough, setPaymentThrough] = useState<"bank" | "cash" | "">("cash");
+
+   // Form states
+   const [phoneNumber, setPhoneNumber] = useState("");
+   const [fullName, setFullName] = useState("");
+   const [lastName, setLastName] = useState("");
+   const [address, setAddress] = useState("");
+   const [city, setCity] = useState("");
+   const [stateVal, setStateVal] = useState("");
+   const [email, setEmail] = useState("");
+   const [agreed, setAgreed] = useState(false);
+   const [loading, setLoading] = useState(false);
+   const [errorMsg, setErrorMsg] = useState("");
+   const [successMsg, setSuccessMsg] = useState("");
 
    const cartItems = useCartStore((state) => state.items);
+   const clearCart = useCartStore((state) => state.clearCart);
+
+   const subtotal = cartItems.reduce((acc, item) => acc + (item.price || 45) * item.quantity, 0);
+   const shippingFee = 15;
+   const total = subtotal + shippingFee;
+
+   const handlePlaceOrder = async () => {
+      setErrorMsg("");
+      setSuccessMsg("");
+
+      if (!phoneNumber || !fullName || !address || !city) {
+         setErrorMsg("Please fill in all required contact and shipping details.");
+         return;
+      }
+
+      if (!agreed) {
+         setErrorMsg("Please agree to the Terms and Conditions.");
+         return;
+      }
+
+      if (cartItems.length === 0) {
+         setErrorMsg("Your cart is empty.");
+         return;
+      }
+
+      setLoading(true);
+      try {
+         const orderItems = cartItems.map((item: any) => ({
+            product: item.id || item._id,
+            name: item.name || "Luxury Item",
+            price: item.price || 45,
+            quantity: item.quantity,
+            image: item.image || item.images?.[0] || "",
+         }));
+
+         const payload = {
+            customerDetails: {
+               fullName: `${fullName} ${lastName}`.trim(),
+               email: email || "customer@pinacleluxe.com",
+               phone: phoneNumber,
+               address,
+               city,
+               postalCode: "10001",
+               country: stateVal || "United States",
+            },
+            orderItems,
+            paymentMethod: paymentThrough === "bank" ? "Online" : "COD",
+            shippingPrice: shippingFee,
+         };
+
+         const res = await createOrderApi(payload);
+         setSuccessMsg("Order placed successfully! Inventory updated atomically.");
+         clearCart();
+         setTimeout(() => {
+            window.location.href = "/";
+         }, 2000);
+      } catch (err: any) {
+         setErrorMsg(err.message || "Failed to place order.");
+      } finally {
+         setLoading(false);
+      }
+   };
 
    return (
       <MainLayout isHeader={false} isFooter={false}>
@@ -27,7 +103,7 @@ const Checkout = () => {
                   <h4 className="text-lightText">Order summary</h4>
                   <ChevronDown className={`pt-1 ${mobileCheckout ? "-rotate-180" : "rotate-0"} transition-all duration-500`} />
                </span>
-               <h3>Rs 11,999</h3>
+               <h3>${total.toFixed(2)}</h3>
             </div>
             <div className={`lg:hidden ${mobileCheckout ? "max-h-400 opacity-100 py-5" : "max-h-0 opacity-0 py-0 overflow-hidden"}  transition-all duration-700 flex w-full bg-staticSecondaryBG xl:px-20 sm:px-20 px-5 flex-col gap-10`}>
                <div className="flex flex-col gap-4">
@@ -40,19 +116,13 @@ const Checkout = () => {
                      <span className="flex justify-between">
                         <p className="text-[#5E5F5F]">Subtotal</p>
                         <p className="text-headingColor" style={{ fontFamily: "InterSemiBold", fontWeight: 600 }}>
-                           $45.00
+                           ${subtotal.toFixed(2)}
                         </p>
                      </span>
                      <span className="flex justify-between ">
                         <p className="text-[#5E5F5F]">Shipping</p>
                         <p className="text-headingColor" style={{ fontFamily: "InterSemiBold", fontWeight: 600 }}>
-                           $45.00
-                        </p>
-                     </span>
-                     <span className="flex justify-between">
-                        <p className="text-[#5E5F5F]">Discount</p>
-                        <p className="text-headingColor" style={{ fontFamily: "InterSemiBold", fontWeight: 600 }}>
-                           $45.00
+                           ${shippingFee.toFixed(2)}
                         </p>
                      </span>
                      <span className="flex justify-between">
@@ -60,27 +130,13 @@ const Checkout = () => {
                            Total
                         </p>
                         <p className="text-headingColor" style={{ fontFamily: "InterSemiBold", fontWeight: 600, fontSize: 16 }}>
-                           $45.00
+                           ${total.toFixed(2)}
                         </p>
                      </span>
                   </div>
                </div>
                <div className=" flex">
-                  <Button name="Pay Now" mainClass="w-full" />
-               </div>
-               <div className="sm:w-110 flex flex-col gap-6">
-                  <span className="flex flex-col gap-2">
-                     <h4 className="text-headingColor">Satisfaction Guaranteed</h4>
-                     <p className="text-textBlack">We offer a two-year warranty on leather bags and accessories and a one-year warranty on all other products.</p>
-                  </span>
-                  <span className="flex flex-col gap-2">
-                     <h4 className="text-headingColor">Responsibly Made</h4>
-                     <p className="text-textBlack">Our luxurious leather is LWG certified, ensuring the leather is tanned responsibly.</p>
-                  </span>
-                  <span className="flex flex-col gap-2">
-                     <h4 className="text-headingColor">Easy Returns</h4>
-                     <p className="text-textBlack">Return locations available in all major US cities, return within 30 days.</p>
-                  </span>
+                  <Button name={loading ? "Processing..." : "Pay Now"} mainClass="w-full" onClick={handlePlaceOrder} />
                </div>
             </div>
             <div className="lg:w-2/4 w-full bg-white 2xl:px-40 xl:px-20 sm:px-20 px-5 lg:py-18 py-5 flex-col lg:gap-10 gap-6 flex">
@@ -90,11 +146,20 @@ const Checkout = () => {
                   <h2 className="uppercase text-headingColor">Checkout</h2>
                </div>
 
+               {errorMsg && <div className="p-3 bg-red-100 text-red-700 text-sm rounded">{errorMsg}</div>}
+               {successMsg && <div className="p-3 bg-green-100 text-green-700 text-sm rounded">{successMsg}</div>}
+
                <div className="flex flex-col gap-3">
                   <h3 className="lg:text-[20px]! text-headingColor">Contact</h3>
                   <div className="flex flex-col gap-2">
                      <h4 className="text-headingColor">Phone Number</h4>
-                     <Field type="number" placeHolder="Enter Phone Number" />
+                     <input
+                        type="text"
+                        placeholder="Enter Phone Number"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black"
+                     />
                   </div>
                </div>
                <div className="flex flex-col gap-3">
@@ -103,7 +168,7 @@ const Checkout = () => {
                      <div className="w-4 h-4 flex items-center justify-center rounded-full border-2 border-gray-500">
                         <div className={`${isShipping ? "w-2 h-2" : "w-0 h-0"} transition-all duration-200 rounded-full bg-BtnBlack`} />
                      </div>
-                     <p className={`${isShipping ? "text-textBlack" : "text-gray-400"} transition-all duration-300 text-sm! font-normal! group-active:scale-95`}>Shipping</p>
+                     <p className={`${isShipping ? "text-textBlack" : "text-gray-400"} transition-all duration-300 text-sm! font-normal! group-active:scale-95`}>Shipping ($15.00)</p>
                   </div>
                </div>
                <div className="flex flex-col gap-3">
@@ -112,33 +177,74 @@ const Checkout = () => {
                      <div className="flex items-center gap-5">
                         <div className="flex flex-col gap-2 w-full">
                            <h4 className="text-headingColor">Full name</h4>
-                           <Field type="text" placeHolder="Enter full name" />
+                           <input
+                              type="text"
+                              placeholder="Enter full name"
+                              value={fullName}
+                              onChange={(e) => setFullName(e.target.value)}
+                              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black"
+                           />
                         </div>
                         <div className="flex flex-col gap-2 w-full">
                            <h4 className="text-headingColor">Last name</h4>
-                           <Field type="number" placeHolder="Enter last name" />
+                           <input
+                              type="text"
+                              placeholder="Enter last name"
+                              value={lastName}
+                              onChange={(e) => setLastName(e.target.value)}
+                              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black"
+                           />
                         </div>
                      </div>
                      <div className="flex flex-col gap-2">
                         <h4 className="text-headingColor">Address</h4>
-                        <Field type="text" placeHolder="Enter Your Address" />
+                        <input
+                           type="text"
+                           placeholder="Enter Your Address"
+                           value={address}
+                           onChange={(e) => setAddress(e.target.value)}
+                           className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black"
+                        />
                      </div>
                      <div className="flex items-center gap-5">
                         <div className="flex flex-col gap-2 w-full">
                            <h4 className="text-headingColor">City</h4>
-                           <Field type="text" placeHolder="Enter city" />
+                           <input
+                              type="text"
+                              placeholder="Enter city"
+                              value={city}
+                              onChange={(e) => setCity(e.target.value)}
+                              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black"
+                           />
                         </div>
                         <div className="flex flex-col gap-2 w-full">
-                           <h4>State</h4>
-                           <Field type="text" placeHolder="Enter state" />
+                           <h4>State / Country</h4>
+                           <input
+                              type="text"
+                              placeholder="Enter state"
+                              value={stateVal}
+                              onChange={(e) => setStateVal(e.target.value)}
+                              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black"
+                           />
                         </div>
                      </div>
                      <div className="flex flex-col gap-2">
-                        <h4 className="text-headingColor">Email address (Optional)</h4>
-                        <Field type="email" placeHolder="Enter email address" />
+                        <h4 className="text-headingColor">Email address</h4>
+                        <input
+                           type="email"
+                           placeholder="Enter email address"
+                           value={email}
+                           onChange={(e) => setEmail(e.target.value)}
+                           className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black"
+                        />
                      </div>
                      <div className="flex items-center gap-2">
-                        <input type="checkbox" className="w-4 h-4 accent-BtnBlack" />
+                        <input
+                           type="checkbox"
+                           checked={agreed}
+                           onChange={(e) => setAgreed(e.target.checked)}
+                           className="w-4 h-4 accent-BtnBlack"
+                        />
                         <p className="text-textBlack">I have read and agree to the Terms and Conditions.</p>
                      </div>
                   </div>
@@ -147,40 +253,26 @@ const Checkout = () => {
                   <h3 className="lg:text-[20px]! text-headingColor">Payment</h3>
                   <div className="flex flex-col  border border-gray-300 rounded-md overflow-hidden">
                      <div
-                        className="border-b border-gray-300  py-3 cursor-pointer "
-                        onClick={(e) => {
-                           e.stopPropagation();
-                           setPaymentThrough((prev) => (prev === "bank" ? "" : "bank"));
-                        }}
+                        className="border-b border-gray-300  py-3 cursor-pointer px-3"
+                        onClick={() => setPaymentThrough("bank")}
                      >
-                        <span className={`${paymentThrough === "bank" && "pb-3"} flex items-center gap-1 px-3`}>
+                        <span className="flex items-center gap-2">
                            <div className="w-4 h-4 flex items-center justify-center rounded-full border-2 border-gray-500">
                               <div className={`${paymentThrough === "bank" ? "w-2 h-2" : "w-0 h-0"} transition-all duration-200 rounded-full bg-BtnBlack`} />
                            </div>
-                           <h4 className="text-headingColor">Bank</h4>
+                           <h4 className="text-headingColor">Online Payment / Bank</h4>
                         </span>
-                        <p className={`${paymentThrough === "bank" ? "max-h-100 opacity-100 border-t border-gray-300 pt-3" : "max-h-0 opacity-0 z-0"} text-lightText  px-3 transition-all duration-300`}>
-                           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
-                           voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-                        </p>
                      </div>
                      <div
-                        className="  py-3 cursor-pointer  z-50"
-                        onClick={(e) => {
-                           e.stopPropagation();
-                           setPaymentThrough((prev) => (prev === "cash" ? "" : "cash"));
-                        }}
+                        className="py-3 cursor-pointer px-3"
+                        onClick={() => setPaymentThrough("cash")}
                      >
-                        <span className={`${paymentThrough === "cash" && "pb-3"} flex items-center gap-1 px-3`}>
+                        <span className="flex items-center gap-2">
                            <div className="w-4 h-4 flex items-center justify-center rounded-full border-2 border-gray-500">
                               <div className={`${paymentThrough === "cash" ? "w-2 h-2" : "w-0 h-0"} transition-all duration-200 rounded-full bg-BtnBlack`} />
                            </div>
                            <h4 className="text-headingColor">Cash On Delivery</h4>
                         </span>
-                        <p className={`${paymentThrough === "cash" ? "max-h-100 opacity-100 border-t border-gray-300 pt-3" : "max-h-0 opacity-0"} text-lightText  px-3 transition-all duration-300`}>
-                           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
-                           voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-                        </p>
                      </div>
                   </div>
                </div>
@@ -206,19 +298,13 @@ const Checkout = () => {
                      <span className="flex justify-between">
                         <p className="text-[#5E5F5F]">Subtotal</p>
                         <p className="text-headingColor" style={{ fontFamily: "InterSemiBold", fontWeight: 600 }}>
-                           $45.00
+                           ${subtotal.toFixed(2)}
                         </p>
                      </span>
                      <span className="flex justify-between ">
                         <p className="text-[#5E5F5F]">Shipping</p>
                         <p className="text-headingColor" style={{ fontFamily: "InterSemiBold", fontWeight: 600 }}>
-                           $45.00
-                        </p>
-                     </span>
-                     <span className="flex justify-between">
-                        <p className="text-[#5E5F5F]">Discount</p>
-                        <p className="text-headingColor" style={{ fontFamily: "InterSemiBold", fontWeight: 600 }}>
-                           $45.00
+                           ${shippingFee.toFixed(2)}
                         </p>
                      </span>
                      <span className="flex justify-between">
@@ -226,27 +312,13 @@ const Checkout = () => {
                            Total
                         </p>
                         <p className="text-headingColor" style={{ fontFamily: "InterSemiBold", fontWeight: 600, fontSize: 16 }}>
-                           $45.00
+                           ${total.toFixed(2)}
                         </p>
                      </span>
                   </div>
                </div>
                <div className="w-100 flex">
-                  <Button name="Pay Now" mainClass="w-full" />
-               </div>
-               <div className="w-110 flex flex-col gap-6">
-                  <span className="flex flex-col gap-2">
-                     <h4 className="text-headingColor">Satisfaction Guaranteed</h4>
-                     <p className="text-textBlack">We offer a two-year warranty on leather bags and accessories and a one-year warranty on all other products.</p>
-                  </span>
-                  <span className="flex flex-col gap-2">
-                     <h4 className="text-headingColor">Responsibly Made</h4>
-                     <p className="text-textBlack">Our luxurious leather is LWG certified, ensuring the leather is tanned responsibly.</p>
-                  </span>
-                  <span className="flex flex-col gap-2">
-                     <h4 className="text-headingColor">Easy Returns</h4>
-                     <p className="text-textBlack">Return locations available in all major US cities, return within 30 days.</p>
-                  </span>
+                  <Button name={loading ? "Processing..." : "Pay Now"} mainClass="w-full" onClick={handlePlaceOrder} />
                </div>
             </div>
          </div>
