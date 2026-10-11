@@ -1,8 +1,11 @@
 "use client";
+import { MediaSectionConfig } from "@/Types/WebSection/WebSection";
 import { Pause, Play } from "lucide-react";
+import Image from "next/image";
 import React, { useRef, useState, useEffect } from "react";
+import { useFormStatus } from "react-dom";
 
-const VideoSection = () => {
+const VideoSection = ({ mediaData }: { mediaData: MediaSectionConfig }) => {
    const videoRef = useRef<HTMLVideoElement>(null);
    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -81,21 +84,28 @@ const VideoSection = () => {
 
    return (
       <section className={`relative w-screen overflow-hidden ${!showControls ? "cursor-none" : "cursor-pointer"}`} onMouseMove={handleMouseMove} onClick={togglePlay}>
-         <video ref={videoRef} src="/Dummy/Home/TestingVideo.mp4" className="w-screen object-cover h-[calc(100vh-100px)]" />
+         {mediaData.mode === "video" ? (
+            <>
+               <video ref={videoRef} src={mediaData.video as any} className="w-screen object-cover h-[calc(100vh-100px)]" />
 
-         <div
-            onClick={(e) => e.stopPropagation()}
-            className={`absolute bottom-0 left-0 right-0 flex items-center gap-4 
-bg-black/30 p-3 py-4 px-10 w-full
-transition-all duration-300 ease-in-out
-${!isDesktop ? "translate-y-0 opacity-100" : showControls ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"}`}
-         >
-            <input type="range" min="0" max="100" value={progress} onChange={handleSeek} className="flex-1 h-1" />
+               <div
+                  onClick={(e) => e.stopPropagation()}
+                  className={`absolute bottom-0 left-0 right-0 flex items-center gap-4  bg-black/30 p-3 py-4 px-10 w-full transition-all duration-300 ease-in-out ${!isDesktop ? "translate-y-0 opacity-100" : showControls ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"}`}
+               >
+                  <input type="range" min="0" max="100" value={progress} onChange={handleSeek} className="flex-1 h-1" />
 
-            <button onClick={togglePlay} className="px-4 py-1 rounded-md">
-               {isPlaying ? <Pause color="white" /> : <Play color="white" />}
-            </button>
-         </div>
+                  <button onClick={togglePlay} className="px-4 py-1 rounded-md">
+                     {isPlaying ? <Pause color="white" /> : <Play color="white" />}
+                  </button>
+               </div>
+            </>
+         ) : (
+            <picture>
+               <source media="(max-width: 767px)" srcSet={(mediaData.mobileImage as any) || "/Dummy/Home/Banner.png"} />
+
+               <Image src={(mediaData.desktopImage as any) || "/Dummy/Home/Banner.png"} width={1920} height={800} alt="Banner" loading="lazy" className="w-screen h-screen md:h-auto object-cover" />
+            </picture>
+         )}
       </section>
    );
 };

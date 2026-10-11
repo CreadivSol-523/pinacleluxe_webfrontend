@@ -1,4 +1,7 @@
 "use client";
+import { useGetWebSectionsHandler } from "@/modals/WebSectionsModal";
+import { useCartStore } from "@/Storage/UseCartStore";
+import { TopBarConfig } from "@/Types/WebSection/WebSection";
 import Cart from "@/ui/User/Cart/Cart";
 import Favorite from "@/ui/User/Favorite/Favorite";
 import FilterSheet from "@/ui/User/FilterSheet/FilterSheet";
@@ -12,12 +15,23 @@ type MainLayoutType = {
    isHeader?: boolean;
    isFooter?: boolean;
    isFilter?: boolean;
+   isStyle?: boolean;
    setIsFilter?: (value: boolean) => void;
 };
 
-const MainLayout = ({ children, isHeader = true, isFooter = true, isFilter, setIsFilter }: MainLayoutType) => {
-   const [isCartOpen, setIsCartOpen] = useState(false);
+const MainLayout = ({ children, isHeader = true, isFooter = true, isFilter, setIsFilter, isStyle = true }: MainLayoutType) => {
+   // const [isCartOpen, setIsCartOpen] = useState(false);
    const [isFavoriteOpen, setIsFavoriteOpen] = useState(false);
+
+   const { setCartOpen } = useCartStore();
+   const isCartOpen = useCartStore((state) => state.isCartOpen);
+
+   // Get Websection API
+   const { data, isLoading: getWebSectionLoading } = useGetWebSectionsHandler();
+   const sections = data?.data || [];
+
+   const topbar = sections.find((section: any) => section.type === "topbar");
+   const isTopbarEnabled = topbar?.data.enabled;
 
    useEffect(() => {
       if (isCartOpen || isFavoriteOpen) {
@@ -36,9 +50,9 @@ const MainLayout = ({ children, isHeader = true, isFooter = true, isFilter, setI
 
    return (
       <main>
-         <div onClick={() => setIsCartOpen(false)} className={isCartOpen ? "fixed w-full h-full z-60! bg-black/20 transition-all duration-500" : "fixed w-full h-full z-60! bg-transparent transition-all duration-500 pointer-events-none"}>
+         <div onClick={() => setCartOpen(false)} className={isCartOpen ? "fixed w-full h-full z-60! bg-black/20 transition-all duration-500" : "fixed w-full h-full z-60! bg-transparent transition-all duration-500 pointer-events-none"}>
             <div onClick={(e) => e.stopPropagation()}>
-               <Cart isOpen={isCartOpen} setIsSidebarOpen={setIsCartOpen} />
+               <Cart isOpen={isCartOpen} setIsSidebarOpen={setCartOpen} />
             </div>
          </div>
          <div onClick={() => setIsFavoriteOpen(false)} className={isFavoriteOpen ? "fixed w-full h-full z-60! bg-black/20 transition-all duration-500" : "fixed w-full h-full z-60! bg-transparent transition-all duration-500 pointer-events-none"}>
@@ -57,14 +71,14 @@ const MainLayout = ({ children, isHeader = true, isFooter = true, isFilter, setI
             </div>
          </div>
          {isHeader ? (
-            <div className={`h-28.5 relative  ${isCartOpen || isFavoriteOpen ? "z-50 " : "z-60 delay-500"}`}>
-               <TopBar />
-               <Header setIsSidebarOpen={setIsCartOpen} setIsFavoriteOpen={setIsFavoriteOpen} />
-            </div>
+            <header className={`${isCartOpen || isFavoriteOpen ? "fixed w-full z-50" : "fixed w-full z-60 delay-500"}`}>
+               {isTopbarEnabled && <TopBar topbarData={topbar?.data as TopBarConfig} />}
+               <Header setIsSidebarOpen={setCartOpen} setIsFavoriteOpen={setIsFavoriteOpen} />
+            </header>
          ) : (
-            <TopBar />
+            isTopbarEnabled && <TopBar topbarData={topbar?.data as TopBarConfig} />
          )}
-         <div>{children}</div>
+         {isStyle ? <div className={isTopbarEnabled ? "pt-28.5!" : "pt-17.5!"}>{children}</div> : <div>{children}</div>}
          {isFooter && <Footer />}
       </main>
    );

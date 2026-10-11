@@ -6,6 +6,13 @@ export const useCartStore = create<CartStore>()(
    persist(
       (set, get) => ({
          items: [],
+         isCartOpen: false,
+         setCartOpen: (open: boolean) => set({ isCartOpen: open }),
+
+         toggleCart: () =>
+            set((state) => ({
+               isCartOpen: !state.isCartOpen,
+            })),
 
          addToCart: (product: Product, quantity: number = 1) => {
             const { items } = get();
@@ -29,7 +36,7 @@ export const useCartStore = create<CartStore>()(
             });
          },
 
-         updateQuantity: (productId: string, quantity: number, color: string, material: string) => {
+         updateQuantity: (productId: string, quantity: number, color?: string, material?: string) => {
             if (quantity < 1) {
                set({ items: get().items.filter((item) => !(item.id === productId && item.colorVariants === color && item.material === material)) });
                return;

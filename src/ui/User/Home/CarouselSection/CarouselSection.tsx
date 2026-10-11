@@ -1,49 +1,44 @@
 "use client";
 
+import { CarouselConfig, CarouselSlideConfig } from "@/Types/WebSection/WebSection";
 import { useState, useEffect, useRef, useCallback } from "react";
 
-const slides = [
-   { img: "/Dummy/Home/Celeb1.png", username: "@SelenaGomez" },
-   { img: "/Dummy/Home/Celeb2.png", username: "@SelenaGomez" },
-   { img: "/Dummy/Home/Celeb3.png", username: "@SelenaGomez" },
-   { img: "/Dummy/Home/Celeb4.png", username: "@SelenaGomez" },
-   { img: "/Dummy/Home/Celeb5.png", username: "@SelenaGomez" },
-   { img: "/Dummy/Home/Celeb6.png", username: "@SelenaGomez" },
-   { img: "/Dummy/Home/CategoryImg.png", username: "@SelenaGomez" },
-];
-
-const VISIBLE_SIDES = 3;
-const SLIDE_WIDTH = 300;
-const FIXED_GAP = 16;
-const TOTAL = slides.length;
-const SCALE_STEP = 0.1;
-
-const mod = (n: number, m: number) => ((n % m) + m) % m;
-
-function getXForOffset(offset: number): number {
-   if (offset === 0) return 0;
-   const sign = offset > 0 ? 1 : -1;
-   const abs = Math.abs(offset);
-   let x = 0;
-   for (let i = 1; i <= abs; i++) {
-      const prevScale = 1 - (i - 1) * SCALE_STEP;
-      const curScale = 1 - i * SCALE_STEP;
-      x += (SLIDE_WIDTH * prevScale) / 2 + FIXED_GAP + (SLIDE_WIDTH * curScale) / 2;
-   }
-   return sign * x;
-}
-
-export default function CarouselSection() {
+export default function CarouselSection({ carouselData }: { carouselData: CarouselConfig }) {
    const [activeIndex, setActiveIndex] = useState(0);
-
+   const [slides, setSlides] = useState<CarouselSlideConfig[]>([]);
    // Use refs for drag state — no re-renders during drag
    const dragStartX = useRef<number | null>(null);
    const dragMoved = useRef(false);
    const activeIndexRef = useRef(activeIndex);
    activeIndexRef.current = activeIndex;
 
-   const prev = useCallback(() => setActiveIndex((i) => mod(i - 1, TOTAL)), []);
-   const next = useCallback(() => setActiveIndex((i) => mod(i + 1, TOTAL)), []);
+   const VISIBLE_SIDES = 3;
+   const SLIDE_WIDTH = 300;
+   const FIXED_GAP = 16;
+   const TOTAL = slides.length;
+   const SCALE_STEP = 0.1;
+
+   const prev = useCallback(() => setActiveIndex((i) => mod(i - 1, TOTAL)), [TOTAL]);
+   const next = useCallback(() => setActiveIndex((i) => mod(i + 1, TOTAL)), [TOTAL]);
+
+   const mod = (n: number, m: number) => ((n % m) + m) % m;
+
+   function getXForOffset(offset: number): number {
+      if (offset === 0) return 0;
+      const sign = offset > 0 ? 1 : -1;
+      const abs = Math.abs(offset);
+      let x = 0;
+      for (let i = 1; i <= abs; i++) {
+         const prevScale = 1 - (i - 1) * SCALE_STEP;
+         const curScale = 1 - i * SCALE_STEP;
+         x += (SLIDE_WIDTH * prevScale) / 2 + FIXED_GAP + (SLIDE_WIDTH * curScale) / 2;
+      }
+      return sign * x;
+   }
+
+   useEffect(() => {
+      setSlides(carouselData?.slides as unknown as []);
+   }, [carouselData]);
 
    useEffect(() => {
       const handler = (e: KeyboardEvent) => {
@@ -165,9 +160,9 @@ export default function CarouselSection() {
                      }}
                   >
                      <div className="w-full h-full overflow-hidden">
-                        <img src={slide.img} alt={slide.username} className="w-full h-full object-cover" draggable={false} />
+                        <img src={slide?.image || ""} alt={slide?.text || ""} className="w-full h-full object-cover" draggable={false} />
                      </div>
-                     <p className="text-center mt-2!">{slide.username}</p>
+                     <p className="text-center mt-2!">{slide?.text || ""}</p>
                   </div>
                );
             })}

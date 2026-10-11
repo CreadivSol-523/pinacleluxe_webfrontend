@@ -5,7 +5,7 @@ import Button from "@/components/Button/Button";
 import { colorVariants } from "@/Types/Collection/CollectionTypes";
 
 const FilterSheet = ({ isOpen, setIsSidebarOpen }: { isOpen?: boolean; setIsSidebarOpen?: (isOpen: boolean) => void }) => {
-   const [selectedColor, setSelectedColor] = useState<colorVariants>({ hex: "", images: [] });
+   const [selectedColor, setSelectedColor] = useState<colorVariants>({ hex: { code: "", colorName: "" }, images: [] });
 
    return (
       <aside className={`sm:w-100 w-full h-full bg-white fixed transition-all duration-500 ${isOpen ? "sm:right-0 translate-x-0" : "sm:-right-full  translate-x-full"} z-60!`}>
@@ -20,12 +20,12 @@ const FilterSheet = ({ isOpen, setIsSidebarOpen }: { isOpen?: boolean; setIsSide
                   <div className="flex items-center flex-wrap gap-2">
                      {products?.[0]?.VariantSchema?.flatMap((variant) =>
                         variant.colors?.map((color) =>
-                           selectedColor.hex === color.hex ? (
-                              <div key={color.hex} className="w-6 h-6 border-2 border-gray-500 cursor-pointer rounded-full flex items-center justify-center">
-                                 <div className="w-4 h-4 rounded-full" style={{ background: color.hex }} />
+                           selectedColor.hex.code === color.hex.code ? (
+                              <div key={color.hex.code} className="w-6 h-6 border-2 border-gray-500 cursor-pointer rounded-full flex items-center justify-center">
+                                 <div className="w-4 h-4 rounded-full" style={{ background: color.hex.code }} />
                               </div>
                            ) : (
-                              <div key={color.hex} onClick={() => setSelectedColor({ hex: color.hex, images: color.images })} className="w-6 h-6 cursor-pointer rounded-full" style={{ background: color.hex }} />
+                              <div key={color.hex.code} onClick={() => setSelectedColor({ hex: color.hex, images: color.images })} className="w-6 h-6 cursor-pointer rounded-full" style={{ background: color.hex.code }} />
                            ),
                         ),
                      )}

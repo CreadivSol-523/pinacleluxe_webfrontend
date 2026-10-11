@@ -16,28 +16,28 @@ export function CategoryTree({
    nodes: Category[];
    depth?: number;
    expanded: Set<string>;
-   onToggleExpand: (id: string) => void;
+   onToggleExpand: (_id: string) => void;
    onEdit: (cat: Category) => void;
-   onDelete: (id: string) => void;
-   onToggleActive: (id: string) => void;
+   onDelete: (_id: string) => void;
+   onToggleActive: (_id: string) => void;
    onAddSub: (parentId: string) => void;
 }) {
    return (
       <>
          {nodes.map((cat) => (
-            <div key={cat.id}>
+            <div key={cat._id}>
                <CategoryRow
                   cat={cat}
                   depth={depth}
-                  isExpanded={expanded.has(cat.id)}
+                  isExpanded={expanded.has(cat._id)}
                   hasChildren={(cat.children?.length ?? 0) > 0}
-                  onToggleExpand={() => onToggleExpand(cat.id)}
+                  onToggleExpand={() => onToggleExpand(cat._id)}
                   onEdit={() => onEdit(cat)}
-                  onDelete={() => onDelete(cat.id)}
-                  onToggleActive={() => onToggleActive(cat.id)}
-                  onAddSub={() => onAddSub(cat.id)}
+                  onDelete={() => onDelete(cat._id)}
+                  onToggleActive={() => onToggleActive(cat._id)}
+                  onAddSub={() => onAddSub(cat._id)}
                />
-               {expanded.has(cat.id) && (cat.children?.length ?? 0) > 0 && <CategoryTree nodes={cat.children!} depth={depth + 1} expanded={expanded} onToggleExpand={onToggleExpand} onEdit={onEdit} onDelete={onDelete} onToggleActive={onToggleActive} onAddSub={onAddSub} />}
+               {expanded.has(cat._id) && (cat.children?.length ?? 0) > 0 && <CategoryTree nodes={cat.children!} depth={depth + 1} expanded={expanded} onToggleExpand={onToggleExpand} onEdit={onEdit} onDelete={onDelete} onToggleActive={onToggleActive} onAddSub={onAddSub} />}
             </div>
          ))}
       </>

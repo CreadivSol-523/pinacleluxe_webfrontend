@@ -16,6 +16,7 @@ interface TableProps<T> {
    onRowClick?: (item: T) => void;
    onViewClick?: (item: T) => void;
    onEditClick?: (item: T) => void;
+   deleteFunctions?: (item: T) => void;
    keyField?: string;
    selectKey?: string;
    statusField?: string;
@@ -36,7 +37,6 @@ interface TableProps<T> {
    setId?: (id: string) => void;
    setSelectedRowData?: (data: any) => void;
    maxTextLength?: number;
-   deleteFunctions?: () => void;
    tableStyle?: React.CSSProperties;
    theadStyle?: React.CSSProperties;
    trStyle?: React.CSSProperties;
@@ -60,6 +60,7 @@ interface TableProps<T> {
    numberOfPages?: number;
    loadingLength?: number;
    CustomSearchField?: ReactNode;
+   tableIDs?: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 const shimmerLight = {
@@ -106,6 +107,7 @@ const Table = <T extends Record<string, any>>({
    tableWidth,
    numberOfPages,
    loadingLength = 4,
+   tableIDs,
 }: TableProps<T>) => {
    const skeletonStyle = {
       height: "20px",
@@ -128,6 +130,8 @@ const Table = <T extends Record<string, any>>({
    const pageRangeDisplayed = 5;
    const rowsPerPage = pageLimit || 2;
 
+   console.log(keyField);
+
    const truncateText = (text: string, maxLength: number) => {
       if (!text) return "-";
       if (text?.length > maxLength) {
@@ -143,7 +147,6 @@ const Table = <T extends Record<string, any>>({
    };
 
    const currentData = filteredData;
-
    const handleViewClick = (id: string) => {
       if (href) {
          router.push(`${href}/${id}`);
@@ -156,22 +159,33 @@ const Table = <T extends Record<string, any>>({
       setTableIds((prevIds) => {
          const allExist = IdsArr.every((id) => prevIds.includes(id));
 
+         let updatedIds: string[];
+
          if (allExist) {
-            return prevIds.filter((id) => !IdsArr.includes(id));
+            updatedIds = prevIds.filter((id) => !IdsArr.includes(id));
          } else {
-            const newIds = [...new Set([...prevIds, ...IdsArr])];
-            return newIds;
+            updatedIds = [...new Set([...prevIds, ...IdsArr])];
          }
+
+         tableIDs?.(updatedIds);
+
+         return updatedIds;
       });
    };
 
    const getSingleIds = (id: string) => {
       setTableIds((prevIds) => {
+         let updatedIds: string[];
+
          if (prevIds.includes(id)) {
-            return prevIds.filter((itemId) => itemId !== id);
+            updatedIds = prevIds.filter((itemId) => itemId !== id);
          } else {
-            return [...prevIds, id];
+            updatedIds = [...prevIds, id];
          }
+
+         tableIDs?.(updatedIds);
+
+         return updatedIds;
       });
    };
 
@@ -409,7 +423,7 @@ const Table = <T extends Record<string, any>>({
                                              onClick={(e) => {
                                                 e.stopPropagation();
                                                 setId(item[keyField]);
-                                                deleteFunctions();
+                                                deleteFunctions(item);
                                              }}
                                              style={{ cursor: "pointer" }}
                                           >

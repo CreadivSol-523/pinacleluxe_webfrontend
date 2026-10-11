@@ -61,8 +61,8 @@ const navSections = [
             ),
          },
          {
-            label: "Sliders",
-            href: "/admin/sliders",
+            label: "Our Stories",
+            href: "/admin/stories",
             icon: (
                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                   <rect x="2" y="2" width="12" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
@@ -84,6 +84,17 @@ const navSections = [
                   <path d="M14 5l-1 7a1 1 0 01-1 1H4a1 1 0 01-1-1L2 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
                   <path d="M1 5h14" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
                   <path d="M10 5a2 2 0 01-4 0" stroke="currentColor" strokeWidth="1.2" />
+               </svg>
+            ),
+         },
+         {
+            label: "Regions",
+            href: "/admin/commerce/regions",
+            icon: (
+               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.4" />
+                  <path d="M8 2c-2 2-2 8 0 12M8 2c2 2 2 8 0 12" stroke="currentColor" strokeWidth="1.4" />
+                  <path d="M2.5 6h11M2.5 10h11" stroke="currentColor" strokeWidth="1.4" />
                </svg>
             ),
          },

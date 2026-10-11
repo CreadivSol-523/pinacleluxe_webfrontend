@@ -13,6 +13,7 @@ export function CategoryModal({
    handleNameChange,
    handleSubmit,
    topLevelCats,
+   disableParentSelection = false,
 }: {
    isOpen: boolean;
    onClose: () => void;
@@ -24,8 +25,10 @@ export function CategoryModal({
    handleNameChange: (v: string) => void;
    handleSubmit: () => void;
    topLevelCats: ReturnType<typeof useCategoryManager>["topLevelCats"];
+   disableParentSelection?: boolean;
 }) {
    const overlayRef = useRef<HTMLDivElement>(null);
+   const fileInputRef = useRef<HTMLInputElement>(null);
 
    useEffect(() => {
       const handler = (e: KeyboardEvent) => {
@@ -58,29 +61,68 @@ export function CategoryModal({
 
             {/* Body */}
             <div className="px-6 py-5 flex flex-col gap-4">
-               {/* Name + Slug */}
+               {/* Name */}
                <div>
                   <Label>Name *</Label>
                   <FieldInput value={form.name} onChange={handleNameChange} placeholder="e.g. Tote Bags" error={errors.name} />
                </div>
+
+               {/* Slug */}
                <div>
                   <Label>Slug *</Label>
                   <FieldInput value={form.slug} onChange={(v) => setField("slug", v)} placeholder="auto-generated" error={errors.slug} />
                </div>
 
-               {/* Image URL */}
+               {/* Image Upload */}
                <div>
-                  <Label>Thumbnail Image URL</Label>
-                  <FieldInput value={form.image} onChange={(v) => setField("image", v)} placeholder="https://..." error={errors.image} />
+                  <Label>Thumbnail Image</Label>
+
+                  <input
+                     ref={fileInputRef}
+                     type="file"
+                     accept="image/jpeg,image/png,image/webp"
+                     className="hidden"
+                     onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        setField("image", file);
+                        e.target.value = "";
+                     }}
+                  />
+
+                  {/* Upload area */}
+                  <div onClick={() => fileInputRef.current?.click()} className="w-full border border-dashed border-[#B8975A]/30 rounded-xl cursor-pointer hover:border-[#B8975A]/60 hover:bg-[#B8975A]/5 transition-all overflow-hidden">
+                     {form.image ? (
+                        /* Preview */
+                        <div className="relative w-full h-40">
+                           <img src={form.image instanceof File ? URL.createObjectURL(form.image) : form.image} alt="preview" className="w-full h-full object-cover" />
+                        </div>
+                     ) : (
+                        /* Placeholder */
+                        <div className="w-full h-32 flex flex-col items-center justify-center gap-2">
+                           <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                              <path d="M11 14V4M7 8l4-4 4 4" stroke="#B8975A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                              <path d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1" stroke="#B8975A" strokeWidth="1.5" strokeLinecap="round" />
+                           </svg>
+                           <p className="text-[12px] text-[#5E5F60]">
+                              <span className="text-[#B8975A] font-medium">Click to upload</span>
+                           </p>
+                           <p className="text-[11px] text-[#5E5F60]/60">JPG, PNG, WEBP — max 5MB</p>
+                        </div>
+                     )}
+                  </div>
+
+                  {/* Remove button */}
                   {form.image && (
-                     <div className="mt-2 w-16 h-16 rounded-lg overflow-hidden border border-[#B8975A]/15">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={form.image} alt="preview" className="w-full h-full object-cover" />
-                     </div>
+                     <button type="button" onClick={() => setField("image", "")} className="mt-2 text-[11px] text-red-400 hover:text-red-500 transition-colors">
+                        Remove image
+                     </button>
                   )}
+
+                  {errors.image && <p className="mt-1 text-[11px] text-red-500">{errors.image}</p>}
                </div>
 
-               {/* Parent category */}
+               {/* Parent Category */}
                <div>
                   <Label>Parent Category</Label>
                   <select
@@ -90,16 +132,16 @@ export function CategoryModal({
                   >
                      <option value="">None (Top-level category)</option>
                      {topLevelCats
-                        .filter((c) => c.id !== editingId)
+                        .filter((c) => c._id !== editingId)
                         .map((c) => (
-                           <option key={c.id} value={c.id}>
+                           <option key={c._id} value={c._id}>
                               {c.name}
                            </option>
                         ))}
                   </select>
                </div>
 
-               {/* Active toggle */}
+               {/* Active Toggle */}
                <div className="flex items-center justify-between py-1">
                   <div>
                      <p className="text-[13px] font-medium text-headingColor">Active</p>
