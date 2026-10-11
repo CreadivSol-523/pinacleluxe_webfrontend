@@ -1,4 +1,5 @@
 import { OrderStatus } from "@/Types/Order/OrderType";
+import { TopBarConfig } from "@/Types/WebSection/WebSection";
 
 export const Label = ({ children }: { children: React.ReactNode }) => <p className="text-[11px] tracking-[0.08em] uppercase text-[#5E5F60] mb-1.5">{children}</p>;
 
@@ -85,12 +86,6 @@ export function SaveBar({ onSave, saving, saved }: { onSave: () => void; saving:
 
 // ── Top Bar Preview ───────────────────────────────────────────────────────────
 
-export interface TopBarConfig {
-   enabled: boolean;
-   message: string;
-   bgColor: string;
-   textColor: string;
-}
 export function TopBarPreview({ config }: { config: TopBarConfig }) {
    return (
       <div className="rounded-xl overflow-hidden border border-[#B8975A]/10">

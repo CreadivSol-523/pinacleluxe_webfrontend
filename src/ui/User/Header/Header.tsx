@@ -1,4 +1,5 @@
 "use client";
+import { useGetCategoryHandler } from "@/modals/CategoryModal";
 import { useCartStore } from "@/Storage/UseCartStore";
 import { useFavoriteStore } from "@/Storage/UseFavoriteStore";
 import { Minus, Plus, TextAlignJustify, X } from "lucide-react";
@@ -10,11 +11,26 @@ type LeafItem = { name: string; href: string };
 type NestedItem = { label: { name: string; href: string }; children: LeafItem[] | NestedItem[] };
 
 const Header = ({ setIsSidebarOpen, setIsFavoriteOpen }: { setIsSidebarOpen: (isOpen: boolean) => void; setIsFavoriteOpen: (isOpen: boolean) => void }) => {
+   const [CatData, setCatData] = useState<LeafItem[]>([]);
    const [isNavbar, setIsNavbar] = useState(false);
    const [isSidebar, setIsSidebar] = useState(false);
    const [scrolled, setScrolled] = useState(false);
 
    const TOPBAR_HEIGHT = 15;
+   const { data, isLoading } = useGetCategoryHandler();
+
+   const handleStructuredData = () => {
+      const cat = data?.categories.map((item) => ({
+         name: item.name,
+         slug: item.slug,
+         href: `/collection/${item.slug}`,
+      }));
+      setCatData(cat as LeafItem[]);
+   };
+
+   useEffect(() => {
+      handleStructuredData();
+   }, [isLoading]);
 
    const menuData: { label: { name: string; href: string }; children: (LeafItem | NestedItem)[] }[] = [
       {
@@ -22,13 +38,7 @@ const Header = ({ setIsSidebarOpen, setIsFavoriteOpen }: { setIsSidebarOpen: (is
          children: [
             {
                label: { name: "Categories", href: "" },
-               children: [
-                  { name: "Bags", href: "/collection/shop" },
-                  { name: "Clothing", href: "/collection/shop" },
-                  { name: "Small Leather Goods", href: "/collection/shop" },
-                  { name: "Accessories", href: "/collection/shop" },
-                  { name: "Shop All", href: "/collection/shop" },
-               ],
+               children: CatData,
             },
             { label: { name: "Featured", href: "/featured" }, children: [] },
             { label: { name: "Gifting", href: "/gifting" }, children: [] },
@@ -127,7 +137,9 @@ const Header = ({ setIsSidebarOpen, setIsFavoriteOpen }: { setIsSidebarOpen: (is
             <TextAlignJustify className="xl:hidden min-[500px]:w-auto w-[6vw] min-[500px]:hidden flex" onClick={() => setIsSidebar(true)} />
             <div className="flex items-center gap-10">
                <TextAlignJustify className="xl:hidden hidden min-[500px]:w-auto w-[6vw] min-[500px]:flex" onClick={() => setIsSidebar(true)} />
-               <Image src={"/Common/Logo.png"} width={200} height={200} alt="logo image here" className="lg:w-50 min-[500px]:w-48 w-[40vw] h-auto" />
+               <Link href={"/"}>
+                  <Image src={"/Common/Logo.png"} width={200} height={200} alt="logo image here" className="lg:w-50 min-[500px]:w-48 w-[40vw] h-auto" />
+               </Link>
                <ul className="items-center gap-6 xl:flex hidden">
                   {menuData?.map((item, i) => (
                      <li className="cursor-pointer text-textBlack" onMouseEnter={() => setIsNavbar(true)} key={item.label.name}>

@@ -61,8 +61,8 @@ const navSections = [
             ),
          },
          {
-            label: "Sliders",
-            href: "/admin/sliders",
+            label: "Our Stories",
+            href: "/admin/stories",
             icon: (
                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                   <rect x="2" y="2" width="12" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.2" />

@@ -1,3 +1,4 @@
+import { URLParams } from "@/helper/URLParams";
 import { Category } from "@/Types/Category/Category";
 import { Product } from "@/Types/Collection/CollectionTypes";
 import { pagination } from "@/Types/Pagination";
@@ -17,9 +18,30 @@ const ProductSlice = createApi({
          invalidatesTags: ["CreateProduct"],
       }),
 
-      getProduct: builder.query<{ pagination: pagination; products: Product[]; success: boolean }, { limit: number, page: number }>({
-         query: ({ limit, page }) => ({
-            url: `/api/product/?limit=${limit}&page=${page}`,
+      getProduct: builder.query<{ pagination: pagination; products: Product[]; success: boolean }, { limit: number, page: number, badge?: string, material?: string, color?: string, category?: string }>({
+         query: ({ limit, page, badge, material, color, category }) => {
+            const baseUrl = `/api/product/`;
+            const params: Record<string, any> = {
+               limit: limit,
+               page: page,
+               category: category,
+               "search[badge]": badge,
+               "search[material]": material,
+               "search[color]": color,
+            }
+            const url = URLParams(baseUrl, params);
+
+            return {
+               url: url,
+               method: "GET",
+            }
+         },
+         providesTags: ["CreateProduct", "DeleteProduct", "UpdateProduct"],
+      }),
+
+      getProductFilter: builder.query<{ filters: { badges: string[], colors: string[], materials: string[] }; success: boolean }, { category: string }>({
+         query: ({ category }) => ({
+            url: `/api/product/filter?category=${category}`,
             method: "GET",
          }),
          providesTags: ["CreateProduct", "DeleteProduct", "UpdateProduct"],
@@ -56,6 +78,7 @@ export const {
    useCreateProductMutation,
    useGetProductQuery,
    useGetSingleProductQuery,
+   useGetProductFilterQuery,
    useUpdateProductMutation,
    useDeleteProductMutation,
 } = ProductSlice;

@@ -430,6 +430,7 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
             await handleCreateProduct({ form: finalForm });
          } else {
             await handleUpdateProduct({ form: finalForm });
+            console.log(finalForm)
          }
          onSuccess?.(finalForm);
          setForm(emptyForm());

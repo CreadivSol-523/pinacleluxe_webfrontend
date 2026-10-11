@@ -36,7 +36,7 @@ export const useCartStore = create<CartStore>()(
             });
          },
 
-         updateQuantity: (productId: string, quantity: number, color: string, material: string) => {
+         updateQuantity: (productId: string, quantity: number, color?: string, material?: string) => {
             if (quantity < 1) {
                set({ items: get().items.filter((item) => !(item.id === productId && item.colorVariants === color && item.material === material)) });
                return;

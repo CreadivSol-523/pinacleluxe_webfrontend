@@ -69,7 +69,7 @@ const Button = ({ name, bgcolor, className, disabled, onClick, isLoading, icon, 
                </small>
             )
          ) : href ? (
-            <Link href={href || "/"} className={`${pClass} flex items-center justify-center ${disabled ? "cursor-not-allowed" : "cursor-pointer"} text-sm gap-2 w-full  font-medium! ${textColor ? textColor : isDark ? "dark:text-textColorLight text-white" : "text-white"} `}>
+            <Link href={href || "/"} target="_" className={`${pClass} flex items-center justify-center ${disabled ? "cursor-not-allowed" : "cursor-pointer"} text-sm gap-2 w-full  font-medium! ${textColor ? textColor : isDark ? "dark:text-textColorLight text-white" : "text-white"} `}>
                {name} {icon}
             </Link>
          ) : (

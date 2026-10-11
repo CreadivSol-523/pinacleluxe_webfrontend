@@ -3,6 +3,9 @@ import "./globals.css";
 import { StoreHydration } from "@/Hooks/useHydration";
 import { NotificationProvider } from "@/context/NotificationContext";
 import StoreProvider from "./StoreProvider";
+import LoaderOverlay from "@/components/Loader/LoaderOverlay";
+import { Suspense } from "react";
+import RouteChangeLoader from "@/components/Loader/RouteChangeLoader";
 
 export const metadata: Metadata = {
    title: "Create Next App",
@@ -20,7 +23,11 @@ export default function RootLayout({
          <body>
             <StoreProvider>
                <NotificationProvider>
+                  <LoaderOverlay />
                   <StoreHydration />
+                  <Suspense fallback={null}>
+                     <RouteChangeLoader />
+                  </Suspense>
                   {children}
                </NotificationProvider>
             </StoreProvider>
