@@ -24,7 +24,7 @@ export interface CartStore {
    getCartItem: (productId: string, colorVariants?: string, material?: string) => CartItem | undefined;
    addToCart: (product: Product, quantity?: number) => void;
    removeFromCart: (productId: string, colorVariants: string, material: string) => void;
-   updateQuantity: (productId: string, quantity: number, colorVariants: string, material: string) => void;
+   updateQuantity: (productId: string, quantity: number, colorVariants?: string, material?: string) => void;
    clearCart: () => void;
    getItemCount: () => number;
    getSubtotal: () => number;

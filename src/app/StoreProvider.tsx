@@ -1,23 +1,25 @@
 "use client";
 
-import { store } from "@/redux/store";
-import React, { ReactNode, useEffect, useState } from "react";
+import { ReactNode } from "react";
 import { Provider } from "react-redux";
 
-interface storeProviderProps {
-  children: ReactNode;
+import { store } from "@/redux/store";
+import LoaderOverlay from "@/components/Loader/LoaderOverlay";
+import RouteChangeLoader from "@/components/Loader/RouteChangeLoader";
+import InitialLoader from "@/components/Loader/InitialLoader";
+
+interface StoreProviderProps {
+   children: ReactNode;
 }
 
-const StoreProvider = ({ children }: storeProviderProps) => {
-  const [isWindowLoaded, setIsWindowLoaded] = useState(false);
+export default function StoreProvider({ children }: StoreProviderProps) {
+   return (
+      <Provider store={store}>
+         <InitialLoader />
+         <LoaderOverlay />
+         <RouteChangeLoader />
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && typeof history !== "undefined") {
-      setIsWindowLoaded(true);
-    }
-  }, []);
-
-  return isWindowLoaded ? <Provider store={store}>{children}</Provider> : null;
-};
-
-export default StoreProvider;
+         {children}
+      </Provider>
+   );
+}

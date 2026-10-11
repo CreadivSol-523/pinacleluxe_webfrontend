@@ -209,7 +209,6 @@ export default function SingleProductPage() {
                      <div className="text-right">
                         <p className="text-[10px] tracking-[0.12em] uppercase text-[#5E5F60] mb-1">After Discount</p>
                         <div className="flex items-center gap-2 justify-end">
-                           {/* {console.log(selectedMaterials?.price, "selectedMaterials?.price?.[0]?.discountedValueselectedMaterials?.price?.[0]?.discountedValueselectedMaterials?.price?.[0]?.discountedValueselectedMaterials?.price?.[0]?.discountedValue")} */}
                            {!selectedMaterials?.price?.[0]?.discountValue && <p className="font-serif text-[22px] font-semibold text-green-700 leading-none">Rs {Math.round(selectedMaterials?.price?.[0]?.price)}</p>}
                            {selectedMaterials?.price?.[0]?.discountValue && <p className="font-serif text-[22px] font-semibold text-green-700 leading-none">Rs {Math.round(selectedMaterials?.price?.[0]?.price - selectedMaterials?.price?.[0]?.discountValue)}</p>}
                            {selectedMaterials?.price?.[0]?.discountValue && <span className="text-[11px] bg-primaryBG text-[#B8975A] px-2 py-0.5 rounded">-{Math.round((selectedMaterials?.price?.[0]?.discountValue / selectedMaterials?.price?.[0]?.price) * 100)}%</span>}

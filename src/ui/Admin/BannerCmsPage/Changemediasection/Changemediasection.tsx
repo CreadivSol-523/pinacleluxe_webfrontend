@@ -1,31 +1,24 @@
 "use client";
 
+import { MediaMode, MediaSectionConfig } from "@/Types/WebSection/WebSection";
 import { Label, SaveBar, SectionCard, Toggle } from "@/ui/UI";
-import { useRef, useState } from "react";
-
-// ── Types ─────────────────────────────────────────────────────────────────────
-type MediaMode = "image" | "video";
-
-export interface MediaSectionConfig {
-   enabled: boolean;
-   mode: MediaMode;
-   // image mode
-   desktopImage: string;
-   mobileImage: string;
-   // video mode
-   video: string;
-}
+import { useEffect, useRef, useState } from "react";
 
 // ── Upload Box (Image) ────────────────────────────────────────────────────────
-function ImageUploadBox({ label, hint, value, onChange, aspectClass }: { label: string; hint: string; value: string; onChange: (base64: string) => void; aspectClass: string }) {
+function ImageUploadBox({ label, hint, previewUrl, onChange, aspectClass }: { label: string; hint: string; previewUrl: string; onChange: (file: File | null, previewUrl: string) => void; aspectClass: string }) {
    const fileRef = useRef<HTMLInputElement>(null);
    const [dragging, setDragging] = useState(false);
 
    const handleFile = (file: File) => {
       if (!file.type.startsWith("image/")) return;
-      const reader = new FileReader();
-      reader.onload = () => onChange(reader.result as string);
-      reader.readAsDataURL(file);
+      if (previewUrl && previewUrl.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
+      const url = URL.createObjectURL(file);
+      onChange(file, url);
+   };
+
+   const handleRemove = () => {
+      if (previewUrl && previewUrl.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
+      onChange(null, "");
    };
 
    return (
@@ -50,17 +43,17 @@ function ImageUploadBox({ label, hint, value, onChange, aspectClass }: { label: 
                if (f) handleFile(f);
             }}
          >
-            {value ? (
+            {previewUrl ? (
                <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={value} alt="" className="w-full h-full object-cover" />
+                  <img src={previewUrl} alt="" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/0 hover:bg-black/40 transition-all duration-200 flex items-center justify-center opacity-0 hover:opacity-100">
                      <p className="text-[11px] text-white font-medium">Replace Image</p>
                   </div>
                   <button
                      onClick={(e) => {
                         e.stopPropagation();
-                        onChange("");
+                        handleRemove();
                      }}
                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-red-500 text-white flex items-center justify-center shadow hover:bg-red-600 transition-colors"
                   >
@@ -98,15 +91,20 @@ function ImageUploadBox({ label, hint, value, onChange, aspectClass }: { label: 
 }
 
 // ── Upload Box (Video) ────────────────────────────────────────────────────────
-function VideoUploadBox({ value, onChange }: { value: string; onChange: (base64: string) => void }) {
+function VideoUploadBox({ previewUrl, onChange }: { previewUrl: string; onChange: (file: File | null, previewUrl: string) => void }) {
    const fileRef = useRef<HTMLInputElement>(null);
    const [dragging, setDragging] = useState(false);
 
    const handleFile = (file: File) => {
       if (!file.type.startsWith("video/")) return;
-      const reader = new FileReader();
-      reader.onload = () => onChange(reader.result as string);
-      reader.readAsDataURL(file);
+      if (previewUrl && previewUrl.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
+      const url = URL.createObjectURL(file);
+      onChange(file, url);
+   };
+
+   const handleRemove = () => {
+      if (previewUrl && previewUrl.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
+      onChange(null, "");
    };
 
    return (
@@ -117,7 +115,7 @@ function VideoUploadBox({ value, onChange }: { value: string; onChange: (base64:
          <div
             className={`relative aspect-video rounded-xl overflow-hidden border-2 transition-all duration-200 cursor-pointer
                ${dragging ? "border-[#B8975A] bg-[#B8975A]/5" : "border-dashed border-[#B8975A]/30 hover:border-[#B8975A]/60 bg-[#F5F0E8]"}`}
-            onClick={() => !value && fileRef.current?.click()}
+            onClick={() => !previewUrl && fileRef.current?.click()}
             onDragOver={(e) => {
                e.preventDefault();
                setDragging(true);
@@ -130,9 +128,9 @@ function VideoUploadBox({ value, onChange }: { value: string; onChange: (base64:
                if (f) handleFile(f);
             }}
          >
-            {value ? (
+            {previewUrl ? (
                <>
-                  <video src={value} className="w-full h-full object-cover" muted autoPlay loop playsInline />
+                  <video src={previewUrl} className="w-full h-full object-cover" muted autoPlay loop playsInline />
                   {/* Replace + Remove */}
                   <div className="absolute inset-0 bg-black/0 hover:bg-black/50 transition-all duration-200 flex items-center justify-center gap-3 opacity-0 hover:opacity-100">
                      <button
@@ -151,7 +149,7 @@ function VideoUploadBox({ value, onChange }: { value: string; onChange: (base64:
                      <button
                         onClick={(e) => {
                            e.stopPropagation();
-                           onChange("");
+                           handleRemove();
                         }}
                         className="flex items-center gap-1.5 px-3 py-2 bg-red-500/80 backdrop-blur-sm text-white text-[11px] rounded-lg hover:bg-red-500 transition-colors"
                      >
@@ -200,10 +198,10 @@ function VideoUploadBox({ value, onChange }: { value: string; onChange: (base64:
 }
 
 // ── Preview ───────────────────────────────────────────────────────────────────
-function MediaPreview({ config }: { config: MediaSectionConfig }) {
+function MediaPreview({ enabled, mode, desktopPreview, mobilePreview, videoPreview }: { enabled: boolean; mode: MediaMode; desktopPreview: string; mobilePreview: string; videoPreview: string }) {
    const [viewMode, setViewMode] = useState<"desktop" | "mobile">("desktop");
-   const showMobileToggle = config.mode === "image";
-   const imgSrc = viewMode === "desktop" ? config.desktopImage : config.mobileImage;
+   const showMobileToggle = mode === "image";
+   const imgSrc = viewMode === "desktop" ? desktopPreview : mobilePreview;
 
    return (
       <div className="flex flex-col gap-2">
@@ -211,14 +209,14 @@ function MediaPreview({ config }: { config: MediaSectionConfig }) {
             <Label>Live Preview</Label>
             {showMobileToggle && (
                <div className="flex items-center bg-[#F5F0E8] border border-[#B8975A]/20 rounded-lg overflow-hidden">
-                  {(["desktop", "mobile"] as const).map((mode) => (
+                  {(["desktop", "mobile"] as const).map((m) => (
                      <button
-                        key={mode}
-                        onClick={() => setViewMode(mode)}
+                        key={m}
+                        onClick={() => setViewMode(m)}
                         className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] transition-colors
-                           ${viewMode === mode ? "bg-primaryBG text-[#B8975A]" : "text-[#5E5F60] hover:text-headingColor"}`}
+                           ${viewMode === m ? "bg-primaryBG text-[#B8975A]" : "text-[#5E5F60] hover:text-headingColor"}`}
                      >
-                        {mode === "desktop" ? (
+                        {m === "desktop" ? (
                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                               <rect x="1" y="1.5" width="10" height="7" rx="1" stroke="currentColor" strokeWidth="1.2" />
                               <path d="M4 10.5h4M6 8.5v2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
@@ -229,15 +227,15 @@ function MediaPreview({ config }: { config: MediaSectionConfig }) {
                               <path d="M4 9.5h2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
                            </svg>
                         )}
-                        {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                        {m.charAt(0).toUpperCase() + m.slice(1)}
                      </button>
                   ))}
                </div>
             )}
-            {config.mode === "video" && <span className="text-[10px] text-[#5E5F60] bg-[#F5F0E8] border border-[#B8975A]/20 px-2.5 py-1 rounded-lg">Same video — desktop & mobile</span>}
+            {mode === "video" && <span className="text-[10px] text-[#5E5F60] bg-[#F5F0E8] border border-[#B8975A]/20 px-2.5 py-1 rounded-lg">Same video — desktop & mobile</span>}
          </div>
 
-         <div className={`rounded-xl overflow-hidden border border-[#B8975A]/10 transition-all duration-300 ${config.mode === "image" && viewMode === "mobile" ? "max-w-[220px] mx-auto" : "w-full"}`}>
+         <div className={`rounded-xl overflow-hidden border border-[#B8975A]/10 transition-all duration-300 ${mode === "image" && viewMode === "mobile" ? "max-w-[220px] mx-auto" : "w-full"}`}>
             {/* Chrome */}
             <div className="bg-[#2A2A2A] px-3 py-2 flex items-center gap-2">
                <div className="flex gap-1.5">
@@ -251,11 +249,11 @@ function MediaPreview({ config }: { config: MediaSectionConfig }) {
             {/* Media area */}
             <div
                className={`w-full bg-[#1A1A1A] flex items-center justify-center transition-all
-               ${config.mode === "image" && viewMode === "mobile" ? "aspect-[3/4]" : "aspect-video"}`}
+               ${mode === "image" && viewMode === "mobile" ? "aspect-[3/4]" : "aspect-video"}`}
             >
-               {!config.enabled ? (
+               {!enabled ? (
                   <p className="text-[11px] text-[#666]">Section is disabled</p>
-               ) : config.mode === "image" ? (
+               ) : mode === "image" ? (
                   imgSrc ? (
                      <img src={imgSrc} alt="" className="w-full h-full object-cover" /> // eslint-disable-line @next/next/no-img-element
                   ) : (
@@ -268,8 +266,8 @@ function MediaPreview({ config }: { config: MediaSectionConfig }) {
                         <p className="text-[10px] text-white">No image uploaded</p>
                      </div>
                   )
-               ) : config.video ? (
-                  <video src={config.video} className="w-full h-full object-cover" muted autoPlay loop playsInline />
+               ) : videoPreview ? (
+                  <video src={videoPreview} className="w-full h-full object-cover" muted autoPlay loop playsInline />
                ) : (
                   <div className="flex flex-col items-center gap-2 opacity-30">
                      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" className="text-white">
@@ -285,29 +283,46 @@ function MediaPreview({ config }: { config: MediaSectionConfig }) {
 }
 
 // ── Main Component ────────────────────────────────────────────────────────────
-export default function ChangeMediaSection() {
+export default function ChangeMediaSection({ initialMedia, handleSaveMedia, handleUpdateMedia }: { initialMedia?: MediaSectionConfig; handleSaveMedia: (formData: MediaSectionConfig) => void; handleUpdateMedia: (formData: MediaSectionConfig) => void }) {
    const [media, setMedia] = useState<MediaSectionConfig>({
-      enabled: true,
-      mode: "image",
-      desktopImage: "",
-      mobileImage: "",
-      video: "",
+      enabled: initialMedia?.enabled ?? true,
+      mode: initialMedia?.mode ?? "image",
+      desktopImage: null,
+      desktopImagePreview: (initialMedia?.desktopImage as unknown as string) ?? "",
+      mobileImage: null,
+      mobileImagePreview: (initialMedia?.mobileImage as unknown as string) ?? "",
+      video: null,
+      videoPreview: (initialMedia?.video as unknown as string) ?? "",
    });
    const [saving, setSaving] = useState(false);
    const [saved, setSaved] = useState(false);
 
-   const update = <K extends keyof MediaSectionConfig>(key: K, value: MediaSectionConfig[K]) => {
-      setMedia((prev) => ({ ...prev, [key]: value }));
-      setSaved(false);
-   };
+   // unmount pe bache hue blob urls revoke kro
+   useEffect(() => {
+      return () => {
+         if (media.desktopImagePreview.startsWith("blob:")) URL.revokeObjectURL(media.desktopImagePreview);
+         if (media.mobileImagePreview.startsWith("blob:")) URL.revokeObjectURL(media.mobileImagePreview);
+         if (media.videoPreview.startsWith("blob:")) URL.revokeObjectURL(media.videoPreview);
+      };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, []);
+
+   const isMediaSectionNew = !(initialMedia as unknown as { _id: string })?._id;
 
    const handleSave = async () => {
       setSaving(true);
       setSaved(false);
-      await new Promise((r) => setTimeout(r, 700));
-      setSaving(false);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      try {
+         if (isMediaSectionNew) {
+            await handleSaveMedia(media);
+         } else {
+            await handleUpdateMedia(media);
+         }
+         setSaved(true);
+         setTimeout(() => setSaved(false), 3000);
+      } finally {
+         setSaving(false);
+      }
    };
 
    return (
@@ -321,7 +336,13 @@ export default function ChangeMediaSection() {
                </div>
                <div className="flex items-center gap-3">
                   <span className={`text-[11px] font-medium ${media.enabled ? "text-green-500" : "text-[#5E5F60]"}`}>{media.enabled ? "Active" : "Hidden"}</span>
-                  <Toggle active={media.enabled} onChange={() => update("enabled", !media.enabled)} />
+                  <Toggle
+                     active={media.enabled}
+                     onChange={() => {
+                        setMedia((prev) => ({ ...prev, enabled: !prev.enabled }));
+                        setSaved(false);
+                     }}
+                  />
                </div>
             </div>
 
@@ -332,7 +353,10 @@ export default function ChangeMediaSection() {
                   {(["image", "video"] as MediaMode[]).map((mode) => (
                      <button
                         key={mode}
-                        onClick={() => update("mode", mode)}
+                        onClick={() => {
+                           setMedia((prev) => ({ ...prev, mode }));
+                           setSaved(false);
+                        }}
                         className={`flex items-center gap-3 px-4 py-3.5 rounded-xl border-2 transition-all duration-150 text-left
                            ${media.mode === mode ? "border-[#B8975A] bg-primaryBG" : "border-[#B8975A]/15 bg-[#F5F0E8] hover:border-[#B8975A]/40"}`}
                      >
@@ -372,16 +396,42 @@ export default function ChangeMediaSection() {
             {/* Image mode */}
             {media.mode === "image" && (
                <div className="grid grid-cols-2 gap-5">
-                  <ImageUploadBox label="Desktop Image" hint="Recommended: 1920×800px" value={media.desktopImage} onChange={(v) => update("desktopImage", v)} aspectClass="aspect-[16/7]" />
-                  <ImageUploadBox label="Mobile Image" hint="Recommended: 750×900px" value={media.mobileImage} onChange={(v) => update("mobileImage", v)} aspectClass="aspect-[3/4]" />
+                  <ImageUploadBox
+                     label="Desktop Image"
+                     hint="Recommended: 1920×800px"
+                     previewUrl={media.desktopImagePreview}
+                     onChange={(file, previewUrl) => {
+                        setMedia((prev) => ({ ...prev, desktopImage: file, desktopImagePreview: previewUrl }));
+                        setSaved(false);
+                     }}
+                     aspectClass="aspect-[16/7]"
+                  />
+                  <ImageUploadBox
+                     label="Mobile Image"
+                     hint="Recommended: 750×900px"
+                     previewUrl={media.mobileImagePreview}
+                     onChange={(file, previewUrl) => {
+                        setMedia((prev) => ({ ...prev, mobileImage: file, mobileImagePreview: previewUrl }));
+                        setSaved(false);
+                     }}
+                     aspectClass="aspect-[3/4]"
+                  />
                </div>
             )}
 
             {/* Video mode */}
-            {media.mode === "video" && <VideoUploadBox value={media.video} onChange={(v) => update("video", v)} />}
+            {media.mode === "video" && (
+               <VideoUploadBox
+                  previewUrl={media.videoPreview}
+                  onChange={(file, previewUrl) => {
+                     setMedia((prev) => ({ ...prev, video: file, videoPreview: previewUrl }));
+                     setSaved(false);
+                  }}
+               />
+            )}
 
             {/* Preview */}
-            <MediaPreview config={media} />
+            <MediaPreview enabled={media.enabled} mode={media.mode} desktopPreview={media.desktopImagePreview} mobilePreview={media.mobileImagePreview} videoPreview={media.videoPreview} />
 
             <SaveBar onSave={handleSave} saving={saving} saved={saved} />
          </div>

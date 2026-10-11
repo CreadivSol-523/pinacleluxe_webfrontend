@@ -1,5 +1,7 @@
 "use client";
+import { useGetWebSectionsHandler } from "@/modals/WebSectionsModal";
 import { useCartStore } from "@/Storage/UseCartStore";
+import { TopBarConfig } from "@/Types/WebSection/WebSection";
 import Cart from "@/ui/User/Cart/Cart";
 import Favorite from "@/ui/User/Favorite/Favorite";
 import FilterSheet from "@/ui/User/FilterSheet/FilterSheet";
@@ -23,6 +25,13 @@ const MainLayout = ({ children, isHeader = true, isFooter = true, isFilter, setI
 
    const { setCartOpen } = useCartStore();
    const isCartOpen = useCartStore((state) => state.isCartOpen);
+
+   // Get Websection API
+   const { data, isLoading: getWebSectionLoading } = useGetWebSectionsHandler();
+   const sections = data?.data || [];
+
+   const topbar = sections.find((section: any) => section.type === "topbar");
+   const isTopbarEnabled = topbar?.data.enabled;
 
    useEffect(() => {
       if (isCartOpen || isFavoriteOpen) {
@@ -62,14 +71,14 @@ const MainLayout = ({ children, isHeader = true, isFooter = true, isFilter, setI
             </div>
          </div>
          {isHeader ? (
-            <div className={`${isCartOpen || isFavoriteOpen ? "fixed w-full z-50" : "fixed w-full z-60 delay-500"}`}>
-               <TopBar />
+            <header className={`${isCartOpen || isFavoriteOpen ? "fixed w-full z-50" : "fixed w-full z-60 delay-500"}`}>
+               {isTopbarEnabled && <TopBar topbarData={topbar?.data as TopBarConfig} />}
                <Header setIsSidebarOpen={setCartOpen} setIsFavoriteOpen={setIsFavoriteOpen} />
-            </div>
+            </header>
          ) : (
-            <TopBar />
+            isTopbarEnabled && <TopBar topbarData={topbar?.data as TopBarConfig} />
          )}
-         {isStyle ? <div className="pt-28.5!">{children}</div> : <div>{children}</div>}
+         {isStyle ? <div className={isTopbarEnabled ? "pt-28.5!" : "pt-17.5!"}>{children}</div> : <div>{children}</div>}
          {isFooter && <Footer />}
       </main>
    );

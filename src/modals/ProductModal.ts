@@ -1,5 +1,5 @@
 import { useNotification } from "@/context/NotificationContext";
-import { useCreateProductMutation, useDeleteProductMutation, useGetProductQuery, useGetSingleProductQuery, useUpdateProductMutation } from "@/redux/Product/ProductSlice";
+import { useCreateProductMutation, useDeleteProductMutation, useGetProductFilterQuery, useGetProductQuery, useGetSingleProductQuery, useUpdateProductMutation } from "@/redux/Product/ProductSlice";
 import { Product } from "@/Types/Collection/CollectionTypes";
 
 // Create Product API
@@ -163,7 +163,7 @@ export const useUpdateProductHandler = () => {
             const cleanVariants = variants.map((v) => ({
                material: v.material,
                price: v.price?.map((p) => ({
-                  region: p?._id,
+                  region: (p?.region as any)?._id,
                   price: p.price,
                   discountMode: p.discountMode,
                   discountValue: p.discountValue,
@@ -271,8 +271,8 @@ export const useDeleteProductHandler = () => {
 };
 
 // Get Product API
-export const useGetProductHandler = ({ limit = 10, page = 1 }: { limit: number; page: number }) => {
-   const { data, isLoading, isFetching, isError, error, refetch } = useGetProductQuery({ limit, page });
+export const useGetProductHandler = ({ limit = 10, page = 1, badge, material, color, category }: { limit: number; page: number, badge?: string, material?: string, color?: string, category?: string }) => {
+   const { data, isLoading, isFetching, isError, error, refetch } = useGetProductQuery({ limit, page, badge, material, color, category });
 
    return {
       data,
@@ -289,6 +289,19 @@ export const useGetSingleProductHandler = ({ id }: { id: string }) => {
 
    return {
       data,
+      isLoading: isLoading || isFetching,
+      isError,
+      error,
+      refetch,
+   } as const;
+};
+
+// Get Product Filter API
+export const useGetProductFilterHandler = (category: string) => {
+   const { data, isLoading, isFetching, isError, error, refetch } = useGetProductFilterQuery({ category });
+
+   return {
+      productFilterdata: data,
       isLoading: isLoading || isFetching,
       isError,
       error,

@@ -1,7 +1,8 @@
 "use client";
+import { TopBarConfig } from "@/Types/WebSection/WebSection";
 import React, { useEffect } from "react";
 
-const TopBar = () => {
+const TopBar = ({ topbarData }: { topbarData: TopBarConfig }) => {
    useEffect(() => {
       const topbar = document.getElementById("topbar");
       const onScroll = () => {
@@ -14,9 +15,17 @@ const TopBar = () => {
       window.addEventListener("scroll", onScroll, { passive: true });
       return () => window.removeEventListener("scroll", onScroll);
    }, []);
+
    return (
-      <div id="topbar" className="bg-primaryBG text-white h-11 flex items-center justify-center  z-50">
-         <p className="text-center">Archive Sale: New markdowns are here. Enjoy up to 60% off.</p>
+      <div
+         id="topbar"
+         className={`${topbarData.bgColor ? `bg-[${topbarData.bgColor}]` : "bg-primaryBG"} ${topbarData.textColor ? `text-[${topbarData.textColor}]` : "text-white"} h-11 flex items-center justify-center z-50`}
+         style={{
+            backgroundColor: topbarData.bgColor || undefined,
+            color: topbarData.textColor || undefined,
+         }}
+      >
+         <p className="text-center">{topbarData.message ?? "Archive Sale: New markdowns are here. Enjoy up to 60% off."}</p>
       </div>
    );
 };

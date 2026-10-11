@@ -5,20 +5,23 @@ import { products } from "../../../../DummyData/Products.json";
 import Button from "@/components/Button/Button";
 import { colorVariants } from "@/Types/Collection/CollectionTypes";
 
-const TabsSection = ({ isFilter, setIsFilter }: { isFilter: boolean; setIsFilter: (value: boolean) => void }) => {
-   const [selectedTab, setSelectedTab] = useState("Hot Sellers");
-   const [selectedColor, setSelectedColor] = useState<colorVariants>({ hex: { code: "", colorName: "" }, images: [] });
+const TabsSection = ({
+   isFilter,
+   setIsFilter,
+   filters,
+   productFilters,
+   applyFilter,
+}: {
+   isFilter: boolean;
+   setIsFilter: (value: boolean) => void;
+   filters: { badges: string[]; colors: string[]; materials: string[] };
+   productFilters: { badge: string; category: string; material: string; color: string };
+   applyFilter: (filters: any) => void;
+}) => {
+   const [selectedFilter, setSelectedFilter] = useState<{ color: string; material: string }>({ color: "", material: "" });
 
    const scrollRef = useRef<HTMLDivElement>(null);
    const stickyRef = useRef<HTMLDivElement>(null);
-
-   const Tabs = ["Hot Sellers", "Pinacle Special", "New Arrival"];
-
-   const scroll = (dir: "left" | "right") => {
-      if (scrollRef.current) {
-         scrollRef.current.scrollBy({ left: dir === "left" ? -150 : 150, behavior: "smooth" });
-      }
-   };
 
    useEffect(() => {
       if (!isFilter) {
@@ -61,15 +64,27 @@ const TabsSection = ({ isFilter, setIsFilter }: { isFilter: boolean; setIsFilter
       };
    }, [isFilter]);
 
+   const handleApplyFilter = () => {
+      if (selectedFilter.color === "" && selectedFilter.material === "") {
+         return;
+      }
+      applyFilter({ ...productFilters, material: selectedFilter.material, color: selectedFilter.color });
+      setIsFilter(false);
+   };
+
    return (
       <div ref={stickyRef} className={`sm:sticky relative z-50! top-17.5  bg-white`}>
          <div className="w-full flex flex-col gap-4 pt-4 ">
             <div className="flex md:items-center justify-between max-md:flex-col max-md:gap-4 py-2  bg-white ">
                <div className="flex items-center gap-2">
                   <div ref={scrollRef} className="flex flex-wrap items-center gap-4.5  [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-1 xl:max-w-200 lg:max-w-130 md:max-w-100 max-w-full">
-                     {Tabs.map((tab, i) => (
-                        <div key={i} className={`cursor-pointer active:scale-99 py-2 px-6 rounded-full border-2 shrink-0 ${selectedTab === tab ? "border-BtnBlack bg-BtnBlack" : "border-BtnBlack bg-white"}`} onClick={() => setSelectedTab(tab)}>
-                           <p className={`${selectedTab === tab ? "text-white" : "text-textBlack"} fontInterMedium! font-semibold! tracking-wide`}>{tab}</p>
+                     {filters.badges.map((tab, i) => (
+                        <div
+                           key={i}
+                           className={`cursor-pointer active:scale-99 py-2 px-6 rounded-full border-2 shrink-0 ${(tab === "All" ? productFilters.badge === "" : productFilters.badge === tab) ? "border-BtnBlack bg-BtnBlack" : "border-BtnBlack bg-white"}`}
+                           onClick={() => applyFilter(tab === "All" ? { ...productFilters, badge: "" } : { ...productFilters, badge: tab })}
+                        >
+                           <p className={`${(tab === "All" ? productFilters.badge === "" : productFilters.badge === tab) ? "text-white" : "text-textBlack"} fontInterMedium! font-semibold! tracking-wide`}>{tab}</p>
                         </div>
                      ))}
                   </div>
@@ -95,13 +110,13 @@ const TabsSection = ({ isFilter, setIsFilter }: { isFilter: boolean; setIsFilter
                <div className="flex flex-col gap-2">
                   <h4 className="text-textBlack">Colors</h4>
                   <div className="flex items-center flex-wrap gap-2">
-                     {products?.[0]?.VariantSchema?.[0]?.colors?.map((item, i) =>
-                        selectedColor.hex.code === item.hex.code ? (
-                           <div className="w-6 h-6 border-2 border-gray-500 cursor-pointer  rounded-full flex items-center justify-center" key={item.hex.code}>
-                              <div className={`w-4 h-4 rounded-full bg-[${item.hex.code}]`} style={{ background: item.hex.code }} />
+                     {filters.colors?.map((item, i) =>
+                        selectedFilter.color === item ? (
+                           <div className="w-6 h-6 border-2 border-gray-500 cursor-pointer  rounded-full flex items-center justify-center" key={item}>
+                              <div className={`w-4 h-4 rounded-full bg-[${item}]`} style={{ background: item }} />
                            </div>
                         ) : (
-                           <div onClick={() => setSelectedColor({ hex: item.hex, images: item.images })} className={`w-6 h-6 cursor-pointer rounded-full ${item.hex.code}`} style={{ background: item.hex.code }} key={i} />
+                           <div onClick={() => setSelectedFilter({ ...selectedFilter, color: item })} className={`w-6 h-6 cursor-pointer rounded-full ${item}`} style={{ background: item }} key={i} />
                         ),
                      )}
                   </div>
@@ -122,17 +137,19 @@ const TabsSection = ({ isFilter, setIsFilter }: { isFilter: boolean; setIsFilter
                   <h4 className="text-textBlack">Material</h4>
                   <div className="flex items-center flex-wrap gap-2">
                      <ul className="flex flex-col gap-3">
-                        <li>3-Ply Silk (5)</li>
-                        <li>Alpaca (4)</li>
-                        <li>Bio Acetate (1)</li>
-                        <li>Cashmere (7)</li>
-                        <li>Croc-Embossed Leather (6)</li>
+                        {filters.materials.map((item, i) => {
+                           return (
+                              <li key={i} className={selectedFilter.material === item ? "list-disc" : "list-none"} onClick={() => setSelectedFilter({ ...selectedFilter, material: item })}>
+                                 {item}
+                              </li>
+                           );
+                        })}
                      </ul>
                   </div>
                </div>
             </div>
             <div className="px-4">
-               <Button name="Apply" className="w-full" />
+               <Button name="Apply" className="w-full" onClick={handleApplyFilter} />
             </div>
          </div>
          <div className={`${isFilter ? "sm:h-screen h-[300vh]" : "h-0 opacity-0 pointer-events-none"} transition-all duration-300 bg-black/20 absolute z-60! sm:top-full -top-100  left-1/2 -translate-x-1/2 w-screen`}></div>
