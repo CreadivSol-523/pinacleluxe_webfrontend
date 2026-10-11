@@ -1,7 +1,7 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 export interface OrderItemInput {
-    product: string; // product id
+    product: string;
     name: string;
     price: number;
     quantity: number;
