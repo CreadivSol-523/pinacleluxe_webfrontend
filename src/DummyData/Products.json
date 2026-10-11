@@ -11,12 +11,11 @@
          "VariantSchema": [
             {
                "material": "leather",
-               "price": 11999,
-               "discountPrice": 2500,
+               "price": [{ "region": "US", "price": 11999, "discountMode": "percentage", "discountedValue": 20 }],
                "stock": 2,
                "colors": [
                   {
-                     "hex": "#8E4B2E",
+                     "hex": { "code": "#F5F5DC", "colorName": "Beige" },
                      "images": [
                         "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600",
                         "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600",
@@ -27,9 +26,9 @@
                         "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"
                      ]
                   },
-                  { "hex": "#A9746E", "images": ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"] },
-                  { "hex": "#5A3E36", "images": ["https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"] },
-                  { "hex": "#6F4E37", "images": ["https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"] }
+                  { "hex": { "code": "#8B0000", "colorName": "Maroon" }, "images": ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"] },
+                  { "hex": { "code": "#1E3A8A", "colorName": "Navy Blue" }, "images": ["https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"] },
+                  { "hex": { "code": "#000000", "colorName": "Black" }, "images": ["https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"] }
                ]
             }
          ]
@@ -45,29 +44,26 @@
          "VariantSchema": [
             {
                "material": "leather",
-               "price": 11999,
-               "discountPrice": 4999,
+               "price": [{ "region": "US", "price": 14399, "discountMode": "percentage", "discountedValue": 20 }],
                "stock": 18,
                "colors": [
-                  { "hex": "#8E4B2E", "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] },
-                  { "hex": "#A9746E", "images": ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"] },
-                  { "hex": "#5A3E36", "images": ["https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"] },
-                  { "hex": "#6F4E37", "images": ["https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"] }
+                  { "hex": { "code": "#2C2C2C", "colorName": "Charcoal Black" }, "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] },
+                  { "hex": { "code": "#F8F4E3", "colorName": "Ivory" }, "images": ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"] },
+                  { "hex": { "code": "#556B2F", "colorName": "Olive Green" }, "images": ["https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"] },
+                  { "hex": { "code": "#6A0DAD", "colorName": "Purple" }, "images": ["https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"] }
                ]
             },
             {
                "material": "cotton",
-               "price": 12999,
-               "discountPrice": 4999,
+               "price": [{ "region": "UK", "price": 11999, "discountMode": "percentage", "discountedValue": 200 }],
                "stock": 18,
-               "colors": [{ "hex": "#8E4B2E", "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] }]
+               "colors": [{ "hex": { "code": "#C0C0C0", "colorName": "Silver" }, "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] }]
             },
             {
                "material": "canvas",
-               "price": 14999,
-               "discountPrice": 4999,
+               "price": [{ "region": "US", "price": 14999, "discountMode": "percentage", "discountedValue": 200 }],
                "stock": 18,
-               "colors": [{ "hex": "#8E4B2E", "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] }]
+               "colors": [{ "hex": { "code": "#1E3A8A", "colorName": "Navy Blue" }, "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] }]
             }
          ]
       },
@@ -83,14 +79,13 @@
          "VariantSchema": [
             {
                "material": "leather",
-               "price": 11999,
-               "discountPrice": 3200,
+               "price": [{ "region": "US", "price": 5299, "discountMode": "percentage", "discountedValue": 20 }],
                "stock": 40,
                "colors": [
-                  { "hex": "#8E4B2E", "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] },
-                  { "hex": "#A9746E", "images": ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"] },
-                  { "hex": "#5A3E36", "images": ["https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"] },
-                  { "hex": "#6F4E37", "images": ["https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"] }
+                  { "hex": { "code": "#2C2C2C", "colorName": "Charcoal Black" }, "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] },
+                  { "hex": { "code": "#F8F4E3", "colorName": "Ivory" }, "images": ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"] },
+                  { "hex": { "code": "#556B2F", "colorName": "Olive Green" }, "images": ["https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"] },
+                  { "hex": { "code": "#6A0DAD", "colorName": "Purple" }, "images": ["https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"] }
                ]
             }
          ]
@@ -107,14 +102,13 @@
          "VariantSchema": [
             {
                "material": "leather",
-               "price": 11999,
-               "discountPrice": 7200,
+               "price": [{ "region": "US", "price": 5648, "discountMode": "percentage", "discountedValue": 200 }],
                "stock": 12,
                "colors": [
-                  { "hex": "#8E4B2E", "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] },
-                  { "hex": "#A9746E", "images": ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"] },
-                  { "hex": "#5A3E36", "images": ["https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"] },
-                  { "hex": "#6F4E37", "images": ["https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"] }
+                  { "hex": { "code": "#2C2C2C", "colorName": "Charcoal Black" }, "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] },
+                  { "hex": { "code": "#F8F4E3", "colorName": "Ivory" }, "images": ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"] },
+                  { "hex": { "code": "#556B2F", "colorName": "Olive Green" }, "images": ["https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"] },
+                  { "hex": { "code": "#6A0DAD", "colorName": "Purple" }, "images": ["https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"] }
                ]
             }
          ]
@@ -130,29 +124,26 @@
          "VariantSchema": [
             {
                "material": "leather",
-               "price": 11999,
-               "discountPrice": 4100,
+               "price": [{ "region": "US", "price": 31564, "discountMode": "percentage", "discountedValue": 20 }],
                "stock": 5,
                "colors": [
-                  { "hex": "#8E4B2E", "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] },
-                  { "hex": "#A9746E", "images": ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"] },
-                  { "hex": "#5A3E36", "images": ["https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"] },
-                  { "hex": "#6F4E37", "images": ["https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"] }
+                  { "hex": { "code": "#2C2C2C", "colorName": "Charcoal Black" }, "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] },
+                  { "hex": { "code": "#F8F4E3", "colorName": "Ivory" }, "images": ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"] },
+                  { "hex": { "code": "#556B2F", "colorName": "Olive Green" }, "images": ["https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"] },
+                  { "hex": { "code": "#6A0DAD", "colorName": "Purple" }, "images": ["https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"] }
                ]
             },
             {
                "material": "cotton",
-               "price": 12999,
-               "discountPrice": 4100,
+               "price": [{ "region": "US", "price": 35668, "discountMode": "percentage", "discountedValue": 20 }],
                "stock": 30,
-               "colors": [{ "hex": "#8E4B2E", "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] }]
+               "colors": [{ "hex": { "code": "#000000", "colorName": "Black" }, "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] }]
             },
             {
                "material": "canvas",
-               "price": 14999,
-               "discountPrice": 4100,
+               "price": [{ "region": "US", "price": 22558, "discountMode": "percentage", "discountedValue": 20 }],
                "stock": 30,
-               "colors": [{ "hex": "#8E4B2E", "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] }]
+               "colors": [{ "hex": { "code": "#8B0000", "colorName": "Crimson" }, "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] }]
             }
          ]
       },
@@ -168,14 +159,13 @@
          "VariantSchema": [
             {
                "material": "leather",
-               "price": 11999,
-               "discountPrice": 10999,
+               "price": [{ "region": "US", "price": 8854, "discountMode": "percentage", "discountedValue": 20 }],
                "stock": 10,
                "colors": [
-                  { "hex": "#8E4B2E", "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] },
-                  { "hex": "#A9746E", "images": ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"] },
-                  { "hex": "#5A3E36", "images": ["https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"] },
-                  { "hex": "#6F4E37", "images": ["https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"] }
+                  { "hex": { "code": "#2C2C2C", "colorName": "Charcoal Black" }, "images": ["https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=600"] },
+                  { "hex": { "code": "#F8F4E3", "colorName": "Ivory" }, "images": ["https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600"] },
+                  { "hex": { "code": "#556B2F", "colorName": "Olive Green" }, "images": ["https://images.unsplash.com/photo-1581605405669-fcdf81165afa?w=600"] },
+                  { "hex": { "code": "#6A0DAD", "colorName": "Purple" }, "images": ["https://images.unsplash.com/photo-1591561954557-26941169b49e?w=600"] }
                ]
             }
          ]

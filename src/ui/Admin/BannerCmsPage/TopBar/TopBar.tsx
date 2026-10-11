@@ -1,20 +1,22 @@
 "use client";
 
-import { ColorPicker, Label, SaveBar, SectionCard, Toggle, TopBarConfig, TopBarPreview } from "@/ui/UI";
-import { useState } from "react";
+import { TopBarConfig } from "@/Types/WebSection/WebSection";
+import { ColorPicker, Label, SaveBar, SectionCard, Toggle, TopBarPreview } from "@/ui/UI";
+import { useEffect, useState } from "react";
 
 // Color presets
 const BG_PRESETS = ["#1A1209", "#B8975A", "#2C2C2C", "#0F3D2E", "#1C1C3A", "#7C1D1D"];
 const TEXT_PRESETS = ["#FFFFFF", "#F5F0E8", "#B8975A", "#000000", "#FBBF24"];
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
-export default function ChangeTopBar() {
+export default function ChangeTopBar({ handleSaveTopBar, handleUpdateTopBar, topbarData }: { handleSaveTopBar: (value: TopBarConfig) => void; handleUpdateTopBar: (value: TopBarConfig) => void; topbarData: TopBarConfig; isLoading: boolean }) {
    const [topBar, setTopBar] = useState<TopBarConfig>({
-      enabled: true,
-      message: "Free shipping on orders above Rs 5,000 — Shop Now",
-      bgColor: "#1A1209",
-      textColor: "#B8975A",
+      enabled: topbarData?.enabled ?? false,
+      message: topbarData?.message ?? "",
+      bgColor: topbarData?.bgColor ?? "",
+      textColor: topbarData?.textColor ?? "",
    });
+   console.log(topbarData);
    const [saving, setSaving] = useState(false);
    const [saved, setSaved] = useState(false);
 
@@ -22,15 +24,32 @@ export default function ChangeTopBar() {
       setTopBar((prev) => ({ ...prev, [key]: value }));
       setSaved(false);
    };
+   const { bgColor, enabled, message, textColor } = topbarData;
 
    const handleSave = async () => {
       setSaving(true);
       setSaved(false);
-      await new Promise((r) => setTimeout(r, 700));
+
+      const IsTopBarNew = !(topbarData as unknown as { _id: string })?._id;
+      if (IsTopBarNew) {
+         await handleSaveTopBar(topBar);
+      } else {
+         await handleUpdateTopBar(topBar);
+      }
+
       setSaving(false);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
    };
+
+   // useEffect(() => {
+   //    setTopBar({
+   //       enabled: enabled ?? false,
+   //       bgColor: bgColor ?? "",
+   //       message: message ?? "",
+   //       textColor: textColor ?? "",
+   //    });
+   // }, [topbarData]);
 
    return (
       <>
@@ -61,7 +80,7 @@ export default function ChangeTopBar() {
                         maxLength={120}
                         className="w-full px-3.5 py-2.5 pr-14 text-[13px] bg-[#F5F0E8] border border-[#B8975A]/20 rounded-lg text-headingColor placeholder:text-[#5E5F60]/60 focus:outline-none focus:border-[#B8975A]/60 transition-colors"
                      />
-                     <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] text-[#5E5F60]">{topBar.message.length}/120</span>
+                     <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] text-[#5E5F60]">{topBar?.message?.length}/120</span>
                   </div>
                </div>
 

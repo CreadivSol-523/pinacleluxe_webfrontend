@@ -1,4 +1,5 @@
 import { OrderStatus } from "@/Types/Order/OrderType";
+import { TopBarConfig } from "@/Types/WebSection/WebSection";
 
 export const Label = ({ children }: { children: React.ReactNode }) => <p className="text-[11px] tracking-[0.08em] uppercase text-[#5E5F60] mb-1.5">{children}</p>;
 
@@ -24,12 +25,12 @@ export function ColorPicker({ label, value, onChange, presets }: { label: string
    );
 }
 
-export const FieldInput = ({ value, onChange, placeholder, error }: { value: string; onChange: (v: string) => void; placeholder?: string; error?: string }) => (
+export const FieldInput = ({ value, onChange, placeholder, error, maxLength }: { value: string; onChange: (v: string) => void; placeholder?: string; error?: string; maxLength?: number }) => (
    <div>
       <input
          type="text"
          value={value}
-         onChange={(e) => onChange(e.target.value)}
+         onChange={(e) => onChange(maxLength ? e.target.value.slice(0, maxLength) : e.target.value)}
          placeholder={placeholder}
          className={`w-full px-3.5 py-2.5 text-[13px] bg-[#F5F0E8] border rounded-lg text-headingColor placeholder:text-[#5E5F60]/60 focus:outline-none transition-colors
             ${error ? "border-red-400" : "border-[#B8975A]/20 focus:border-[#B8975A]/60"}`}
@@ -41,7 +42,7 @@ export const FieldInput = ({ value, onChange, placeholder, error }: { value: str
 export const Toggle = ({ active, onChange }: { active: boolean; onChange: () => void }) => (
    <button
       onClick={onChange}
-      className={`relative w-10 h-5 rounded-full transition-colors duration-200 shrink-0
+      className={`relative w-10 h-5 rounded-full transition-colors duration-200 shrink-0 cursor-pointer
          ${active ? "bg-[#B8975A]" : "bg-[#5E5F60]/30"}`}
    >
       <span
@@ -85,12 +86,6 @@ export function SaveBar({ onSave, saving, saved }: { onSave: () => void; saving:
 
 // ── Top Bar Preview ───────────────────────────────────────────────────────────
 
-export interface TopBarConfig {
-   enabled: boolean;
-   message: string;
-   bgColor: string;
-   textColor: string;
-}
 export function TopBarPreview({ config }: { config: TopBarConfig }) {
    return (
       <div className="rounded-xl overflow-hidden border border-[#B8975A]/10">

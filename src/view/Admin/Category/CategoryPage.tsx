@@ -1,14 +1,90 @@
 "use client";
 import { useCategoryManager } from "@/Validations/CategoryManager/CategoryManager";
 import { CategoryModal } from "@/components/Modal/AddCategoryModal";
+import DeleteModal from "@/components/Modal/DeleteModal";
 import AdminLayout from "@/layout/AdminLayout";
+import { useCreateCategoryHandler, useDeleteCategoryHandler, useGetCategoryHandler, useUpdateCategoryHandler } from "@/modals/CategoryModal";
 import { CategoryTree } from "@/ui/Admin/Category/Tree";
+import { useEffect, useState } from "react";
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function CategoryPage() {
-   const { tree, search, setSearch, expanded, toggleExpand, expandAll, collapseAll, modalOpen, editingId, form, errors, loading, openAdd, openEdit, closeModal, setField, handleNameChange, handleSubmit, toggleActive, deleteCategory, topLevelCats, totalCount, activeCount } = useCategoryManager();
+   const [catID, setCatID] = useState<string | null>(null);
+   const {
+      tree: dummyData,
+      search,
+      setSearch,
+      expanded,
+      toggleExpand,
+      expandAll,
+      collapseAll,
+      modalOpen,
+      editingId,
+      form,
+      errors,
+      loading,
+      openAdd,
+      openEdit,
+      closeModal,
+      setField,
+      handleNameChange,
+      topLevelCats,
+      totalCount,
+      activeCount,
+      setCategories,
+      categories,
+      isDelete,
+      setIsDelete,
+   } = useCategoryManager();
 
-   console.log(form);
+   // Get Category
+   const { data, error, isError, isLoading, refetch } = useGetCategoryHandler();
+
+   // Create Category
+   const { handleCreateCategory, isLoading: creating } = useCreateCategoryHandler();
+
+   // Update Category
+   const { handleUpdateCategory, isLoading: updating } = useUpdateCategoryHandler();
+
+   // Delete Category
+   const { handleDeleteCategory, isLoading: deleting } = useDeleteCategoryHandler();
+
+   const handleSubmitCategory = async () => {
+      if (!editingId) {
+         const result = await handleCreateCategory({ form });
+         if (result.success) {
+            closeModal();
+         }
+      } else {
+         const result = await handleUpdateCategory({ form, id: editingId });
+      }
+   };
+
+   const ToggleActiveCat = (_id: string) => {
+      const findCat = categories.find((c) => c._id === _id) || categories.find((c) => c.children?.some((sc) => sc._id === _id))?.children?.find((sc) => sc._id === _id);
+
+      if (!findCat) return;
+
+      handleUpdateCategory({ form: { isActive: !findCat.isActive }, id: findCat._id, partialFields: true });
+   };
+
+   const handleDelete = async (_id?: string) => {
+      const findCat = categories.find((c) => c._id === catID);
+
+      if (!findCat) return;
+
+      await handleDeleteCategory({ id: findCat._id });
+
+      setIsDelete(false);
+   };
+
+   const tree = data?.categories?.filter((item) => item?.parentId == null) || dummyData;
+
+   useEffect(() => {
+      if (data?.categories) {
+         setCategories(data.categories);
+      }
+   }, [tree]);
 
    return (
       <AdminLayout>
@@ -73,8 +149,19 @@ export default function CategoryPage() {
                   <div className="w-24 shrink-0 max-sm:hidden" />
                </div>
 
-               {tree.length > 0 ? (
-                  <CategoryTree nodes={tree} expanded={expanded} onToggleExpand={toggleExpand} onEdit={openEdit} onDelete={deleteCategory} onToggleActive={toggleActive} onAddSub={(parentId) => openAdd(parentId)} />
+               {tree?.length > 0 ? (
+                  <CategoryTree
+                     nodes={tree}
+                     expanded={expanded}
+                     onToggleExpand={toggleExpand}
+                     onEdit={openEdit}
+                     onDelete={(id) => {
+                        setCatID(id);
+                        setIsDelete(true);
+                     }}
+                     onToggleActive={ToggleActiveCat}
+                     onAddSub={(parentId) => openAdd(parentId)}
+                  />
                ) : (
                   <div className="flex flex-col items-center justify-center py-16 text-center">
                      <svg className="text-[#B8975A]/30 mb-3" width="40" height="40" viewBox="0 0 40 40" fill="none">
@@ -88,7 +175,9 @@ export default function CategoryPage() {
             </div>
 
             {/* ── Modal ── */}
-            <CategoryModal isOpen={modalOpen} onClose={closeModal} editingId={editingId} form={form} errors={errors} loading={loading} setField={setField} handleNameChange={handleNameChange} handleSubmit={handleSubmit} topLevelCats={topLevelCats} />
+            <CategoryModal isOpen={modalOpen} onClose={closeModal} editingId={editingId} form={form} errors={errors} loading={loading || creating || updating} setField={setField} handleNameChange={handleNameChange} handleSubmit={handleSubmitCategory} topLevelCats={topLevelCats} />
+
+            <DeleteModal isOpen={isDelete} onClose={() => setIsDelete(false)} onConfirm={handleDelete} loading={deleting} title="Delete Category" description="Are you sure you want to delete this category? This action cannot be undone." />
          </div>
       </AdminLayout>
    );

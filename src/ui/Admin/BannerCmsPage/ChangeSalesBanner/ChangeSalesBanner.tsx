@@ -1,20 +1,8 @@
 "use client";
 
+import { SalesBannerConfig } from "@/Types/WebSection/WebSection";
 import { ColorPicker, Label, SaveBar, SectionCard, Toggle } from "@/ui/UI";
-import { useState } from "react";
-
-// ── Types ─────────────────────────────────────────────────────────────────────
-export interface SalesBannerConfig {
-   enabled: boolean;
-   title: string;
-   subtitle: string;
-   bgColor: string;
-   textColor: string;
-   btnLabel: string;
-   btnUrl: string;
-   btnBgColor: string;
-   btnTextColor: string;
-}
+import { useEffect, useState } from "react";
 
 // ── Presets ───────────────────────────────────────────────────────────────────
 const BG_PRESETS = ["#1A1209", "#B8975A", "#2C2C2C", "#0F3D2E", "#1C1C3A", "#7C1D1D"];
@@ -81,17 +69,17 @@ function SalesBannerPreview({ config }: { config: SalesBannerConfig }) {
 }
 
 // ── Main Component ────────────────────────────────────────────────────────────
-export default function ChangeSalesBanner() {
+export default function ChangeSalesBanner({ handleSaveSalesBanner, handleUpdateSalesBanner, SalesBannerData }: { handleSaveSalesBanner: (value: SalesBannerConfig) => void; handleUpdateSalesBanner: (value: SalesBannerConfig) => void; SalesBannerData: SalesBannerConfig }) {
    const [banner, setBanner] = useState<SalesBannerConfig>({
-      enabled: true,
-      title: "End of Season Sale — Up to 40% Off",
-      subtitle: "Limited time offer on selected luxury bags",
-      bgColor: "#1A1209",
-      textColor: "#F5F0E8",
-      btnLabel: "Shop the Sale",
-      btnUrl: "/sale",
-      btnBgColor: "#B8975A",
-      btnTextColor: "#1A1209",
+      enabled: SalesBannerData?.enabled ?? false,
+      title: SalesBannerData?.title ?? "",
+      subtitle: SalesBannerData?.subtitle ?? "",
+      bgColor: SalesBannerData?.bgColor ?? "#000000",
+      textColor: SalesBannerData?.textColor ?? "#000000",
+      btnLabel: SalesBannerData?.btnLabel ?? "",
+      btnUrl: SalesBannerData?.btnUrl ?? "",
+      btnBgColor: SalesBannerData?.btnBgColor ?? "#000000",
+      btnTextColor: SalesBannerData?.btnTextColor ?? "#000000",
    });
    const [saving, setSaving] = useState(false);
    const [saved, setSaved] = useState(false);
@@ -101,14 +89,38 @@ export default function ChangeSalesBanner() {
       setSaved(false);
    };
 
+   const { enabled, title, subtitle, bgColor, textColor, btnLabel, btnUrl, btnBgColor, btnTextColor } = SalesBannerData;
+
    const handleSave = async () => {
       setSaving(true);
       setSaved(false);
-      await new Promise((r) => setTimeout(r, 700));
+
+      const IsSaleBannerNew = !(SalesBannerData as unknown as { _id: string })?._id;
+
+      if (IsSaleBannerNew) {
+         await handleSaveSalesBanner(banner);
+      } else {
+         await handleUpdateSalesBanner(banner);
+      }
+
       setSaving(false);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
    };
+
+   // useEffect(() => {
+   //    setBanner({
+   //       enabled: enabled ?? false,
+   //       title: title ?? "",
+   //       subtitle: subtitle ?? "",
+   //       bgColor: bgColor ?? "#000000",
+   //       textColor: textColor ?? "#000000",
+   //       btnLabel: btnLabel ?? "",
+   //       btnUrl: btnUrl ?? "",
+   //       btnBgColor: btnBgColor ?? "#000000",
+   //       btnTextColor: btnTextColor ?? "#000000",
+   //    });
+   // }, [SalesBannerData]);
 
    return (
       <SectionCard title="Sales Banner" description="Full-width promotional banner shown below the navigation">
@@ -194,7 +206,7 @@ export default function ChangeSalesBanner() {
                </div>
 
                <div className="grid grid-cols-2 gap-5">
-                  <ColorPicker label="Button Background" value={banner.btnBgColor} onChange={(v) => update("btnBgColor", v)} presets={[...BG_PRESETS, "#B8975A"]} />
+                  <ColorPicker label="Button Background" value={banner.btnBgColor} onChange={(v) => update("btnBgColor", v)} presets={[...BG_PRESETS]} />
                   <ColorPicker label="Button Text Color" value={banner.btnTextColor} onChange={(v) => update("btnTextColor", v)} presets={TEXT_PRESETS} />
                </div>
             </div>

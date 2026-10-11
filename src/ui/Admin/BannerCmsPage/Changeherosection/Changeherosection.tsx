@@ -1,25 +1,31 @@
 "use client";
 
+import { HeroConfig } from "@/Types/WebSection/WebSection";
 import { Label, SaveBar, SectionCard, Toggle } from "@/ui/UI";
-import { useRef, useState } from "react";
-
-// ── Types ─────────────────────────────────────────────────────────────────────
-export interface HeroConfig {
-   enabled: boolean;
-   desktopImage: string; // base64 or ""
-   mobileImage: string; // base64 or ""
-}
+import { useEffect, useRef, useState } from "react";
 
 // ── Image Upload Box ──────────────────────────────────────────────────────────
-function ImageUploadBox({ label, hint, value, onChange, aspectClass }: { label: string; hint: string; value: string; onChange: (base64: string) => void; aspectClass: string }) {
+function ImageUploadBox({ label, hint, previewUrl, onChange, aspectClass }: { label: string; hint: string; previewUrl: string; onChange: (file: File | null, previewUrl: string) => void; aspectClass: string }) {
    const fileRef = useRef<HTMLInputElement>(null);
    const [dragging, setDragging] = useState(false);
 
    const handleFile = (file: File) => {
       if (!file.type.startsWith("image/")) return;
-      const reader = new FileReader();
-      reader.onload = () => onChange(reader.result as string);
-      reader.readAsDataURL(file);
+
+      // agar purana blob url tha to usay revoke kr do (memory leak avoid krne k liye)
+      if (previewUrl && previewUrl.startsWith("blob:")) {
+         URL.revokeObjectURL(previewUrl);
+      }
+
+      const url = URL.createObjectURL(file);
+      onChange(file, url);
+   };
+
+   const handleRemove = () => {
+      if (previewUrl && previewUrl.startsWith("blob:")) {
+         URL.revokeObjectURL(previewUrl);
+      }
+      onChange(null, "");
    };
 
    const handleDrop = (e: React.DragEvent) => {
@@ -47,10 +53,10 @@ function ImageUploadBox({ label, hint, value, onChange, aspectClass }: { label: 
             onDragLeave={() => setDragging(false)}
             onDrop={handleDrop}
          >
-            {value ? (
+            {previewUrl ? (
                <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={value} alt="" className="w-full h-full object-cover" />
+                  <img src={previewUrl} alt="" className="w-full h-full object-cover" />
                   {/* Replace overlay */}
                   <div className="absolute inset-0 bg-black/0 hover:bg-black/40 transition-all duration-200 flex items-center justify-center opacity-0 hover:opacity-100">
                      <div className="flex flex-col items-center gap-1.5">
@@ -65,7 +71,7 @@ function ImageUploadBox({ label, hint, value, onChange, aspectClass }: { label: 
                   <button
                      onClick={(e) => {
                         e.stopPropagation();
-                        onChange("");
+                        handleRemove();
                      }}
                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-red-500 text-white flex items-center justify-center shadow hover:bg-red-600 transition-colors"
                   >
@@ -104,9 +110,9 @@ function ImageUploadBox({ label, hint, value, onChange, aspectClass }: { label: 
 }
 
 // ── Hero Preview ──────────────────────────────────────────────────────────────
-function HeroPreview({ config }: { config: HeroConfig }) {
+function HeroPreview({ enabled, desktopPreview, mobilePreview }: { enabled: boolean; desktopPreview: string; mobilePreview: string }) {
    const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop");
-   const img = previewMode === "desktop" ? config.desktopImage : config.mobileImage;
+   const img = previewMode === "desktop" ? desktopPreview : mobilePreview;
 
    return (
       <div className="flex flex-col gap-2">
@@ -168,7 +174,7 @@ function HeroPreview({ config }: { config: HeroConfig }) {
 
             {/* Hero image area */}
             <div className={`w-full bg-[#2C2C2C] flex items-center justify-center transition-all duration-300 ${previewMode === "desktop" ? "h-[200px]" : "h-[280px]"}`}>
-               {!config.enabled ? (
+               {!enabled ? (
                   <p className="text-[11px] text-[#666]">Hero is disabled</p>
                ) : img ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -190,27 +196,40 @@ function HeroPreview({ config }: { config: HeroConfig }) {
 }
 
 // ── Main Component ────────────────────────────────────────────────────────────
-export default function ChangeHeroSection() {
+export default function ChangeHeroSection({ initialHero, handleSaveHero, handleUpdateHero }: { initialHero?: HeroConfig; handleSaveHero: (formData: HeroConfig) => void; handleUpdateHero: (formData: HeroConfig) => void }) {
    const [hero, setHero] = useState<HeroConfig>({
-      enabled: true,
-      desktopImage: "",
-      mobileImage: "",
+      enabled: initialHero?.enabled ?? true,
+      desktopImage: null,
+      desktopImagePreview: (initialHero?.desktopImage as any) ?? "",
+      mobileImage: null,
+      mobileImagePreview: (initialHero?.mobileImage as any) ?? "",
    });
    const [saving, setSaving] = useState(false);
    const [saved, setSaved] = useState(false);
 
-   const update = <K extends keyof HeroConfig>(key: K, value: HeroConfig[K]) => {
-      setHero((prev) => ({ ...prev, [key]: value }));
-      setSaved(false);
-   };
+   useEffect(() => {
+      return () => {
+         if (hero.desktopImagePreview.startsWith("blob:")) URL.revokeObjectURL(hero.desktopImagePreview);
+         if (hero.mobileImagePreview.startsWith("blob:")) URL.revokeObjectURL(hero.mobileImagePreview);
+      };
+   }, []);
 
+   const isHeroSectionNew = !(initialHero as unknown as { _id: string })?._id;
    const handleSave = async () => {
       setSaving(true);
       setSaved(false);
-      await new Promise((r) => setTimeout(r, 700));
-      setSaving(false);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      try {
+         if (isHeroSectionNew) {
+            await handleSaveHero(hero);
+            console.log("object");
+         } else {
+            await handleUpdateHero(hero);
+         }
+         setSaved(true);
+         setTimeout(() => setSaved(false), 3000);
+      } finally {
+         setSaving(false);
+      }
    };
 
    return (
@@ -224,18 +243,42 @@ export default function ChangeHeroSection() {
                </div>
                <div className="flex items-center gap-3">
                   <span className={`text-[11px] font-medium ${hero.enabled ? "text-green-500" : "text-[#5E5F60]"}`}>{hero.enabled ? "Active" : "Hidden"}</span>
-                  <Toggle active={hero.enabled} onChange={() => update("enabled", !hero.enabled)} />
+                  <Toggle
+                     active={hero.enabled}
+                     onChange={() => {
+                        setHero((prev) => ({ ...prev, enabled: !prev.enabled }));
+                        setSaved(false);
+                     }}
+                  />
                </div>
             </div>
 
             {/* Image uploads */}
             <div className="grid grid-cols-2 gap-5">
-               <ImageUploadBox label="Desktop Image" hint="Recommended: 1920×800px" value={hero.desktopImage} onChange={(v) => update("desktopImage", v)} aspectClass="aspect-[16/7]" />
-               <ImageUploadBox label="Mobile Image" hint="Recommended: 750×900px" value={hero.mobileImage} onChange={(v) => update("mobileImage", v)} aspectClass="aspect-[3/4]" />
+               <ImageUploadBox
+                  label="Desktop Image"
+                  hint="Recommended: 1920×800px"
+                  previewUrl={hero.desktopImagePreview}
+                  onChange={(file, previewUrl) => {
+                     setHero((prev) => ({ ...prev, desktopImage: file, desktopImagePreview: previewUrl }));
+                     setSaved(false);
+                  }}
+                  aspectClass="aspect-[16/7]"
+               />
+               <ImageUploadBox
+                  label="Mobile Image"
+                  hint="Recommended: 750×900px"
+                  previewUrl={hero.mobileImagePreview}
+                  onChange={(file, previewUrl) => {
+                     setHero((prev) => ({ ...prev, mobileImage: file, mobileImagePreview: previewUrl }));
+                     setSaved(false);
+                  }}
+                  aspectClass="aspect-[3/4]"
+               />
             </div>
 
             {/* Live Preview */}
-            <HeroPreview config={hero} />
+            <HeroPreview enabled={hero.enabled} desktopPreview={hero.desktopImagePreview} mobilePreview={hero.mobileImagePreview} />
 
             <SaveBar onSave={handleSave} saving={saving} saved={saved} />
          </div>

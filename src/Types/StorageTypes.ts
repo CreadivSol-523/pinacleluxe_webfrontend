@@ -16,11 +16,15 @@ export interface CartItem extends Product {
 
 // Cart Store
 export interface CartStore {
+   isCartOpen: boolean;
+
+   setCartOpen: (open: boolean) => void;
+   toggleCart: () => void;
    items: CartItem[];
    getCartItem: (productId: string, colorVariants?: string, material?: string) => CartItem | undefined;
    addToCart: (product: Product, quantity?: number) => void;
    removeFromCart: (productId: string, colorVariants: string, material: string) => void;
-   updateQuantity: (productId: string, quantity: number, colorVariants: string, material: string) => void;
+   updateQuantity: (productId: string, quantity: number, colorVariants?: string, material?: string) => void;
    clearCart: () => void;
    getItemCount: () => number;
    getSubtotal: () => number;
