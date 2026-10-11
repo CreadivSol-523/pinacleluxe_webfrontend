@@ -9,7 +9,7 @@ const CategoryCards = ({ img, heading, href }: { img: string; heading: string; h
       <AspectRatio ratio={4 / 5} className="group cursor-pointer overflow-hidden relative">
          <Link href={href} className="absolute inset-0 z-10">
             <div className="w-full h-full relative">
-               <Image src={img || "/Dummy/Home/CategoryImg.png"} alt="Category Image Here" fill className="object-fill transition-transform duration-300 group-hover:scale-105" />
+               <Image unoptimized src={img || "/Dummy/Home/CategoryImg.png"} alt="Category Image Here" fill className="object-fill transition-transform duration-300 group-hover:scale-105" />
                <div className="absolute inset-0 flex items-end justify-start p-6">
                   <h3 className="text-white max-xl:text-lg! max-sm:text-md!">{heading || "Totes"}</h3>
                </div>

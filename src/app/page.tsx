@@ -26,16 +26,16 @@ export default async function Home() {
             <div>
                {salesbanner?.data && (salesbanner.data as SalesBannerConfig)?.enabled && <SaleBanner salesBannerData={salesbanner.data as SalesBannerConfig} />}
 
-               {hero?.data && <BannerSection heroData={hero.data} />}
+               {hero?.data?.enabled && <BannerSection heroData={hero.data} />}
             </div>
 
             <CategorySection />
 
-            {media?.data && <VideoSection mediaData={media.data} />}
+            {media?.data?.enabled && <VideoSection mediaData={media.data} />}
 
             <ReferSection />
 
-            {carousel?.data && <CarouselSection carouselData={carousel.data} />}
+            {carousel?.data?.enabled && <CarouselSection carouselData={carousel.data} />}
          </div>
       </MainLayout>
    );
