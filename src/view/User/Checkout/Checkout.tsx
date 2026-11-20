@@ -1,19 +1,17 @@
 "use client";
 import Button from "@/components/Button/Button";
 import CheckoutCards from "@/components/Cards/AccessoriesCard/AccessoriesCard";
-import SidebarCard from "@/components/Cards/SidebarCard/SidebarCard";
-import Field from "@/components/InputField/Field";
 import MainLayout from "@/layout/MainLayout";
 import { useCartStore } from "@/Storage/UseCartStore";
 import { ChevronDown } from "lucide-react";
 import Image from "next/image";
 import React, { useState } from "react";
-import { createOrderApi } from "@/services/api";
+import { createOrderApi, initiatePayFastPayment, createStripeCheckout } from "@/services/api";
 
 const Checkout = () => {
    const [mobileCheckout, setMobileCheckout] = useState<Boolean>(false);
    const [isShipping, setIsShipping] = useState<Boolean>(true);
-   const [paymentThrough, setPaymentThrough] = useState<"bank" | "cash" | "">("cash");
+   const [paymentThrough, setPaymentThrough] = useState<"payfast" | "stripe" | "cod">("cod");
 
    // Form states
    const [phoneNumber, setPhoneNumber] = useState("");
@@ -21,7 +19,7 @@ const Checkout = () => {
    const [lastName, setLastName] = useState("");
    const [address, setAddress] = useState("");
    const [city, setCity] = useState("");
-   const [stateVal, setStateVal] = useState("");
+   const [stateVal, setStateVal] = useState("Pakistan"); // Default to Pakistan to enable PayFast
    const [email, setEmail] = useState("");
    const [agreed, setAgreed] = useState(false);
    const [loading, setLoading] = useState(false);
@@ -34,6 +32,8 @@ const Checkout = () => {
    const subtotal = cartItems.reduce((acc, item) => acc + (item.price || 45) * item.quantity, 0);
    const shippingFee = 15;
    const total = subtotal + shippingFee;
+
+   const isPakistan = stateVal.trim().toLowerCase() === "pakistan" || stateVal.trim().toLowerCase() === "pk";
 
    const handlePlaceOrder = async () => {
       setErrorMsg("");
@@ -72,19 +72,65 @@ const Checkout = () => {
                address,
                city,
                postalCode: "10001",
-               country: stateVal || "United States",
+               country: stateVal || "Pakistan",
             },
             orderItems,
-            paymentMethod: paymentThrough === "bank" ? "Online" : "COD",
+            paymentMethod: paymentThrough === "cod" ? "COD" : "Online",
             shippingPrice: shippingFee,
          };
 
-         await createOrderApi(payload);
-         setSuccessMsg("Order placed successfully! Inventory updated atomically.");
-         clearCart();
-         setTimeout(() => {
-            window.location.href = "/";
-         }, 2000);
+         // 1. Create order in backend first
+         const orderResponse = await createOrderApi(payload);
+         const orderId = orderResponse.order?._id || orderResponse.data?._id;
+
+         if (!orderId) {
+            throw new Error("Order created but order ID is missing.");
+         }
+
+         // 2. Handle Payment Gateways
+         if (paymentThrough === "payfast") {
+            setSuccessMsg("Initiating PayFast secure payment...");
+            const payfastRes = await initiatePayFastPayment({ orderId, userMobileNumber: phoneNumber });
+
+            if (payfastRes.success && payfastRes.formAction && payfastRes.formData) {
+               // Create dynamic form and submit to PayFast
+               const form = document.createElement("form");
+               form.method = "POST";
+               form.action = payfastRes.formAction;
+
+               Object.keys(payfastRes.formData).forEach((key) => {
+                  const input = document.createElement("input");
+                  input.type = "hidden";
+                  input.name = key;
+                  input.value = payfastRes.formData[key];
+                  form.appendChild(input);
+               });
+
+               document.body.appendChild(form);
+               form.submit();
+               return;
+            } else {
+               throw new Error(payfastRes.message || "Failed to get PayFast redirection data");
+            }
+         } else if (paymentThrough === "stripe") {
+            setSuccessMsg("Redirecting to Stripe Checkout...");
+            const stripeRes = await createStripeCheckout({ orderId });
+
+            if (stripeRes.success && stripeRes.url) {
+               clearCart();
+               window.location.href = stripeRes.url;
+               return;
+            } else {
+               throw new Error(stripeRes.message || "Failed to create Stripe checkout session");
+            }
+         } else {
+            // COD
+            setSuccessMsg("Order placed successfully!");
+            clearCart();
+            setTimeout(() => {
+               window.location.href = `/order-confirmation/${orderId}`;
+            }, 1500);
+         }
       } catch (err: any) {
          setErrorMsg(err.message || "Failed to place order.");
       } finally {
@@ -218,12 +264,21 @@ const Checkout = () => {
                            />
                         </div>
                         <div className="flex flex-col gap-2 w-full">
-                           <h4>State / Country</h4>
+                           <h4>Country (Pakistan for PayFast, Other for Stripe)</h4>
                            <input
                               type="text"
-                              placeholder="Enter state"
+                              placeholder="e.g. Pakistan or United States"
                               value={stateVal}
-                              onChange={(e) => setStateVal(e.target.value)}
+                              onChange={(e) => {
+                                 setStateVal(e.target.value);
+                                 // Auto select gateway based on country
+                                 const val = e.target.value.trim().toLowerCase();
+                                 if (val === "pakistan" || val === "pk") {
+                                    setPaymentThrough("payfast");
+                                 } else {
+                                    setPaymentThrough("stripe");
+                                 }
+                              }}
                               className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black"
                            />
                         </div>
@@ -250,26 +305,42 @@ const Checkout = () => {
                   </div>
                </div>
                <div className="flex flex-col gap-3">
-                  <h3 className="lg:text-[20px]! text-headingColor">Payment</h3>
-                  <div className="flex flex-col  border border-gray-300 rounded-md overflow-hidden">
-                     <div
-                        className="border-b border-gray-300  py-3 cursor-pointer px-3"
-                        onClick={() => setPaymentThrough("bank")}
-                     >
-                        <span className="flex items-center gap-2">
-                           <div className="w-4 h-4 flex items-center justify-center rounded-full border-2 border-gray-500">
-                              <div className={`${paymentThrough === "bank" ? "w-2 h-2" : "w-0 h-0"} transition-all duration-200 rounded-full bg-BtnBlack`} />
-                           </div>
-                           <h4 className="text-headingColor">Online Payment / Bank</h4>
-                        </span>
-                     </div>
+                  <h3 className="lg:text-[20px]! text-headingColor">
+                     Payment Method ({isPakistan ? "🇵🇰 PayFast Gateway" : "🌍 Stripe International"})
+                  </h3>
+                  <div className="flex flex-col border border-gray-300 rounded-md overflow-hidden">
+                     {isPakistan ? (
+                        <div
+                           className="border-b border-gray-300 py-3 cursor-pointer px-3 bg-gray-50"
+                           onClick={() => setPaymentThrough("payfast")}
+                        >
+                           <span className="flex items-center gap-2">
+                              <div className="w-4 h-4 flex items-center justify-center rounded-full border-2 border-gray-500">
+                                 <div className={`${paymentThrough === "payfast" ? "w-2 h-2" : "w-0 h-0"} transition-all duration-200 rounded-full bg-BtnBlack`} />
+                              </div>
+                              <h4 className="text-headingColor font-semibold">PayFast (Online Payment in Pakistan)</h4>
+                           </span>
+                        </div>
+                     ) : (
+                        <div
+                           className="border-b border-gray-300 py-3 cursor-pointer px-3 bg-gray-50"
+                           onClick={() => setPaymentThrough("stripe")}
+                        >
+                           <span className="flex items-center gap-2">
+                              <div className="w-4 h-4 flex items-center justify-center rounded-full border-2 border-gray-500">
+                                 <div className={`${paymentThrough === "stripe" ? "w-2 h-2" : "w-0 h-0"} transition-all duration-200 rounded-full bg-BtnBlack`} />
+                              </div>
+                              <h4 className="text-headingColor font-semibold">Stripe (International Credit/Debit Card)</h4>
+                           </span>
+                        </div>
+                     )}
                      <div
                         className="py-3 cursor-pointer px-3"
-                        onClick={() => setPaymentThrough("cash")}
+                        onClick={() => setPaymentThrough("cod")}
                      >
                         <span className="flex items-center gap-2">
                            <div className="w-4 h-4 flex items-center justify-center rounded-full border-2 border-gray-500">
-                              <div className={`${paymentThrough === "cash" ? "w-2 h-2" : "w-0 h-0"} transition-all duration-200 rounded-full bg-ptica` || "w-0 h-0"} transition-all duration-200 rounded-full bg-BtnBlack`} />
+                              <div className={`${paymentThrough === "cod" ? "w-2 h-2" : "w-0 h-0"} transition-all duration-200 rounded-full bg-BtnBlack`} />
                            </div>
                            <h4 className="text-headingColor">Cash On Delivery</h4>
                         </span>

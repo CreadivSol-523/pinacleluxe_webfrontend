@@ -21,7 +21,7 @@ export interface CustomerDetailsInput {
 export interface CreateOrderPayload {
     customerDetails: CustomerDetailsInput;
     orderItems: OrderItemInput[];
-    paymentMethod: "COD" | "Online";
+    paymentMethod: "COD" | "Online" | "PayFast" | "Stripe";
     shippingPrice?: number;
 }
 
@@ -42,6 +42,36 @@ export const createOrderApi = async (payload: CreateOrderPayload) => {
         return data;
     } catch (error: any) {
         throw new Error(error.message || "Network error while placing order");
+    }
+};
+
+export const initiatePayFastPayment = async (payload: { orderId: string; userMobileNumber?: string }) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/payment/payfast/initiate`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Failed to initiate PayFast payment");
+        return data;
+    } catch (error: any) {
+        throw new Error(error.message || "Network error during PayFast initiation");
+    }
+};
+
+export const createStripeCheckout = async (payload: { orderId: string }) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/payment/stripe/create-checkout-session`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Failed to create Stripe checkout session");
+        return data;
+    } catch (error: any) {
+        throw new Error(error.message || "Network error during Stripe checkout creation");
     }
 };
 
