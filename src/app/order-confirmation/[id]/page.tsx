@@ -8,28 +8,53 @@ import { useEffect, useState } from "react";
 
 interface OrderDetails {
   _id: string;
-  orderNumber: string;
-  items: Array<{
+  orderNumber?: string;
+  orderItems?: Array<{
+    name: string;
+    productName?: string;
+    quantity: number;
+    price: number;
+    image?: string;
+    thumbnail?: string;
+  }>;
+  items?: Array<{
     productName: string;
+    name?: string;
     quantity: number;
     price: number;
     thumbnail?: string;
+    image?: string;
   }>;
-  shippingAddress: {
+  customerDetails?: {
     fullName: string;
     address: string;
     city: string;
-    state: string;
+    state?: string;
     postalCode: string;
     country: string;
     phone: string;
     email: string;
   };
-  subtotal: number;
-  shippingCost: number;
-  tax: number;
-  total: number;
-  status: string;
+  shippingAddress?: {
+    fullName: string;
+    address: string;
+    city: string;
+    state?: string;
+    postalCode: string;
+    country: string;
+    phone: string;
+    email: string;
+  };
+  itemsPrice?: number;
+  subtotal?: number;
+  shippingPrice?: number;
+  shippingCost?: number;
+  taxPrice?: number;
+  tax?: number;
+  totalPrice?: number;
+  total?: number;
+  orderStatus?: string;
+  status?: string;
   paymentStatus: string;
   notes?: string;
   createdAt: string;
@@ -48,7 +73,7 @@ const OrderConfirmation = () => {
       try {
         const response = await OrderAPI.getOrderById(orderId);
         if (response.success) {
-          setOrder(response.data);
+          setOrder(response.order || response.data);
         } else {
           setError("Order not found");
         }
@@ -90,6 +115,23 @@ const OrderConfirmation = () => {
     );
   }
 
+  const itemsList = order.orderItems || order.items || [];
+  const shippingInfo = order.shippingAddress || order.customerDetails || {
+    fullName: "Valued Customer",
+    address: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: "",
+    phone: "",
+    email: ""
+  };
+  const orderStatusVal = (order.orderStatus || order.status || "Pending").toLowerCase();
+  const subtotalVal = order.itemsPrice ?? order.subtotal ?? 0;
+  const shippingVal = order.shippingPrice ?? order.shippingCost ?? 0;
+  const taxVal = order.taxPrice ?? order.tax ?? 0;
+  const totalVal = order.totalPrice ?? order.total ?? (subtotalVal + shippingVal + taxVal);
+
   return (
     <MainLayout>
       <div className="min-h-screen bg-gray-50 py-12 px-5 sm:px-10 lg:px-20">
@@ -104,8 +146,8 @@ const OrderConfirmation = () => {
               Thank you for your order. We've received it and will start processing shortly.
             </p>
             <div className="bg-gray-100 inline-block px-6 py-3 rounded-md">
-              <p className="text-sm text-lightText">Order Number</p>
-              <p className="text-xl font-semibold text-headingColor">{order.orderNumber}</p>
+              <p className="text-sm text-lightText">Order ID</p>
+              <p className="text-xl font-semibold text-headingColor">{order.orderNumber || order._id}</p>
             </div>
           </div>
 
@@ -115,7 +157,7 @@ const OrderConfirmation = () => {
             <div className="flex items-center justify-between">
               <div className="flex flex-col items-center">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                  order.status === "pending" ? "bg-blue-500" : "bg-green-500"
+                  orderStatusVal === "pending" ? "bg-blue-500" : "bg-green-500"
                 } text-white mb-2`}>
                   <Clock className="w-6 h-6" />
                 </div>
@@ -124,7 +166,7 @@ const OrderConfirmation = () => {
               <div className="flex-1 h-1 bg-gray-200 mx-4"></div>
               <div className="flex flex-col items-center">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                  ["processing", "shipped", "delivered"].includes(order.status) ? "bg-green-500" : "bg-gray-200"
+                  ["processing", "shipped", "delivered"].includes(orderStatusVal) ? "bg-green-500" : "bg-gray-200"
                 } text-white mb-2`}>
                   <Package className="w-6 h-6" />
                 </div>
@@ -133,7 +175,7 @@ const OrderConfirmation = () => {
               <div className="flex-1 h-1 bg-gray-200 mx-4"></div>
               <div className="flex flex-col items-center">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                  ["shipped", "delivered"].includes(order.status) ? "bg-green-500" : "bg-gray-200"
+                  ["shipped", "delivered"].includes(orderStatusVal) ? "bg-green-500" : "bg-gray-200"
                 } text-white mb-2`}>
                   <Truck className="w-6 h-6" />
                 </div>
@@ -142,7 +184,7 @@ const OrderConfirmation = () => {
               <div className="flex-1 h-1 bg-gray-200 mx-4"></div>
               <div className="flex flex-col items-center">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                  order.status === "delivered" ? "bg-green-500" : "bg-gray-200"
+                  orderStatusVal === "delivered" ? "bg-green-500" : "bg-gray-200"
                 } text-white mb-2`}>
                   <CheckCircle className="w-6 h-6" />
                 </div>
@@ -155,20 +197,24 @@ const OrderConfirmation = () => {
           <div className="bg-white rounded-lg shadow-sm p-8 mb-6">
             <h2 className="text-xl font-semibold text-headingColor mb-6">Order Items</h2>
             <div className="space-y-4">
-              {order.items.map((item, index) => (
-                <div key={index} className="flex justify-between items-center border-b border-gray-100 pb-4 last:border-0">
-                  <div className="flex items-center gap-4">
-                    {item.thumbnail && (
-                      <img src={item.thumbnail} alt={item.productName} className="w-16 h-16 object-cover rounded" />
-                    )}
-                    <div>
-                      <p className="font-medium text-headingColor">{item.productName}</p>
-                      <p className="text-sm text-lightText">Quantity: {item.quantity}</p>
+              {itemsList.map((item, index) => {
+                const itemName = item.name || item.productName || "Product";
+                const itemImg = item.image || item.thumbnail || "";
+                return (
+                  <div key={index} className="flex justify-between items-center border-b border-gray-100 pb-4 last:border-0">
+                    <div className="flex items-center gap-4">
+                      {itemImg && (
+                        <img src={itemImg} alt={itemName} className="w-16 h-16 object-cover rounded" />
+                      )}
+                      <div>
+                        <p className="font-medium text-headingColor">{itemName}</p>
+                        <p className="text-sm text-lightText">Quantity: {item.quantity}</p>
+                      </div>
                     </div>
+                    <p className="font-semibold text-headingColor">${(item.price * item.quantity).toFixed(2)}</p>
                   </div>
-                  <p className="font-semibold text-headingColor">${(item.price * item.quantity).toFixed(2)}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -178,14 +224,14 @@ const OrderConfirmation = () => {
             <div className="bg-white rounded-lg shadow-sm p-8">
               <h2 className="text-xl font-semibold text-headingColor mb-4">Shipping Address</h2>
               <div className="text-lightText space-y-1">
-                <p className="font-medium text-headingColor">{order.shippingAddress.fullName}</p>
-                <p>{order.shippingAddress.address}</p>
+                <p className="font-medium text-headingColor">{shippingInfo.fullName}</p>
+                <p>{shippingInfo.address}</p>
                 <p>
-                  {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postalCode}
+                  {shippingInfo.city}, {shippingInfo.state || ""} {shippingInfo.postalCode}
                 </p>
-                <p>{order.shippingAddress.country}</p>
-                <p className="pt-2">Phone: {order.shippingAddress.phone}</p>
-                {order.shippingAddress.email && <p>Email: {order.shippingAddress.email}</p>}
+                <p>{shippingInfo.country}</p>
+                <p className="pt-2">Phone: {shippingInfo.phone}</p>
+                {shippingInfo.email && <p>Email: {shippingInfo.email}</p>}
               </div>
             </div>
 
@@ -195,19 +241,19 @@ const OrderConfirmation = () => {
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <p className="text-lightText">Subtotal</p>
-                  <p className="font-medium text-headingColor">${order.subtotal.toFixed(2)}</p>
+                  <p className="font-medium text-headingColor">${subtotalVal.toFixed(2)}</p>
                 </div>
                 <div className="flex justify-between">
                   <p className="text-lightText">Shipping</p>
-                  <p className="font-medium text-headingColor">${order.shippingCost.toFixed(2)}</p>
+                  <p className="font-medium text-headingColor">${shippingVal.toFixed(2)}</p>
                 </div>
                 <div className="flex justify-between">
                   <p className="text-lightText">Tax</p>
-                  <p className="font-medium text-headingColor">${order.tax.toFixed(2)}</p>
+                  <p className="font-medium text-headingColor">${taxVal.toFixed(2)}</p>
                 </div>
                 <div className="border-t border-gray-200 pt-3 flex justify-between">
                   <p className="text-lg font-semibold text-headingColor">Total</p>
-                  <p className="text-lg font-semibold text-headingColor">${order.total.toFixed(2)}</p>
+                  <p className="text-lg font-semibold text-headingColor">${totalVal.toFixed(2)}</p>
                 </div>
                 <div className="pt-4">
                   <p className="text-sm text-lightText">Payment Status</p>
@@ -224,8 +270,7 @@ const OrderConfirmation = () => {
           <div className="bg-white rounded-lg shadow-sm p-8 text-center">
             <p className="text-lightText mb-6">
               We've sent a confirmation email with your order details. If you have any questions, please contact our customer support.
-            </p>
-            <div className="flex gap-4 justify-center flex-wrap">
+            </p><div className="flex gap-4 justify-center flex-wrap">
               <Link
                 href="/"
                 className="bg-BtnBlack text-white px-8 py-3 rounded-md hover:bg-opacity-90 transition-all"

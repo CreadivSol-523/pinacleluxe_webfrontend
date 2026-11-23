@@ -1,4 +1,5 @@
 import Button from "@/components/Button/Button";
+import { useNotification } from "@/context/NotificationContext";
 import { useCartStore } from "@/Storage/UseCartStore";
 import { Cart } from "@/Types/Cart/CartTypes";
 import { Product, VariantSchema } from "@/Types/Collection/CollectionTypes";
@@ -6,6 +7,7 @@ import Image from "next/image";
 
 const AccessoriesCard = ({ product, isButton = true, selectedColor, selectedMaterials }: { product: Product; isButton: boolean; selectedColor: { hex: { code: string }; images: (string | File)[] }; selectedMaterials: VariantSchema }) => {
    const { addToCart, updateQuantity } = useCartStore();
+   const { show } = useNotification();
 
    const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === product?._id && item.colorVariants === selectedColor.hex.code && item.material === selectedMaterials.material));
 
@@ -25,7 +27,7 @@ const AccessoriesCard = ({ product, isButton = true, selectedColor, selectedMate
                      disabled={GetCartSingleItem ? true : false}
                      pClass="font-normal!"
                      onClick={() => {
-                        addToCart(
+                        const result = addToCart(
                            {
                               id: product?._id || "",
                               name: product?.name || "",
@@ -37,6 +39,14 @@ const AccessoriesCard = ({ product, isButton = true, selectedColor, selectedMate
                            },
                            1,
                         );
+                        if (!result.success) {
+                           show({
+                              type: "toast",
+                              variant: "error",
+                              title: "Out of Stock",
+                              message: result.message || "This product is out of stock.",
+                           });
+                        }
                      }}
                   />
                </div>

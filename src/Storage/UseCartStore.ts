@@ -14,19 +14,31 @@ export const useCartStore = create<CartStore>()(
                isCartOpen: !state.isCartOpen,
             })),
 
-         addToCart: (product: Product, quantity: number = 1) => {
+         addToCart: (product: Product, quantity: number = 1): { success: boolean; message?: string } => {
+            const stockAvailable = product?.stock ?? 0;
+            if (stockAvailable <= 0) {
+               return { success: false, message: "Sorry, this product is currently out of stock." };
+            }
+
             const { items } = get();
             const existing = items.find((item) => item.id === product.id && item.colorVariants === product.colorVariants && item.material === product.material);
 
             if (existing) {
                const newQuantity = existing.quantity + quantity;
-               if (newQuantity > (product?.stock ?? 0)) return; // stock exceed na ho
+               if (newQuantity > stockAvailable) {
+                  return { success: false, message: `Only ${stockAvailable} item(s) available in stock.` };
+               }
                set({
                   items: items.map((item) => (item.id === product.id && item.colorVariants === product.colorVariants && item.material === product.material ? { ...item, quantity: newQuantity } : item)),
                });
+               return { success: true };
             } else {
-               const safeQuantity = Math.min(quantity, product.stock ?? 0); // stock se zyada nahi
+               const safeQuantity = Math.min(quantity, stockAvailable);
+               if (safeQuantity <= 0) {
+                  return { success: false, message: "Sorry, this product is currently out of stock." };
+               }
                set({ items: [...items, { ...product, quantity: safeQuantity }] });
+               return { success: true };
             }
          },
 

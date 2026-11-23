@@ -31,7 +31,7 @@ const MainLayout = ({ children, isHeader = true, isFooter = true, isFilter, setI
    const sections = data?.data || [];
 
    const topbar = sections.find((section: any) => section.type === "topbar");
-   const isTopbarEnabled = topbar?.data.enabled;
+   const isTopbarEnabled = (topbar?.data as any)?.enabled;
 
    useEffect(() => {
       if (isCartOpen || isFavoriteOpen) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, Suspense } from "react";
 import { Provider } from "react-redux";
 
 import { store } from "@/redux/store";
@@ -17,7 +17,9 @@ export default function StoreProvider({ children }: StoreProviderProps) {
       <Provider store={store}>
          <InitialLoader />
          <LoaderOverlay />
-         <RouteChangeLoader />
+         <Suspense fallback={null}>
+            <RouteChangeLoader />
+         </Suspense>
 
          {children}
       </Provider>

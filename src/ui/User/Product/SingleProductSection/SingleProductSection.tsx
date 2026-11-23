@@ -11,6 +11,7 @@ import { Product, VariantSchema } from "@/Types/Collection/CollectionTypes";
 import AccessoriesCard from "@/components/Cards/AccessoriesCard/AccessoriesCard";
 import { useGetSingleProductHandler } from "@/modals/ProductModal";
 import { ParamValue } from "next/dist/server/request/params";
+import { useNotification } from "@/context/NotificationContext";
 
 const SingleProductSection = ({ data, id }: { data?: Product; id?: ParamValue }) => {
    const [selectedColor, setSelectedColor] = useState<{ hex: { code: string; colorName: string }; images: (string | File)[] }>({ hex: { code: "", colorName: "" }, images: [] });
@@ -53,6 +54,7 @@ const SingleProductSection = ({ data, id }: { data?: Product; id?: ParamValue })
    ];
 
    const { addToCart, updateQuantity, setCartOpen } = useCartStore();
+   const { show } = useNotification();
 
    const findProduct = data;
 
@@ -305,17 +307,34 @@ const SingleProductSection = ({ data, id }: { data?: Product; id?: ParamValue })
                   />
                </div>
                <Button
-                  // name={GetCartSingleItem ? "Already In Bag" : "Add To Bag"}
                   name={GetCartSingleItem ? "Add more" : "Add To Bag"}
                   className="w-full"
-                  // disabled={!!GetCartSingleItem}
                   onClick={() => {
+                     const availableStock = selectedMaterials?.stock ?? 0;
+                     if (availableStock <= 0) {
+                        show({
+                           type: "toast",
+                           variant: "error",
+                           title: "Out of Stock",
+                           message: "This product is currently out of stock.",
+                        });
+                        return;
+                     }
+
                      if (GetCartSingleItem) {
+                        if (GetCartSingleItem.quantity >= availableStock) {
+                           show({
+                              type: "toast",
+                              variant: "error",
+                              title: "Limit Reached",
+                              message: `Cannot add more. Only ${availableStock} item(s) in stock.`,
+                           });
+                           return;
+                        }
                         handleIncreaseQuantity();
                         setCartOpen(true);
                      } else {
-                        setCartOpen(true);
-                        addToCart(
+                        const result = addToCart(
                            {
                               id: findProduct?._id || "",
                               name: findProduct?.name || "",
@@ -323,10 +342,22 @@ const SingleProductSection = ({ data, id }: { data?: Product; id?: ParamValue })
                               colorVariants: findProduct?.isVariable ? (findProduct?.variants[0]?.colors?.[0]?.hex.code as string) : "",
                               material: findProduct?.isVariable ? selectedMaterials.material : "",
                               price: selectedMaterials.price?.[0]?.price ?? 0,
-                              stock: selectedMaterials?.stock || 0,
+                              stock: availableStock,
                            },
                            quantity,
                         );
+
+                        if (!result.success) {
+                           show({
+                              type: "toast",
+                              variant: "error",
+                              title: "Out of Stock",
+                              message: result.message || "This product is out of stock.",
+                           });
+                           return;
+                        }
+
+                        setCartOpen(true);
                      }
                   }}
                />

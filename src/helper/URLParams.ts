@@ -16,5 +16,7 @@ export function URLParams(base: string, params: Record<string, any>): string {
      });
 
      const queryString = searchParams.toString();
-     return queryString ? `${base}?${queryString}` : base;
+     // Ensure base does not have trailing slash or handle relative URL construction cleanly without passing absolute base to new URL()
+     const cleanBase = base.endsWith('/') ? base.slice(0, -1) : base;
+     return queryString ? `${cleanBase}?${queryString}` : cleanBase;
 }

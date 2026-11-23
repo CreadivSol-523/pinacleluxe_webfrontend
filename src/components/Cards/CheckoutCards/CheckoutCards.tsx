@@ -30,9 +30,14 @@ const CheckoutCards = ({ product, quantity }: Cart) => {
       setUpdateQuantityState(updateProductQuantity);
       updateQuantity(product.id, updateProductQuantity, product.colorVariants, product.material);
    };
+   const imageSrc =
+      typeof product?.images === "string" && (product.images.startsWith("http://") || product.images.startsWith("https://") || product.images.startsWith("/"))
+         ? product.images
+         : "/Dummy/Product/ProductImg.png";
+
    return (
       <div className="flex items-center gap-6 ">
-         <Image src="/Dummy/Product/ProductImg.png" alt="sidebar card" width={90} height={150} />
+         <Image src={imageSrc} alt={product.name || "checkout product image"} width={90} height={150} />
          <div className="flex flex-col justify-between  gap-2.5 w-full">
             <p className="text-headingColor">{product.name || "Easy Zipper Tote"}</p>
             <p style={{ fontFamily: "InterMedium", fontWeight: 500 }} className="text-lg! text-headingColor">

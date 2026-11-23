@@ -25,9 +25,6 @@ export default function RootLayout({
                <NotificationProvider>
                   <LoaderOverlay />
                   <StoreHydration />
-                  <Suspense fallback={null}>
-                     <RouteChangeLoader />
-                  </Suspense>
                   {children}
                </NotificationProvider>
             </StoreProvider>

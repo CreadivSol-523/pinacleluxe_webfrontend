@@ -1,17 +1,33 @@
 "use client";
 import Button from "@/components/Button/Button";
-import CheckoutCards from "@/components/Cards/AccessoriesCard/AccessoriesCard";
+import CheckoutCards from "@/components/Cards/CheckoutCards/CheckoutCards";
 import MainLayout from "@/layout/MainLayout";
 import { useCartStore } from "@/Storage/UseCartStore";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import Image from "next/image";
-import React, { useState } from "react";
-import { createOrderApi, initiatePayFastPayment, createStripeCheckout } from "@/services/api";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+   createOrderApi,
+   initiatePayFastPayment,
+   detectLocationApi,
+   createStripePaymentIntent,
+   confirmStripePaymentApi,
+   initializePaymentApi,
+} from "@/services/api";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+import StripePaymentForm from "@/components/Payment/StripePaymentForm";
+
+// Initialize Stripe Promise
+const stripePromise = loadStripe(
+   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
+      "pk_test_51SN0Oz7BKNcaqcoUYc8L8mO8Kx6U91w1bQO9u64m0Qx4M8N3xU7vP8y7R7k1T2v0X4a5b6c7d8e9f0"
+);
 
 const Checkout = () => {
    const [mobileCheckout, setMobileCheckout] = useState<Boolean>(false);
    const [isShipping, setIsShipping] = useState<Boolean>(true);
-   const [paymentThrough, setPaymentThrough] = useState<"payfast" | "stripe" | "cod">("cod");
+   const [paymentThrough, setPaymentThrough] = useState<"payfast" | "stripe" | "cod">("payfast");
 
    // Form states
    const [phoneNumber, setPhoneNumber] = useState("");
@@ -19,12 +35,16 @@ const Checkout = () => {
    const [lastName, setLastName] = useState("");
    const [address, setAddress] = useState("");
    const [city, setCity] = useState("");
-   const [stateVal, setStateVal] = useState("Pakistan"); // Default to Pakistan to enable PayFast
+   const [stateVal, setStateVal] = useState("Pakistan");
    const [email, setEmail] = useState("");
    const [agreed, setAgreed] = useState(false);
    const [loading, setLoading] = useState(false);
    const [errorMsg, setErrorMsg] = useState("");
    const [successMsg, setSuccessMsg] = useState("");
+
+   // Stripe Elements state
+   const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(null);
+   const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
 
    const cartItems = useCartStore((state) => state.items);
    const clearCart = useCartStore((state) => state.clearCart);
@@ -33,7 +53,42 @@ const Checkout = () => {
    const shippingFee = 15;
    const total = subtotal + shippingFee;
 
+   // Detect customer IP location on mount
+   useEffect(() => {
+      const detectUserLocation = async () => {
+         try {
+            const geo = await detectLocationApi();
+            if (geo.isPakistan) {
+               setStateVal("Pakistan");
+               setPaymentThrough("payfast");
+            } else {
+               const countryLabel = geo.countryName || geo.countryCode || "United States";
+               setStateVal(countryLabel);
+               setPaymentThrough("stripe");
+            }
+         } catch (err) {
+            console.error("Location detection failed:", err);
+         }
+      };
+
+      detectUserLocation();
+   }, []);
+
    const isPakistan = stateVal.trim().toLowerCase() === "pakistan" || stateVal.trim().toLowerCase() === "pk";
+
+   const handleStripeSuccess = async (orderId: string) => {
+      try {
+         setSuccessMsg("Payment successful! Finalizing your order...");
+         await confirmStripePaymentApi({ orderId, paymentIntentId: "" });
+         clearCart();
+         setTimeout(() => {
+            window.location.href = `/order-confirmation/${orderId}?payment=success`;
+         }, 1000);
+      } catch (e) {
+         clearCart();
+         window.location.href = `/order-confirmation/${orderId}?payment=success`;
+      }
+   };
 
    const handlePlaceOrder = async () => {
       setErrorMsg("");
@@ -59,9 +114,9 @@ const Checkout = () => {
          const orderItems = cartItems.map((item: any) => ({
             product: item.id || item._id,
             name: item.name || "Luxury Item",
-            price: item.price || 45,
-            quantity: item.quantity,
-            image: item.image || item.images?.[0] || "",
+            price: Number(item.price) || 45,
+            quantity: Number(item.quantity) || 1,
+            image: typeof item.images === "string" ? item.images : (item.images?.[0] || item.image || ""),
          }));
 
          const payload = {
@@ -75,7 +130,7 @@ const Checkout = () => {
                country: stateVal || "Pakistan",
             },
             orderItems,
-            paymentMethod: paymentThrough === "cod" ? "COD" : "Online",
+            paymentMethod: (paymentThrough === "cod" ? "COD" : "Online") as "COD" | "Online" | "PayFast" | "Stripe",
             shippingPrice: shippingFee,
          };
 
@@ -87,22 +142,35 @@ const Checkout = () => {
             throw new Error("Order created but order ID is missing.");
          }
 
-         // 2. Handle Payment Gateways
-         if (paymentThrough === "payfast") {
-            setSuccessMsg("Initiating PayFast secure payment...");
-            const payfastRes = await initiatePayFastPayment({ orderId, userMobileNumber: phoneNumber });
+         setCreatedOrderId(orderId);
 
-            if (payfastRes.success && payfastRes.formAction && payfastRes.formData) {
-               // Create dynamic form and submit to PayFast
+         // 2. Handle Payment Gateways (Centralized backend provider selection)
+         if (paymentThrough === "cod") {
+            setSuccessMsg("Order placed successfully!");
+            clearCart();
+            setTimeout(() => {
+               window.location.href = `/order-confirmation/${orderId}`;
+            }, 1500);
+            return;
+         }
+
+         setSuccessMsg("Initializing secure payment...");
+         const paymentRes = await initializePaymentApi({ orderId, userMobileNumber: phoneNumber });
+
+         if (paymentRes.provider === "PayFast") {
+            const formAction = paymentRes.formPostURL;
+            const formData = paymentRes.formFields;
+
+            if (formAction && formData) {
                const form = document.createElement("form");
                form.method = "POST";
-               form.action = payfastRes.formAction;
+               form.action = formAction;
 
-               Object.keys(payfastRes.formData).forEach((key) => {
+               Object.keys(formData).forEach((key) => {
                   const input = document.createElement("input");
                   input.type = "hidden";
                   input.name = key;
-                  input.value = payfastRes.formData[key];
+                  input.value = formData[key];
                   form.appendChild(input);
                });
 
@@ -110,26 +178,19 @@ const Checkout = () => {
                form.submit();
                return;
             } else {
-               throw new Error(payfastRes.message || "Failed to get PayFast redirection data");
+               throw new Error(paymentRes.message || "Failed to initialize PayFast");
             }
-         } else if (paymentThrough === "stripe") {
-            setSuccessMsg("Redirecting to Stripe Checkout...");
-            const stripeRes = await createStripeCheckout({ orderId });
-
-            if (stripeRes.success && stripeRes.url) {
-               clearCart();
-               window.location.href = stripeRes.url;
+         } else if (paymentRes.provider === "Stripe") {
+            // STRIPE ELEMENTS FLOW
+            if (paymentRes.clientSecret) {
+               setStripeClientSecret(paymentRes.clientSecret);
+               setSuccessMsg("");
                return;
             } else {
-               throw new Error(stripeRes.message || "Failed to create Stripe checkout session");
+               throw new Error(paymentRes.message || "Failed to initialize Stripe payment");
             }
          } else {
-            // COD
-            setSuccessMsg("Order placed successfully!");
-            clearCart();
-            setTimeout(() => {
-               window.location.href = `/order-confirmation/${orderId}`;
-            }, 1500);
+            throw new Error("Unknown payment provider returned by server");
          }
       } catch (err: any) {
          setErrorMsg(err.message || "Failed to place order.");
@@ -182,7 +243,13 @@ const Checkout = () => {
                   </div>
                </div>
                <div className=" flex">
-                  <Button name={loading ? "Processing..." : "Pay Now"} mainClass="w-full" onClick={handlePlaceOrder} />
+                  {stripeClientSecret && paymentThrough === "stripe" ? (
+                     <p className="text-sm text-gray-500 italic text-center w-full">
+                        Please complete payment using the card form below.
+                     </p>
+                  ) : (
+                     <Button name={loading ? "Processing..." : "Pay Now"} mainClass="w-full" onClick={handlePlaceOrder} />
+                  )}
                </div>
             </div>
             <div className="lg:w-2/4 w-full bg-white 2xl:px-40 xl:px-20 sm:px-20 px-5 lg:py-18 py-5 flex-col lg:gap-10 gap-6 flex">
@@ -264,10 +331,10 @@ const Checkout = () => {
                            />
                         </div>
                         <div className="flex flex-col gap-2 w-full">
-                           <h4>Country (Pakistan for PayFast, Other for Stripe)</h4>
+                           <h4 className="text-headingColor">Country</h4>
                            <input
                               type="text"
-                              placeholder="e.g. Pakistan or United States"
+                              placeholder="Country"
                               value={stateVal}
                               onChange={(e) => {
                                  setStateVal(e.target.value);
@@ -305,38 +372,25 @@ const Checkout = () => {
                   </div>
                </div>
                <div className="flex flex-col gap-3">
-                  <h3 className="lg:text-[20px]! text-headingColor">
-                     Payment Method ({isPakistan ? "🇵🇰 PayFast Gateway" : "🌍 Stripe International"})
-                  </h3>
+                  <h3 className="lg:text-[20px]! text-headingColor">Payment Method</h3>
                   <div className="flex flex-col border border-gray-300 rounded-md overflow-hidden">
-                     {isPakistan ? (
-                        <div
-                           className="border-b border-gray-300 py-3 cursor-pointer px-3 bg-gray-50"
-                           onClick={() => setPaymentThrough("payfast")}
-                        >
-                           <span className="flex items-center gap-2">
-                              <div className="w-4 h-4 flex items-center justify-center rounded-full border-2 border-gray-500">
-                                 <div className={`${paymentThrough === "payfast" ? "w-2 h-2" : "w-0 h-0"} transition-all duration-200 rounded-full bg-BtnBlack`} />
-                              </div>
-                              <h4 className="text-headingColor font-semibold">PayFast (Online Payment in Pakistan)</h4>
-                           </span>
-                        </div>
-                     ) : (
-                        <div
-                           className="border-b border-gray-300 py-3 cursor-pointer px-3 bg-gray-50"
-                           onClick={() => setPaymentThrough("stripe")}
-                        >
-                           <span className="flex items-center gap-2">
-                              <div className="w-4 h-4 flex items-center justify-center rounded-full border-2 border-gray-500">
-                                 <div className={`${paymentThrough === "stripe" ? "w-2 h-2" : "w-0 h-0"} transition-all duration-200 rounded-full bg-BtnBlack`} />
-                              </div>
-                              <h4 className="text-headingColor font-semibold">Stripe (International Credit/Debit Card)</h4>
-                           </span>
-                        </div>
-                     )}
+                     <div
+                        className="border-b border-gray-300 py-3 cursor-pointer px-3 bg-gray-50"
+                        onClick={() => setPaymentThrough(isPakistan ? "payfast" : "stripe")}
+                     >
+                        <span className="flex items-center gap-2">
+                           <div className="w-4 h-4 flex items-center justify-center rounded-full border-2 border-gray-500">
+                              <div className={`${paymentThrough !== "cod" ? "w-2 h-2" : "w-0 h-0"} transition-all duration-200 rounded-full bg-BtnBlack`} />
+                           </div>
+                           <h4 className="text-headingColor font-semibold">Credit / Debit Card</h4>
+                        </span>
+                     </div>
                      <div
                         className="py-3 cursor-pointer px-3"
-                        onClick={() => setPaymentThrough("cod")}
+                        onClick={() => {
+                           setPaymentThrough("cod");
+                           setStripeClientSecret(null);
+                        }}
                      >
                         <span className="flex items-center gap-2">
                            <div className="w-4 h-4 flex items-center justify-center rounded-full border-2 border-gray-500">
@@ -346,6 +400,32 @@ const Checkout = () => {
                         </span>
                      </div>
                   </div>
+
+                  {/* Embedded Stripe Elements Form */}
+                  {stripeClientSecret && paymentThrough === "stripe" && createdOrderId && (
+                     <div className="p-4 border border-gray-300 rounded-md bg-white shadow-sm flex flex-col gap-3 mt-2">
+                        <h4 className="font-semibold text-headingColor">Enter Card Details</h4>
+                        <Elements
+                           stripe={stripePromise}
+                           options={{
+                              clientSecret: stripeClientSecret,
+                              appearance: {
+                                 theme: "stripe",
+                                 variables: {
+                                    colorPrimary: "#141414",
+                                 },
+                              },
+                           }}
+                        >
+                           <StripePaymentForm
+                              orderId={createdOrderId}
+                              amount={total}
+                              onSuccess={handleStripeSuccess}
+                              onError={(msg) => setErrorMsg(msg)}
+                           />
+                        </Elements>
+                     </div>
+                  )}
                </div>
             </div>
             <div className="lg:flex hidden w-2/4 bg-staticSecondaryBG xl:px-20 px-20 py-18  flex-col gap-10">
@@ -389,7 +469,13 @@ const Checkout = () => {
                   </div>
                </div>
                <div className="w-100 flex">
-                  <Button name={loading ? "Processing..." : "Pay Now"} mainClass="w-full" onClick={handlePlaceOrder} />
+                  {stripeClientSecret && paymentThrough === "stripe" ? (
+                     <p className="text-sm text-gray-500 italic text-center w-full">
+                        Please complete payment using the card form above.
+                     </p>
+                  ) : (
+                     <Button name={loading ? "Processing..." : "Pay Now"} mainClass="w-full" onClick={handlePlaceOrder} />
+                  )}
                </div>
             </div>
          </div>

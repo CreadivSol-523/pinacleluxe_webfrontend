@@ -53,6 +53,7 @@ const ProductSlice = createApi({
             method: "GET",
          }),
          providesTags: ["CreateProduct", "DeleteProduct", "UpdateProduct"],
+         keepUnusedDataFor: 0,
       }),
 
       updateProduct: builder.mutation<{ success: true, product: Product }, { id: string, data: FormData }>({

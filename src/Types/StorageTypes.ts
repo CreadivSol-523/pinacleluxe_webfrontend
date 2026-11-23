@@ -22,7 +22,7 @@ export interface CartStore {
    toggleCart: () => void;
    items: CartItem[];
    getCartItem: (productId: string, colorVariants?: string, material?: string) => CartItem | undefined;
-   addToCart: (product: Product, quantity?: number) => void;
+   addToCart: (product: Product, quantity?: number) => { success: boolean; message?: string };
    removeFromCart: (productId: string, colorVariants: string, material: string) => void;
    updateQuantity: (productId: string, quantity: number, colorVariants?: string, material?: string) => void;
    clearCart: () => void;
