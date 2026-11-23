@@ -112,23 +112,23 @@ export function CustomerDrawer({ customer, onClose }: { customer: Customer | nul
                                     {/* Order top row */}
                                     <div className="flex items-center justify-between">
                                        <p className="text-[13px] font-medium text-[#B8975A]">{order.orderNumber}</p>
-                                       <span className={`text-[11px] font-medium px-2.5 py-1 rounded-full ${STATUS_STYLE[order.status]}`}>{order.status}</span>
+                                       <span className={`text-[11px] font-medium px-2.5 py-1 rounded-full ${order.status ? (STATUS_STYLE[order.status] || "bg-amber-50 text-amber-700") : "bg-amber-50 text-amber-700"}`}>{order.status}</span>
                                     </div>
 
                                     {/* Items preview */}
                                     <div className="flex items-center gap-2">
-                                       {order.items.slice(0, 3).map((item, i) => (
+                                       {(order.items || order.orderItems || []).slice(0, 3).map((item, i) => (
                                           <div key={i} className="w-10 h-10 rounded-lg overflow-hidden border border-[#B8975A]/15 shrink-0">
-                                             <Image src={item.image} alt={item.name} width={40} height={40} className="w-full h-full object-cover" />
+                                             <Image src={(item.image || item.thumbnail || "")} alt={item.name} width={40} height={40} className="w-full h-full object-cover" />
                                           </div>
                                        ))}
-                                       {order.items.length > 3 && (
+                                       {(order.items || order.orderItems || []).length > 3 && (
                                           <div className="w-10 h-10 rounded-lg bg-[#B8975A]/10 flex items-center justify-center shrink-0">
-                                             <p className="text-[10px] text-[#B8975A] font-medium">+{order.items.length - 3}</p>
+                                             <p className="text-[10px] text-[#B8975A] font-medium">+{(order.items || order.orderItems || []).length - 3}</p>
                                           </div>
                                        )}
                                        <div className="ml-auto text-right">
-                                          <p className="font-serif text-[15px] font-semibold text-headingColor">Rs {order.total.toLocaleString()}</p>
+                                          <p className="font-serif text-[15px] font-semibold text-headingColor">Rs {Number(order.total || order.totalPrice || 0).toLocaleString()}</p>
                                           <p className="text-[11px] text-[#5E5F60]">{formatDate(order.createdAt)}</p>
                                        </div>
                                     </div>

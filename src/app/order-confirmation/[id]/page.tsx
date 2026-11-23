@@ -1,6 +1,6 @@
 "use client";
 import MainLayout from "@/layout/MainLayout";
-import OrderAPI from "@/services/orderApi";
+import { useGetOrderByIdHandler } from "@/modals/OrderModal";
 import { CheckCircle, Package, Truck, Clock } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -62,32 +62,12 @@ interface OrderDetails {
 
 const OrderConfirmation = () => {
   const params = useParams();
-  const orderId = params.id as string;
+  const orderId = (params?.id as string) || "";
 
-  const [order, setOrder] = useState<OrderDetails | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: orderData, isLoading: loading, error: fetchError } = useGetOrderByIdHandler(orderId);
 
-  useEffect(() => {
-    const fetchOrder = async () => {
-      try {
-        const response = await OrderAPI.getOrderById(orderId);
-        if (response.success) {
-          setOrder(response.order || response.data);
-        } else {
-          setError("Order not found");
-        }
-      } catch (err: any) {
-        setError(err.message || "Failed to load order details");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (orderId) {
-      fetchOrder();
-    }
-  }, [orderId]);
+  const order = (orderData?.order || orderData?.data) as OrderDetails | undefined;
+  const error = fetchError ? "Failed to load order details" : !loading && !order ? "Order not found" : null;
 
   if (loading) {
     return (

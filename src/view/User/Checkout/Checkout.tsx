@@ -6,14 +6,12 @@ import { useCartStore } from "@/Storage/UseCartStore";
 import { ChevronDown, Loader2 } from "lucide-react";
 import Image from "next/image";
 import React, { useEffect, useMemo, useState } from "react";
+import { useCreateOrderHandler } from "@/modals/OrderModal";
 import {
-   createOrderApi,
-   initiatePayFastPayment,
-   detectLocationApi,
-   createStripePaymentIntent,
-   confirmStripePaymentApi,
-   initializePaymentApi,
-} from "@/services/api";
+   useConfirmStripePaymentHandler,
+   useDetectCountryHandler,
+   useInitializePaymentHandler,
+} from "@/modals/PaymentModal";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import StripePaymentForm from "@/components/Payment/StripePaymentForm";
@@ -46,6 +44,12 @@ const Checkout = () => {
    const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(null);
    const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
 
+   // Redux Hooks via modals
+   const { location: detectedLocation } = useDetectCountryHandler();
+   const { handleCreateOrder, isLoading: isCreatingOrder } = useCreateOrderHandler();
+   const { handleInitializePayment, isLoading: isInitializingPayment } = useInitializePaymentHandler();
+   const { handleConfirmPayment } = useConfirmStripePaymentHandler();
+
    const cartItems = useCartStore((state) => state.items);
    const clearCart = useCartStore((state) => state.clearCart);
 
@@ -53,33 +57,27 @@ const Checkout = () => {
    const shippingFee = 15;
    const total = subtotal + shippingFee;
 
-   // Detect customer IP location on mount
+   // Sync detected country from Redux Payment query
    useEffect(() => {
-      const detectUserLocation = async () => {
-         try {
-            const geo = await detectLocationApi();
-            if (geo.isPakistan) {
-               setStateVal("Pakistan");
-               setPaymentThrough("payfast");
-            } else {
-               const countryLabel = geo.countryName || geo.countryCode || "United States";
-               setStateVal(countryLabel);
-               setPaymentThrough("stripe");
-            }
-         } catch (err) {
-            console.error("Location detection failed:", err);
+      if (detectedLocation) {
+         if (detectedLocation.isPakistan) {
+            setStateVal("Pakistan");
+            setPaymentThrough("payfast");
+         } else {
+            const countryLabel =
+               detectedLocation.countryName || detectedLocation.countryCode || "United States";
+            setStateVal(countryLabel);
+            setPaymentThrough("stripe");
          }
-      };
-
-      detectUserLocation();
-   }, []);
+      }
+   }, [detectedLocation]);
 
    const isPakistan = stateVal.trim().toLowerCase() === "pakistan" || stateVal.trim().toLowerCase() === "pk";
 
    const handleStripeSuccess = async (orderId: string) => {
       try {
          setSuccessMsg("Payment successful! Finalizing your order...");
-         await confirmStripePaymentApi({ orderId, paymentIntentId: "" });
+         await handleConfirmPayment({ orderId, paymentIntentId: "" });
          clearCart();
          setTimeout(() => {
             window.location.href = `/order-confirmation/${orderId}?payment=success`;
@@ -134,9 +132,12 @@ const Checkout = () => {
             shippingPrice: shippingFee,
          };
 
-         // 1. Create order in backend first
-         const orderResponse = await createOrderApi(payload);
-         const orderId = orderResponse.order?._id || orderResponse.data?._id;
+         // 1. Create order in backend via Redux OrderModal
+         const orderResponse = await handleCreateOrder(payload);
+         if (!orderResponse.success || !orderResponse.data) {
+            throw new Error(orderResponse.message || "Failed to create order.");
+         }
+         const orderId = (orderResponse.data as any)._id;
 
          if (!orderId) {
             throw new Error("Order created but order ID is missing.");
@@ -144,7 +145,7 @@ const Checkout = () => {
 
          setCreatedOrderId(orderId);
 
-         // 2. Handle Payment Gateways (Centralized backend provider selection)
+         // 2. Handle Payment Gateways (Centralized backend provider selection via Redux)
          if (paymentThrough === "cod") {
             setSuccessMsg("Order placed successfully!");
             clearCart();
@@ -155,7 +156,11 @@ const Checkout = () => {
          }
 
          setSuccessMsg("Initializing secure payment...");
-         const paymentRes = await initializePaymentApi({ orderId, userMobileNumber: phoneNumber });
+         const paymentResWrapper = await handleInitializePayment({ orderId, userMobileNumber: phoneNumber });
+         if (!paymentResWrapper.success || !paymentResWrapper.data) {
+            throw new Error(paymentResWrapper.message || "Failed to initialize payment");
+         }
+         const paymentRes = paymentResWrapper.data;
 
          if (paymentRes.provider === "PayFast") {
             const formAction = paymentRes.formPostURL;
