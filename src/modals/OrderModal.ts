@@ -8,12 +8,7 @@ import {
 import { CreateOrderPayload } from "@/Types/Order/OrderType";
 
 // Query hook for all orders
-export const useGetOrdersHandler = (params?: {
-   page?: number;
-   limit?: number;
-   status?: string;
-   search?: string;
-}) => {
+export const useGetOrdersHandler = (params?: { page?: number; limit?: number; status?: string; search?: string; paymentStatus?: string; date?: string }) => {
    const { data, isLoading, isFetching, isError, error, refetch } = useGetOrdersQuery(params);
 
    return {
@@ -24,13 +19,9 @@ export const useGetOrdersHandler = (params?: {
       refetch,
    } as const;
 };
-
 // Query hook for single order by ID
 export const useGetOrderByIdHandler = (id: string) => {
-   const { data, isLoading, isFetching, isError, error, refetch } = useGetOrderByIdQuery(
-      { id },
-      { skip: !id }
-   );
+   const { data, isLoading, isFetching, isError, error, refetch } = useGetOrderByIdQuery({ id }, { skip: !id });
 
    return {
       data,
@@ -49,22 +40,11 @@ export const useCreateOrderHandler = () => {
    const handleCreateOrder = async (payload: CreateOrderPayload) => {
       try {
          const res = await createOrderMutation({ data: payload }).unwrap();
-         return {
-            success: true,
-            data: res.order || res.data,
-            message: res.message,
-         };
+         return { success: true, data: res.order || res.data, message: res.message };
       } catch (error: any) {
          const msg = error?.data?.message || error?.message || "Failed to create order";
-         show({
-            type: "banner",
-            variant: "error",
-            message: msg,
-         });
-         return {
-            success: false,
-            message: msg,
-         };
+         show({ type: "banner", variant: "error", message: msg });
+         return { success: false, message: msg, };
       }
    };
 
@@ -79,37 +59,17 @@ export const useUpdateOrderStatusHandler = () => {
    const [updateStatusMutation, { isLoading }] = useUpdateOrderStatusMutation();
    const { show } = useNotification();
 
-   const handleUpdateOrderStatus = async ({
-      id,
-      status,
-      notes,
-   }: {
-      id: string;
-      status: string;
-      notes?: string;
-   }) => {
+   const handleUpdateOrderStatus = async ({ id, orderStatus, paymentStatus }: { id: string; orderStatus?: string; paymentStatus?: string }) => {
       try {
-         const res = await updateStatusMutation({ id, status, notes }).unwrap();
-         show({
-            type: "banner",
-            variant: "success",
-            message: "Order status updated successfully",
-         });
-         return {
-            success: true,
-            data: res.order || res.data,
-         };
+         const res = await updateStatusMutation({ id, orderStatus, paymentStatus }).unwrap();
+         show({ type: "banner", variant: "success", message: res?.message || "Order status updated successfully" });
+         console.log(res)
+         return { success: true, data: res.order ?? res.data };
       } catch (error: any) {
          const msg = error?.data?.message || error?.message || "Failed to update order status";
-         show({
-            type: "banner",
-            variant: "error",
-            message: msg,
-         });
-         return {
-            success: false,
-            message: msg,
-         };
+         show({ type: "banner", variant: "error", message: msg });
+
+         return { success: false, message: msg };
       }
    };
 

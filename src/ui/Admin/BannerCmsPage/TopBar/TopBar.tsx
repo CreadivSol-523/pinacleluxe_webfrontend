@@ -16,7 +16,6 @@ export default function ChangeTopBar({ handleSaveTopBar, handleUpdateTopBar, top
       bgColor: topbarData?.bgColor ?? "",
       textColor: topbarData?.textColor ?? "",
    });
-   console.log(topbarData);
    const [saving, setSaving] = useState(false);
    const [saved, setSaved] = useState(false);
 

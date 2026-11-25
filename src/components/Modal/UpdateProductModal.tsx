@@ -6,6 +6,7 @@ import { Product, VariantSchema } from "@/Types/Collection/CollectionTypes";
 import { Region } from "@/Types/Region/Region";
 import { useGetRegionHandler } from "@/modals/RegionModal";
 import { Category } from "@/Types/Category/Category";
+import AccessoriesSection from "../Cards/AccessoriesCard/AccessoriesSection";
 
 const toRegionPriceArray = (prices: any[] = []): RegionPrice[] =>
    (prices ?? []).map((r) => ({
@@ -30,12 +31,13 @@ interface UpdateProductModalProps {
    categoryData?: Category[];
 }
 
-type Tab = "basic" | "media" | "variants";
+type Tab = "basic" | "media" | "variants" | "accessories";
 
 const tabs: { key: Tab; label: string }[] = [
    { key: "basic", label: "Basic Info" },
    { key: "media", label: "Images" },
    { key: "variants", label: "Variants" },
+   { key: "accessories", label: "Accessories" },
 ];
 
 // ── Reusable ──────────────────────────────────────────────────────────────────
@@ -563,6 +565,8 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
       addColorImage,
       removeColorImage,
       addColorToTarget,
+      // accessories
+      toggleAccessory,
       // misc
       handleSubmit,
       reset,
@@ -591,6 +595,8 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
          images: (initialData as unknown as { thumbnail: string[] })?.thumbnail ?? [],
          gallery: (initialData as unknown as { images: string[] })?.images ?? [],
          variants: initialData?.variants ?? [],
+         // accessories ids ki array (populated objects hon ya sirf ids, dono handle)
+         accessories: ((initialData as any)?.accessories ?? []).map((a: any) => (typeof a === "string" ? a : a._id)),
       });
 
       setImageURLs({
@@ -627,6 +633,8 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
       onClose();
    };
 
+   const tabIndex = tabs.findIndex((t) => t.key === activeTab);
+
    return (
       <div
          ref={overlayRef}
@@ -660,6 +668,7 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
                   >
                      {t.label}
                      {t.key === "variants" && form.variants.length > 0 && <span className="ml-1.5 text-[10px] bg-[#B8975A]/15 text-[#B8975A] px-1.5 py-0.5 rounded-full">{form.variants.length}</span>}
+                     {t.key === "accessories" && (form.accessories?.length ?? 0) > 0 && <span className="ml-1.5 text-[10px] bg-[#B8975A]/15 text-[#B8975A] px-1.5 py-0.5 rounded-full">{form.accessories.length}</span>}
                   </button>
                ))}
             </div>
@@ -854,21 +863,24 @@ export default function UpdateProductModal({ isOpen, onClose, onSuccess, initial
                      )}
                   </div>
                )}
+
+               {/* ══ TAB 4: Accessories ══ */}
+               {activeTab === "accessories" && <AccessoriesSection selected={form.accessories ?? []} onToggle={toggleAccessory} categories={CATEGORY_TREE ?? []} excludeId={initialData?._id} />}
             </div>
 
             {/* Footer */}
             <div className="px-6 py-4 border-t border-[#B8975A]/15 flex items-center justify-between">
                <div className="flex items-center gap-2">
-                  {activeTab !== "basic" && (
-                     <button onClick={() => setActiveTab(activeTab === "media" ? "basic" : "media")} className="flex items-center gap-1.5 px-4 py-2 text-[12px] text-[#5E5F60] border border-[#B8975A]/20 rounded-lg hover:text-headingColor hover:border-[#B8975A]/40 transition-colors">
+                  {tabIndex > 0 && (
+                     <button onClick={() => setActiveTab(tabs[tabIndex - 1].key)} className="flex items-center gap-1.5 px-4 py-2 text-[12px] text-[#5E5F60] border border-[#B8975A]/20 rounded-lg hover:text-headingColor hover:border-[#B8975A]/40 transition-colors">
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                            <path d="M8 2L4 6l4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                         Back
                      </button>
                   )}
-                  {activeTab !== "variants" && (
-                     <button onClick={() => setActiveTab(activeTab === "basic" ? "media" : "variants")} className="flex items-center gap-1.5 px-4 py-2 text-[12px] text-[#5E5F60] border border-[#B8975A]/20 rounded-lg hover:text-headingColor hover:border-[#B8975A]/40 transition-colors">
+                  {tabIndex < tabs.length - 1 && (
+                     <button onClick={() => setActiveTab(tabs[tabIndex + 1].key)} className="flex items-center gap-1.5 px-4 py-2 text-[12px] text-[#5E5F60] border border-[#B8975A]/20 rounded-lg hover:text-headingColor hover:border-[#B8975A]/40 transition-colors">
                         Next
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                            <path d="M4 2l4 4-4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />

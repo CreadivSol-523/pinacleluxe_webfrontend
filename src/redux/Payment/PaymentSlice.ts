@@ -91,10 +91,7 @@ const PaymentSlice = createApi({
          }),
       }),
 
-      createStripePaymentIntent: builder.mutation<
-         CreateStripePaymentIntentResponse,
-         CreateStripePaymentIntentPayload
-      >({
+      createStripePaymentIntent: builder.mutation<CreateStripePaymentIntentResponse, CreateStripePaymentIntentPayload>({
          query: (payload) => ({
             url: "/api/payment/stripe/create-payment-intent",
             method: "POST",

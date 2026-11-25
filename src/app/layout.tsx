@@ -6,6 +6,7 @@ import StoreProvider from "./StoreProvider";
 import LoaderOverlay from "@/components/Loader/LoaderOverlay";
 import { Suspense } from "react";
 import RouteChangeLoader from "@/components/Loader/RouteChangeLoader";
+import { interRegular, interMedium, interSemiBold } from "@/lib/fonts";
 
 export const metadata: Metadata = {
    title: "Create Next App",
@@ -19,8 +20,8 @@ export default function RootLayout({
 }>) {
    // className="min-h-screen overflow-x-hidden"
    return (
-      <html>
-         <body>
+      <html className={`${interRegular.variable} ${interMedium.variable} ${interSemiBold.variable}`}>
+         <body className={`${interRegular.className}`}>
             <StoreProvider>
                <NotificationProvider>
                   <LoaderOverlay />

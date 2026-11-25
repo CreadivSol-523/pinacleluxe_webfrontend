@@ -6,16 +6,15 @@ const OrderSlice = createApi({
    baseQuery: fetchBaseQuery({ baseUrl: process.env.NEXT_PUBLIC_PORT }),
    tagTypes: ["GetOrder", "CreateOrder", "UpdateOrder"],
    endpoints: (builder) => ({
-      getOrders: builder.query<
-         OrdersResponse,
-         { page?: number; limit?: number; status?: string; search?: string } | void
-      >({
+      getOrders: builder.query<OrdersResponse, { page?: number; limit?: number; status?: string; search?: string; paymentStatus?: string; date?: string } | void>({
          query: (params) => {
             const queryParams = new URLSearchParams();
             if (params?.page) queryParams.append("page", params.page.toString());
             if (params?.limit) queryParams.append("limit", params.limit.toString());
             if (params?.status) queryParams.append("status", params.status);
             if (params?.search) queryParams.append("search", params.search);
+            if (params?.paymentStatus) queryParams.append("paymentStatus", params.paymentStatus);
+            if (params?.date) queryParams.append("date", params.date);
 
             const query = queryParams.toString();
             return {
@@ -43,10 +42,10 @@ const OrderSlice = createApi({
          invalidatesTags: ["CreateOrder"],
       }),
 
-      updateOrderStatus: builder.mutation<SingleOrderResponse, { id: string; status: string; notes?: string }>({
+      updateOrderStatus: builder.mutation<SingleOrderResponse, { id: string; orderStatus?: string; paymentStatus?: string }>({
          query: ({ id, ...body }) => ({
             url: `/api/order/${id}/status`,
-            method: "PUT",
+            method: "PATCH",
             body,
          }),
          invalidatesTags: ["UpdateOrder", "GetOrder"],

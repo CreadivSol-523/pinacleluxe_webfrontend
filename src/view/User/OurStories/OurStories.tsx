@@ -11,7 +11,6 @@
 //    const sectionRef = useRef<HTMLElement>(null);
 //    const textRef = useRef<HTMLDivElement>(null);
 //    const [translateY, setTranslateY] = useState(0);
-//    console.log(storiesData);
 //    useEffect(() => {
 //       const wrapper = wrapperRef.current;
 //       const section = sectionRef.current;

@@ -125,7 +125,6 @@ export default function SingleProductPage() {
                      <p className="text-[12px] text-[#5E5F60]">Are you sure?</p>
                      <button
                         onClick={() => {
-                           console.log("Delete product", id);
                            router.back();
                         }}
                         className="px-3 py-2 text-[12px] text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
@@ -314,7 +313,6 @@ export default function SingleProductPage() {
             onClose={() => setEditOpen(false)}
             initialData={product}
             onSuccess={(updated) => {
-               console.log("Updated product", updated);
                setEditOpen(false);
             }}
          />

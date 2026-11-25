@@ -57,18 +57,22 @@ const SingleProductSection = ({ data, id }: { data?: Product; id?: ParamValue })
    const { show } = useNotification();
 
    const findProduct = data;
+   const regionID = (findProduct as any)?.pricing?.[0]?.region?._id || (findProduct as any)?.variants?.[0]?.price?.[0]?.region?._id;
+
+   console.log(findProduct);
+   // FIX: hamesha string (undefined / 0 nahi), taake cart item se match ho
+   const currency: string = (findProduct?.variants?.[0]?.price?.[0]?.region as any)?.currency || (findProduct as any)?.pricing?.[0]?.region?.currency || "";
 
    const originalPrice = selectedMaterials?.material != "" ? selectedMaterials?.price?.[0]?.price : findProduct?.isVariable ? findProduct?.variants?.[0]?.price?.[0]?.price : (findProduct as any)?.pricing?.[0]?.price;
 
-   const discountValue = selectedMaterials?.material != "" ? selectedMaterials?.price?.[0]?.discountValue : findProduct?.isVariable ? findProduct?.variants[0]?.price?.[0]?.discountValue : (findProduct as any)?.pricing?.[0]?.discountValue;
+   const discountValue = selectedMaterials?.material != "" ? selectedMaterials?.price?.[0]?.discountValue : findProduct?.isVariable ? findProduct?.variants?.[0]?.price?.[0]?.discountValue : (findProduct as any)?.pricing?.[0]?.discountValue;
 
    const discountPercentage = originalPrice > 0 ? Math.round((discountValue / originalPrice) * 100) : 0;
 
-   // const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === findProduct?._id && item.colorVariants === selectedColor.hex?.code && item.material === selectedMaterials.material));
    const GetCartSingleItem = useCartStore((state) =>
       state.items.find((item) => {
          if (findProduct?.isVariable) {
-            return item.id === findProduct._id && item.colorVariants === selectedColor.hex?.code && item.material === selectedMaterials.material;
+            return item.id === findProduct._id && (item.colorVariants ?? "") === (selectedColor.hex?.code ?? "") && item.material === selectedMaterials.material;
          }
 
          return item.id === findProduct?._id;
@@ -83,7 +87,6 @@ const SingleProductSection = ({ data, id }: { data?: Product; id?: ParamValue })
       setImages([...((findProduct as any)?.thumbnail ? (findProduct as any).thumbnail : []), ...(findProduct?.images ?? [])]);
    }, [findProduct]);
 
-   console.log(images);
    useEffect(() => {
       if (images.length === 0) return;
 
@@ -125,7 +128,12 @@ const SingleProductSection = ({ data, id }: { data?: Product; id?: ParamValue })
 
    useEffect(() => {
       if (findProduct?.isVariable) {
-         setSelectedColor({ hex: { code: "", colorName: "" }, images: findProduct?.variants?.[0]?.colors?.[0].images || [] });
+         // FIX: default color ka code set karo (pehle "" tha, isliye cart item match nahi hota tha)
+         const firstColor = findProduct?.variants?.[0]?.colors?.[0];
+         setSelectedColor({
+            hex: { code: firstColor?.hex?.code || "", colorName: firstColor?.hex?.colorName || "" },
+            images: firstColor?.images || [],
+         });
       }
       setSelectedMaterials({
          material: findProduct?.isVariable ? findProduct?.variants?.[0]?.material : "",
@@ -143,17 +151,21 @@ const SingleProductSection = ({ data, id }: { data?: Product; id?: ParamValue })
    }, [findProduct]);
 
    // Update Quantity
+   // FIX: cart item ki apni fields (id/color/material/currency) use karo, taake key hamesha match ho
    const handleIncreaseQuantity = () => {
-      const updateProductQuantity = quantity < (selectedMaterials?.stock ?? 0) ? quantity + 1 : quantity;
+      if (!GetCartSingleItem) return;
+      const currentQty = GetCartSingleItem.quantity;
+      const updateProductQuantity = currentQty < (selectedMaterials?.stock ?? 0) ? currentQty + 1 : currentQty;
       setQuantity(updateProductQuantity);
-      updateQuantity(findProduct?._id || "", updateProductQuantity, selectedColor.hex?.code, selectedMaterials.material);
+      updateQuantity(GetCartSingleItem.id, updateProductQuantity, GetCartSingleItem.colorVariants, GetCartSingleItem.material, GetCartSingleItem.currency);
    };
 
    const handleDecreaseQuantity = () => {
-      const updateProductQuantity = quantity <= 1 ? 1 : quantity - 1;
+      if (!GetCartSingleItem) return;
+      const currentQty = GetCartSingleItem.quantity;
+      const updateProductQuantity = currentQty <= 1 ? 1 : currentQty - 1;
       setQuantity(updateProductQuantity);
-
-      updateQuantity(findProduct?._id || "", updateProductQuantity, selectedColor.hex?.code, selectedMaterials.material);
+      updateQuantity(GetCartSingleItem.id, updateProductQuantity, GetCartSingleItem.colorVariants, GetCartSingleItem.material, GetCartSingleItem.currency);
    };
 
    const goTo = (idx: number) => {
@@ -182,7 +194,7 @@ const SingleProductSection = ({ data, id }: { data?: Product; id?: ParamValue })
          <div className="lg:pl-5 pl-0 flex flex-col xl:w-auto w-15 gap-2 max-xl:items-center max-xl:justify-center sticky top-30 max-xl:h-[calc(100vh-150px)] overflow-scroll [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-[950px]:hidden">
             {images.map((src, i) => (
                <div key={i} onClick={() => scrollToImage(i)} className="cursor-pointer">
-                  <Image src={src as string} width={100} height={120} alt="Product side image" className={`xl:flex hidden border transition-all duration-300 ${activeIndex === i ? "border-textBlack" : "border-transparent"}`} />
+                  <Image unoptimized src={src as string} width={100} height={120} alt="Product side image" className={`xl:flex hidden border transition-all duration-300 ${activeIndex === i ? "border-textBlack" : "border-transparent"}`} />
                   <div className={`w-4 h-4 bg-transparent border border-textBlack rounded-full xl:hidden flex justify-center items-center `}>
                      <div className={`rounded-full transition-all duration-300 ${activeIndex === i ? "bg-textBlack  w-full h-full" : "bg-transparent  w-0 h-0"}`} />
                   </div>
@@ -198,7 +210,7 @@ const SingleProductSection = ({ data, id }: { data?: Product; id?: ParamValue })
                   }}
                   className={`transition-all duration-700 ease-out ${visibleImages.has(i) ? "opacity-100 translate-y-0" : "opacity-10 translate-y-8"}`}
                >
-                  <Image src={src as string} width={800} height={1000} alt="Product side image" onLoad={() => setLoadedImages((prev) => ({ ...prev, [i]: true }))} className="object-contain" />
+                  <Image unoptimized src={src as string} width={800} height={1000} alt="Product side image" onLoad={() => setLoadedImages((prev) => ({ ...prev, [i]: true }))} className="object-contain" />
                </div>
             ))}
          </div>
@@ -225,11 +237,13 @@ const SingleProductSection = ({ data, id }: { data?: Product; id?: ParamValue })
             <div className="flex flex-col gap-2.5">
                <h2 className="text-headingColor">{findProduct?.name}</h2>
                <div className="flex gap-5">
-                  <h3 className={`text-[20px]! text-headingColor ${discountValue ? "line-through" : ""} `}>Rs {selectedMaterials?.price?.[0]?.price}</h3>
+                  <h3 className={`text-[20px]! text-headingColor ${discountValue ? "line-through" : ""} `}>
+                     {currency?.replace("RS", "Rs") || "Rs"} {selectedMaterials?.price?.[0]?.price}
+                  </h3>
                   {discountValue > 0 && (
                      <span className="bg-BtnBlack px-2 py-0.5">
                         <p className="text-white">
-                           -{discountPercentage}% Rs {discountValue}
+                           -{discountPercentage}% {currency?.replace("RS", "Rs") || "Rs"} {discountValue}
                         </p>
                      </span>
                   )}
@@ -270,6 +284,15 @@ const SingleProductSection = ({ data, id }: { data?: Product; id?: ParamValue })
                                  className={`cursor-pointer active:scale-99 py-2 px-6 rounded-full border-2 ${selectedMaterials.material === materials.material ? "border-BtnBlack bg-BtnBlack" : "border-gray-400 bg-white"} `}
                                  onClick={() => {
                                     setSelectedMaterials(materials);
+                                    // FIX: material change par us material ka pehla color select karo
+                                    // (warna purana color is material ki colors list mein nahi hota)
+                                    const firstHex = materials.colors?.[0]?.hex;
+                                    if (firstHex) {
+                                       setSelectedColor((prev) => {
+                                          const stillAvailable = materials.colors?.some((c) => c.hex?.code === prev.hex?.code);
+                                          return stillAvailable ? prev : { hex: firstHex, images: materials.colors?.[0]?.images || prev.images };
+                                       });
+                                    }
                                  }}
                               >
                                  <p className={`${selectedMaterials.material === materials.material ? "text-white" : "text-textBlack"}  tracking-wide`}>{materials.material}</p>
@@ -286,14 +309,11 @@ const SingleProductSection = ({ data, id }: { data?: Product; id?: ParamValue })
                      onClick={() => {
                         if (GetCartSingleItem) {
                            handleDecreaseQuantity();
-                           console.log("run");
                         } else {
                            setQuantity((prev) => Math.max(1, prev - 1));
-                           console.log("run2");
                         }
                      }}
                   />
-                  {/* <p className="flex-nowrap">{GetCartSingleItem != undefined ? GetCartSingleItem?.quantity : quantity}</p> */}
                   <p className="min-w-6 text-center whitespace-nowrap">{GetCartSingleItem?.quantity ?? quantity}</p>
                   <Plus
                      onClick={() => {
@@ -339,10 +359,13 @@ const SingleProductSection = ({ data, id }: { data?: Product; id?: ParamValue })
                               id: findProduct?._id || "",
                               name: findProduct?.name || "",
                               images: (findProduct as any)?.images?.[0] || "",
-                              colorVariants: findProduct?.isVariable ? (findProduct?.variants[0]?.colors?.[0]?.hex.code as string) : "",
+                              // FIX: selected color use karo (pehle hamesha variants[0] ka color jata tha)
+                              colorVariants: findProduct?.isVariable ? selectedColor.hex?.code || "" : "",
                               material: findProduct?.isVariable ? selectedMaterials.material : "",
                               price: selectedMaterials.price?.[0]?.price ?? 0,
                               stock: availableStock,
+                              regionId: regionID,
+                              currency,
                            },
                            quantity,
                         );
@@ -375,9 +398,9 @@ const SingleProductSection = ({ data, id }: { data?: Product; id?: ParamValue })
                            <ChevronDown className={showAccessories ? "transition-transform duration-300 rotate-0 text-headingColor" : " transition-transform duration-300 rotate-180 text-headingColor"} />
                         </span>
                         <div className={`${showAccessories ? "max-h-50 opacity-100  pb-4" : "max-h-0 opacity-0"} px-6  overflow-y-auto overflow-x-hidden flex flex-col gap-3 text-headingColor relative transition-normal duration-700 `}>
-                           {/* {products.map((item) => (
-                              <AccessoriesCard selectedColor={selectedColor} selectedMaterials={selectedMaterials} product={item} isButton key={item?.id + item.badge} />
-                           ))} */}
+                           {findProduct?.accessories?.map((item) => (
+                              <AccessoriesCard selectedColor={selectedColor} currency={currency} selectedMaterials={selectedMaterials} product={item} isButton key={item?._id + "123"} />
+                           ))}
                         </div>
                         <Separator className="bg-gray-400" />
                      </div>

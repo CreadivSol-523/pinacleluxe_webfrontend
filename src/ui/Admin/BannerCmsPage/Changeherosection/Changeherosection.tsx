@@ -221,7 +221,6 @@ export default function ChangeHeroSection({ initialHero, handleSaveHero, handleU
       try {
          if (isHeroSectionNew) {
             await handleSaveHero(hero);
-            console.log("object");
          } else {
             await handleUpdateHero(hero);
          }

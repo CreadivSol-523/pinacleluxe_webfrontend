@@ -5,23 +5,39 @@ import ThreeTabsSection from "@/ui/User/Product/ThreeTabsSection/ThreeTabsSectio
 import IntrestedInSection from "@/ui/User/Product/IntrestedInSection/IntrestedInSection";
 import { useParams } from "next/navigation";
 import { useGetProductHandler, useGetSingleProductHandler } from "@/modals/ProductModal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Product } from "@/Types/Collection/CollectionTypes";
+import { useDetectCountryHandler } from "@/modals/PaymentModal";
 
 const ProductPage = () => {
    const [currentPage, setCurrentPage] = useState(1);
+   const [countryCode, setCountryCode] = useState<string>("");
 
    const { id } = useParams();
 
    // ---------- Handle API -------------
    // Get single product from API
-   const { data, error, isError, isLoading } = useGetSingleProductHandler({ id: (id as string) ?? "" });
+   const { data, error, isError, isLoading } = useGetSingleProductHandler({ id: (id as string) ?? "", regionCode: countryCode });
 
-   const { data: AllProduct, isLoading: AllProductLoading } = useGetProductHandler({ limit: 4, page: currentPage, category: (data?.product?.categories?.[0] as unknown as { slug: string })?.slug ?? "" });
+   // Detect Country
+   const { location: detectedLocation } = useDetectCountryHandler();
+
+   const { data: AllProduct, isLoading: AllProductLoading } = useGetProductHandler({ limit: 4, page: currentPage, category: (data?.product?.categories?.[0] as unknown as { slug: string })?.slug ?? "", regionCode: countryCode });
 
    const products = (AllProduct as unknown as { products: Product[] })?.products ?? [];
    const totalProducts = AllProduct?.pagination.total ?? 0;
    const totalPages = Math.ceil(totalProducts / (AllProduct?.pagination.limit ?? 4));
+   // Sync detected country from Redux Payment query
+   useEffect(() => {
+      if (detectedLocation) {
+         if (!detectedLocation.isPakistan) {
+            setCountryCode("GB");
+         } else {
+            const countryCode = detectedLocation.countryCode || "GB";
+            setCountryCode(countryCode);
+         }
+      }
+   }, [detectedLocation]);
 
    return (
       <MainLayout>

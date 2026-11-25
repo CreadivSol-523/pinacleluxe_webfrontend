@@ -13,7 +13,7 @@ const FavoriteCards = ({ product }: FavoriteCart) => {
          <div className="flex flex-col justify-between h-full! gap-3 ">
             <p className="text-lg!">{product.name || "Easy Zipper Tote"}</p>
             <p style={{ fontFamily: "InterMedium", fontWeight: 500 }} className="text-xl!">
-               Rs {product.price || "65.00"}
+               {product.currency || "Rs"} {product.price || "65.00"}
             </p>
             <div className="flex items-center justify-between w-60">
                <div className="flex items-center gap-3  w-fit">
@@ -22,8 +22,7 @@ const FavoriteCards = ({ product }: FavoriteCart) => {
                      className="py-1!"
                      pClass="font-normal!"
                      onClick={() => {
-                        removeFromFavorites(product.id || "", product.colorVariants || "", product?.material);
-                        console.log(product);
+                        removeFromFavorites(product.id || "", product.colorVariants || "", product?.material, product.currency);
                      }}
                   />
                </div>

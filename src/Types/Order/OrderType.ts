@@ -5,8 +5,8 @@ export type PaymentMethod = "COD" | "Online" | "PayFast" | "Stripe";
 export interface OrderItemInput {
    product: string;
    name: string;
-   price: number;
    quantity: number;
+   region?: string;
    image?: string;
 }
 
@@ -86,12 +86,18 @@ export interface Order {
    paymentStatus?: PaymentStatus | string;
    paymentMethod?: PaymentMethod | string;
    paymentProvider?: string;
+   paymentGateway?: string; // ← add
+   gatewayTransactionId?: string; // ← add
    detectedCountry?: string;
    notes?: string;
 }
 
 export interface OrdersResponse {
    success: boolean;
+   total?: number;
+   page?: number;
+   pages?: number;
+   // old shape, backward compatibility ke liye
    pagination?: {
       total: number;
       page: number;

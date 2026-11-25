@@ -22,11 +22,13 @@ export interface RegionPrice {
    discountValue?: number;
 }
 
-export interface ProductFormData extends Omit<Product, "id"> {
+// "accessories" ko Omit kiya hai taake Product type ke saath conflict na ho
+export interface ProductFormData extends Omit<Product, "id" | "accessories"> {
    description: string;
    categories: string;
    subCategory: string;
    isVariable: boolean;
+   accessories: string[]; // selected accessory product _ids
 }
 
 // Single variant — one material/stock + region prices + optional colors
@@ -85,6 +87,7 @@ const emptyForm = (): ProductFormData => ({
    images: [],
    gallery: [],
    variants: [],
+   accessories: [],
 });
 
 const emptyImageURLs = (): {
@@ -173,6 +176,14 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       setColorDraft({ hex: { code: "#000000", colorName: "" }, images: [] });
       setShowColorDraft({ hex: { code: "#000000", colorName: "" }, images: [] });
       setErrors({});
+   };
+
+   // ── Accessories ───────────────────────────────────────────────────────────
+   const toggleAccessory = (id: string) => {
+      setForm((prev) => ({
+         ...prev,
+         accessories: prev.accessories.includes(id) ? prev.accessories.filter((a) => a !== id) : [...prev.accessories, id],
+      }));
    };
 
    // ── Region price draft setters ────────────────────────────────────────────
@@ -413,8 +424,8 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
    const handleSubmit = async ({ type }: { type: "create" | "update" }) => {
       if (!validate()) return;
       setLoading(true);
-      let finalForm = { ...form };
-
+      // finalForm mein form ke saath accessories (array of ids) bhi shamil hain
+      let finalForm = { ...form, accessories: form.accessories };
       if (!form.isVariable) {
          finalForm.variants = [
             {
@@ -424,18 +435,17 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
             },
          ];
       }
-      try {
 
+      try {
          if (type === "create") {
             await handleCreateProduct({ form: finalForm });
          } else {
             await handleUpdateProduct({ form: finalForm });
-            console.log(finalForm)
          }
          onSuccess?.(finalForm);
-         setForm(emptyForm());
-         setSingleVariant(emptySingleVariant());
-         setImageURLs(emptyImageURLs());
+         // setForm(emptyForm());
+         // setSingleVariant(emptySingleVariant());
+         // setImageURLs(emptyImageURLs());
       } finally {
          setLoading(false);
       }
@@ -494,6 +504,8 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       addColorToTarget,
       removeColorFromVariantDraft,
       removeColorImageFromVariantDraft,
+      // accessories
+      toggleAccessory,
       // submit
       handleSubmit,
       reset,

@@ -18,16 +18,18 @@ const ProductSlice = createApi({
          invalidatesTags: ["CreateProduct"],
       }),
 
-      getProduct: builder.query<{ pagination: pagination; products: Product[]; success: boolean }, { limit: number, page: number, badge?: string, material?: string, color?: string, category?: string }>({
-         query: ({ limit, page, badge, material, color, category }) => {
+      getProduct: builder.query<{ pagination: pagination; products: Product[]; success: boolean }, { limit: number, page: number, badge?: string, material?: string, color?: string, category?: string, regionCode?: string }>({
+         query: ({ limit, page, badge, material, color, category, regionCode }) => {
             const baseUrl = `/api/product/`;
             const params: Record<string, any> = {
                limit: limit,
                page: page,
+               regionCode: regionCode,
                category: category,
                "search[badge]": badge,
                "search[material]": material,
                "search[color]": color,
+
             }
             const url = URLParams(baseUrl, params);
 
@@ -47,9 +49,9 @@ const ProductSlice = createApi({
          providesTags: ["CreateProduct", "DeleteProduct", "UpdateProduct"],
       }),
 
-      getSingleProduct: builder.query<{ product: Product; success: boolean }, { id: string }>({
-         query: ({ id }) => ({
-            url: `/api/product/${id}`,
+      getSingleProduct: builder.query<{ product: Product; success: boolean }, { id: string, regionCode: string }>({
+         query: ({ id, regionCode }) => ({
+            url: `/api/product/${id}?regionCode=${regionCode}`,
             method: "GET",
          }),
          providesTags: ["CreateProduct", "DeleteProduct", "UpdateProduct"],

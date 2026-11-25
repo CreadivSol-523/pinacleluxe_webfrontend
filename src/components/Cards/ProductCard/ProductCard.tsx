@@ -23,6 +23,8 @@ const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
 
    const discountValue = data.isVariable ? data.variants[0]?.price?.[0]?.discountValue : (data as any)?.pricing?.[0]?.discountValue;
 
+   const currency = (data?.variants[0]?.price?.[0]?.region as any)?.currency || (data as any)?.pricing[0]?.region?.currency;
+
    const discountPercentage = originalPrice > 0 ? Math.round((discountValue / originalPrice) * 100) : 0;
 
    const Showimage = isHover ? (data as { images?: string[] })?.images?.[0] : selectedColor.images.length > 0 ? selectedColor.images?.[0] : (data as { thumbnail?: string[] })?.thumbnail?.[0];
@@ -48,13 +50,14 @@ const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
                      {isProductFavorite ? (
                         <Image
                            onClick={() => {
-                              removeFromFavorites(data._id || "", data.variants?.[0]?.colors?.[0]?.hex?.code || "", data.variants?.[0]?.material);
+                              removeFromFavorites(data._id || "", data.variants?.[0]?.colors?.[0]?.hex?.code || "", data.variants?.[0]?.material, currency);
                            }}
                            src={"/Icons/FillFavoriteIcon.svg"}
                            width={20}
                            height={20}
                            alt="profile icon"
                            className="w-6 max-xl:w-[2vw]! max-lg:w-5! hover:scale-105 "
+                           unoptimized
                         />
                      ) : (
                         <Image
@@ -68,6 +71,7 @@ const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
                                  stock: data.stock || 0,
                                  colorVariants: data.variants?.[0]?.colors?.[0]?.hex?.code || "",
                                  material: data.variants?.[0]?.material,
+                                 currency: currency,
                               });
                            }}
                            src={"/Icons/HeartIcon.svg"}
@@ -116,7 +120,9 @@ const ProductCard = ({ data, isCart, AddCartDetail }: ProductCardProps) => {
                </div>
                <h3 className="2xl:text-[20px]! xl:text-[19px]! text-[16px]! fontInterRegular">{data.name || "Easy Zipper Tote Bag"}</h3>
                <div className="flex items-center gap-4">
-                  <p>Rs {originalPrice || "11,999"}</p>
+                  <p>
+                     {currency || "Rs"} {originalPrice || "11,999"}
+                  </p>
                   {((!data.isVariable && ((data as any)?.pricing?.[0]?.discountValue ?? 0) > 0) || (data.isVariable && (data.variants?.[0]?.price?.[0]?.discountValue ?? 0) > 0)) && (
                      <span className="bg-BtnBlack px-2 py-0.5">
                         <p className="text-white">

@@ -7,20 +7,13 @@ import { ChevronDown, Loader2 } from "lucide-react";
 import Image from "next/image";
 import React, { useEffect, useMemo, useState } from "react";
 import { useCreateOrderHandler } from "@/modals/OrderModal";
-import {
-   useConfirmStripePaymentHandler,
-   useDetectCountryHandler,
-   useInitializePaymentHandler,
-} from "@/modals/PaymentModal";
+import { useConfirmStripePaymentHandler, useDetectCountryHandler, useInitializePaymentHandler } from "@/modals/PaymentModal";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import StripePaymentForm from "@/components/Payment/StripePaymentForm";
 
 // Initialize Stripe Promise
-const stripePromise = loadStripe(
-   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
-      "pk_test_51SN0Oz7BKNcaqcoUYc8L8mO8Kx6U91w1bQO9u64m0Qx4M8N3xU7vP8y7R7k1T2v0X4a5b6c7d8e9f0"
-);
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "pk_test_51SN0Oz7BKNcaqcoUYc8L8mO8Kx6U91w1bQO9u64m0Qx4M8N3xU7vP8y7R7k1T2v0X4a5b6c7d8e9f0");
 
 const Checkout = () => {
    const [mobileCheckout, setMobileCheckout] = useState<Boolean>(false);
@@ -52,7 +45,7 @@ const Checkout = () => {
 
    const cartItems = useCartStore((state) => state.items);
    const clearCart = useCartStore((state) => state.clearCart);
-
+   console.log(cartItems);
    const subtotal = cartItems.reduce((acc, item) => acc + (item.price || 45) * item.quantity, 0);
    const shippingFee = 15;
    const total = subtotal + shippingFee;
@@ -64,8 +57,7 @@ const Checkout = () => {
             setStateVal("Pakistan");
             setPaymentThrough("payfast");
          } else {
-            const countryLabel =
-               detectedLocation.countryName || detectedLocation.countryCode || "United States";
+            const countryLabel = detectedLocation.countryName || detectedLocation.countryCode || "United States";
             setStateVal(countryLabel);
             setPaymentThrough("stripe");
          }
@@ -107,14 +99,24 @@ const Checkout = () => {
          return;
       }
 
+      // Purane items (jo regionId ke baghair cart mein save the) ko pehle pakdo
+      const missingRegion = cartItems.find((item: any) => !item.regionId);
+      if (missingRegion) {
+         setErrorMsg(`Please remove "${missingRegion.name}" from your cart and add it again.`);
+         return;
+      }
+
       setLoading(true);
       try {
+         // Price client se nahi bhejte: server material + region se khud nikalta hai
          const orderItems = cartItems.map((item: any) => ({
             product: item.id || item._id,
             name: item.name || "Luxury Item",
-            price: Number(item.price) || 45,
             quantity: Number(item.quantity) || 1,
-            image: typeof item.images === "string" ? item.images : (item.images?.[0] || item.image || ""),
+            material: item.material || "",
+            colorVariants: item.colorVariants || "",
+            region: item.regionId,
+            image: typeof item.images === "string" ? item.images : item.images?.[0] || item.image || "",
          }));
 
          const payload = {
@@ -227,34 +229,24 @@ const Checkout = () => {
                   <div className="flex flex-col gap-4 ">
                      <span className="flex justify-between">
                         <p className="text-[#5E5F5F]">Subtotal</p>
-                        <p className="text-headingColor" style={{ fontFamily: "InterSemiBold", fontWeight: 600 }}>
-                           ${subtotal.toFixed(2)}
-                        </p>
+                        <p className="text-headingColor">${subtotal.toFixed(2)}</p>
                      </span>
                      <span className="flex justify-between ">
                         <p className="text-[#5E5F5F]">Shipping</p>
-                        <p className="text-headingColor" style={{ fontFamily: "InterSemiBold", fontWeight: 600 }}>
-                           ${shippingFee.toFixed(2)}
-                        </p>
+                        <p className="text-headingColor">${shippingFee.toFixed(2)}</p>
                      </span>
                      <span className="flex justify-between">
-                        <p className="text-[#5E5F5F]" style={{ fontFamily: "InterSemiBold", fontWeight: 600, fontSize: 16 }}>
+                        <p className="text-[#5E5F5F]" style={{ fontWeight: 800, fontSize: 16 }}>
                            Total
                         </p>
-                        <p className="text-headingColor" style={{ fontFamily: "InterSemiBold", fontWeight: 600, fontSize: 16 }}>
+                        <p className="text-headingColor" style={{ fontWeight: 800, fontSize: 16 }}>
                            ${total.toFixed(2)}
                         </p>
                      </span>
                   </div>
                </div>
                <div className=" flex">
-                  {stripeClientSecret && paymentThrough === "stripe" ? (
-                     <p className="text-sm text-gray-500 italic text-center w-full">
-                        Please complete payment using the card form below.
-                     </p>
-                  ) : (
-                     <Button name={loading ? "Processing..." : "Pay Now"} mainClass="w-full" onClick={handlePlaceOrder} />
-                  )}
+                  {stripeClientSecret && paymentThrough === "stripe" ? <p className="text-sm text-gray-500 italic text-center w-full">Please complete payment using the card form below.</p> : <Button name={loading ? "Processing..." : "Pay Now"} mainClass="w-full" onClick={handlePlaceOrder} />}
                </div>
             </div>
             <div className="lg:w-2/4 w-full bg-white 2xl:px-40 xl:px-20 sm:px-20 px-5 lg:py-18 py-5 flex-col lg:gap-10 gap-6 flex">
@@ -271,13 +263,7 @@ const Checkout = () => {
                   <h3 className="lg:text-[20px]! text-headingColor">Contact</h3>
                   <div className="flex flex-col gap-2">
                      <h4 className="text-headingColor">Phone Number</h4>
-                     <input
-                        type="text"
-                        placeholder="Enter Phone Number"
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black"
-                     />
+                     <input type="text" placeholder="Enter Phone Number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black" />
                   </div>
                </div>
                <div className="flex flex-col gap-3">
@@ -295,83 +281,47 @@ const Checkout = () => {
                      <div className="flex items-center gap-5">
                         <div className="flex flex-col gap-2 w-full">
                            <h4 className="text-headingColor">Full name</h4>
-                           <input
-                              type="text"
-                              placeholder="Enter full name"
-                              value={fullName}
-                              onChange={(e) => setFullName(e.target.value)}
-                              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black"
-                           />
+                           <input type="text" placeholder="Enter full name" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black" />
                         </div>
                         <div className="flex flex-col gap-2 w-full">
                            <h4 className="text-headingColor">Last name</h4>
-                           <input
-                              type="text"
-                              placeholder="Enter last name"
-                              value={lastName}
-                              onChange={(e) => setLastName(e.target.value)}
-                              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black"
-                           />
+                           <input type="text" placeholder="Enter last name" value={lastName} onChange={(e) => setLastName(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black" />
                         </div>
                      </div>
                      <div className="flex flex-col gap-2">
                         <h4 className="text-headingColor">Address</h4>
-                        <input
-                           type="text"
-                           placeholder="Enter Your Address"
-                           value={address}
-                           onChange={(e) => setAddress(e.target.value)}
-                           className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black"
-                        />
+                        <input type="text" placeholder="Enter Your Address" value={address} onChange={(e) => setAddress(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black" />
                      </div>
                      <div className="flex items-center gap-5">
                         <div className="flex flex-col gap-2 w-full">
                            <h4 className="text-headingColor">City</h4>
-                           <input
-                              type="text"
-                              placeholder="Enter city"
-                              value={city}
-                              onChange={(e) => setCity(e.target.value)}
-                              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black"
-                           />
+                           <input type="text" placeholder="Enter city" value={city} onChange={(e) => setCity(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black" />
                         </div>
                         <div className="flex flex-col gap-2 w-full">
                            <h4 className="text-headingColor">Country</h4>
-                           <input
-                              type="text"
-                              placeholder="Country"
+                           <select
                               value={stateVal}
                               onChange={(e) => {
-                                 setStateVal(e.target.value);
+                                 const val = e.target.value;
+                                 setStateVal(val);
                                  // Auto select gateway based on country
-                                 const val = e.target.value.trim().toLowerCase();
-                                 if (val === "pakistan" || val === "pk") {
-                                    setPaymentThrough("payfast");
-                                 } else {
-                                    setPaymentThrough("stripe");
-                                 }
+                                 if (!val) return;
+                                 setPaymentThrough(val === "Pakistan" ? "payfast" : "stripe");
                               }}
-                              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black"
-                           />
+                              className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:border-black cursor-pointer"
+                           >
+                              <option value="">Select country</option>
+                              <option value="Pakistan">Pakistan (PK)</option>
+                              <option value="United Kingdom">United Kingdom (UK)</option>
+                           </select>
                         </div>
                      </div>
                      <div className="flex flex-col gap-2">
                         <h4 className="text-headingColor">Email address</h4>
-                        <input
-                           type="email"
-                           placeholder="Enter email address"
-                           value={email}
-                           onChange={(e) => setEmail(e.target.value)}
-                           className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black"
-                        />
+                        <input type="email" placeholder="Enter email address" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black" />
                      </div>
                      <div className="flex items-center gap-2">
-                        <input
-                           type="checkbox"
-                           checked={agreed}
-                           onChange={(e) => setAgreed(e.target.checked)}
-                           className="w-4 h-4 accent-BtnBlack"
-                        />
+                        <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="w-4 h-4 accent-BtnBlack" />
                         <p className="text-textBlack">I have read and agree to the Terms and Conditions.</p>
                      </div>
                   </div>
@@ -379,10 +329,7 @@ const Checkout = () => {
                <div className="flex flex-col gap-3">
                   <h3 className="lg:text-[20px]! text-headingColor">Payment Method</h3>
                   <div className="flex flex-col border border-gray-300 rounded-md overflow-hidden">
-                     <div
-                        className="border-b border-gray-300 py-3 cursor-pointer px-3 bg-gray-50"
-                        onClick={() => setPaymentThrough(isPakistan ? "payfast" : "stripe")}
-                     >
+                     <div className="border-b border-gray-300 py-3 cursor-pointer px-3 bg-gray-50" onClick={() => setPaymentThrough(isPakistan ? "payfast" : "stripe")}>
                         <span className="flex items-center gap-2">
                            <div className="w-4 h-4 flex items-center justify-center rounded-full border-2 border-gray-500">
                               <div className={`${paymentThrough !== "cod" ? "w-2 h-2" : "w-0 h-0"} transition-all duration-200 rounded-full bg-BtnBlack`} />
@@ -422,12 +369,7 @@ const Checkout = () => {
                               },
                            }}
                         >
-                           <StripePaymentForm
-                              orderId={createdOrderId}
-                              amount={total}
-                              onSuccess={handleStripeSuccess}
-                              onError={(msg) => setErrorMsg(msg)}
-                           />
+                           <StripePaymentForm orderId={createdOrderId} amount={total} onSuccess={handleStripeSuccess} onError={(msg) => setErrorMsg(msg)} />
                         </Elements>
                      </div>
                   )}
@@ -453,34 +395,24 @@ const Checkout = () => {
                   <div className="flex flex-col gap-4 w-100">
                      <span className="flex justify-between">
                         <p className="text-[#5E5F5F]">Subtotal</p>
-                        <p className="text-headingColor" style={{ fontFamily: "InterSemiBold", fontWeight: 600 }}>
-                           ${subtotal.toFixed(2)}
-                        </p>
+                        <p className="text-headingColor">${subtotal.toFixed(2)}</p>
                      </span>
                      <span className="flex justify-between ">
                         <p className="text-[#5E5F5F]">Shipping</p>
-                        <p className="text-headingColor" style={{ fontFamily: "InterSemiBold", fontWeight: 600 }}>
-                           ${shippingFee.toFixed(2)}
-                        </p>
+                        <p className="text-headingColor">${shippingFee.toFixed(2)}</p>
                      </span>
                      <span className="flex justify-between">
-                        <p className="text-[#5E5F5F]" style={{ fontFamily: "InterSemiBold", fontWeight: 600, fontSize: 16 }}>
+                        <p className="text-[#5E5F5F]" style={{ fontWeight: 800, fontSize: 16 }}>
                            Total
                         </p>
-                        <p className="text-headingColor" style={{ fontFamily: "InterSemiBold", fontWeight: 600, fontSize: 16 }}>
+                        <p className="text-headingColor" style={{ fontWeight: 800, fontSize: 16 }}>
                            ${total.toFixed(2)}
                         </p>
                      </span>
                   </div>
                </div>
                <div className="w-100 flex">
-                  {stripeClientSecret && paymentThrough === "stripe" ? (
-                     <p className="text-sm text-gray-500 italic text-center w-full">
-                        Please complete payment using the card form above.
-                     </p>
-                  ) : (
-                     <Button name={loading ? "Processing..." : "Pay Now"} mainClass="w-full" onClick={handlePlaceOrder} />
-                  )}
+                  {stripeClientSecret && paymentThrough === "stripe" ? <p className="text-sm text-gray-500 italic text-center w-full">Please complete payment using the card form above.</p> : <Button name={loading ? "Processing..." : "Pay Now"} mainClass="w-full" onClick={handlePlaceOrder} />}
                </div>
             </div>
          </div>

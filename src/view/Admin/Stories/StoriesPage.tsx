@@ -67,8 +67,6 @@ const StoriesPage = ({ handleCreateWebSection, handleUpdateStories, StoriesData 
 
    const isStoriesNew = !(StoriesData as unknown as { _id: string })?._id;
 
-   console.log(StoriesData);
-
    const handleSubmit = async () => {
       setSaving(true);
       setSaved(false);

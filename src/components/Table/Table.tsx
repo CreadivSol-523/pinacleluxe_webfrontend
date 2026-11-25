@@ -130,8 +130,6 @@ const Table = <T extends Record<string, any>>({
    const pageRangeDisplayed = 5;
    const rowsPerPage = pageLimit || 2;
 
-   console.log(keyField);
-
    const truncateText = (text: string, maxLength: number) => {
       if (!text) return "-";
       if (text?.length > maxLength) {

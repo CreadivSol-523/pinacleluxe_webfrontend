@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useProductForm, DiscountMode, ColorVariant, RegionPriceDraft, RegionPrice } from "@/Validations/Useproductform";
 import { Region } from "@/Types/Region/Region";
 import { useGetRegionHandler } from "@/modals/RegionModal";
+import AccessoriesSection from "../Cards/AccessoriesCard/AccessoriesSection";
 
 interface AddProductModalProps {
    isOpen: boolean;
@@ -11,12 +12,13 @@ interface AddProductModalProps {
    onSuccess?: (product: any, singleVariant?: any) => void;
 }
 
-type Tab = "basic" | "media" | "variants";
+type Tab = "basic" | "media" | "variants" | "accessories";
 
 const tabs: { key: Tab; label: string }[] = [
    { key: "basic", label: "Basic Info" },
    { key: "media", label: "Images" },
    { key: "variants", label: "Variants" },
+   { key: "accessories", label: "Accessories" },
 ];
 
 // ── Reusable ──────────────────────────────────────────────────────────────────
@@ -85,7 +87,7 @@ function ImageUploader({ label, images, onAdd, onRemove, error, firstLabel, mult
                {images.map((url, i) => (
                   <div key={i} className="relative group rounded-lg overflow-hidden bg-[#F5F0E8] aspect-square border border-[#B8975A]/10">
                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                     <img src={url} alt="" className="w-full h-full object-cover" />
+                     <img src={url as string} alt="" className="w-full h-full object-cover" />
                      <button onClick={() => onRemove(i)} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                         <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
                            <path d="M1 1l6 6M7 1L1 7" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
@@ -249,7 +251,6 @@ function VariantCard({
          <div className="flex items-center gap-3 px-3.5 py-3">
             <div className="flex-1 flex items-center gap-3 flex-wrap">
                <span className="text-[12px] font-medium text-headingColor">{variant.material}</span>
-               <span className="text-[11px] text-[#5E5F60]">Stock: {variant.stock ?? 0}</span>
                {hasPrices && <span className="text-[11px] text-[#5E5F60]">{variant.price.map((r) => r.code).join(", ")}</span>}
             </div>
             {hasColors && (
@@ -315,18 +316,6 @@ function VariantCard({
                            </svg>
                         </button>
                      </div>
-                     {/* <div className="p-2 grid grid-cols-5 gap-1.5">
-                        {c.images.map((img, i) => (
-                           <div key={i} className="relative group aspect-square rounded-lg overflow-hidden border border-[#B8975A]/10 bg-[#F5F0E8]">
-                              <img src={img} alt="" className="w-full h-full object-cover" />
-                              <button onClick={() => onRemoveColorImage(c.hex.code, i)} className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                 <svg width="7" height="7" viewBox="0 0 8 8" fill="none">
-                                    <path d="M1 1l6 6M7 1L1 7" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-                                 </svg>
-                              </button>
-                           </div>
-                        ))}
-                     </div> */}
                   </div>
                ))}
             </div>
@@ -495,6 +484,8 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
       addColorImage,
       removeColorImage,
       addColorToTarget,
+      // accessories
+      toggleAccessory,
       // misc
       handleSubmit,
       reset,
@@ -521,6 +512,8 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
       reset();
       onClose();
    };
+
+   const tabIndex = tabs.findIndex((t) => t.key === activeTab);
 
    return (
       <div
@@ -555,6 +548,7 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
                   >
                      {t.label}
                      {t.key === "variants" && form.variants.length > 0 && <span className="ml-1.5 text-[10px] bg-[#B8975A]/15 text-[#B8975A] px-1.5 py-0.5 rounded-full">{form.variants.length}</span>}
+                     {t.key === "accessories" && (form.accessories?.length ?? 0) > 0 && <span className="ml-1.5 text-[10px] bg-[#B8975A]/15 text-[#B8975A] px-1.5 py-0.5 rounded-full">{form.accessories.length}</span>}
                   </button>
                ))}
             </div>
@@ -755,21 +749,24 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
                      )}
                   </div>
                )}
+
+               {/* ══ TAB 4: Accessories ══ */}
+               {activeTab === "accessories" && <AccessoriesSection selected={form.accessories ?? []} onToggle={toggleAccessory} categories={CATEGORY_TREE ?? []} />}
             </div>
 
             {/* Footer */}
             <div className="px-6 py-4 border-t border-[#B8975A]/15 flex items-center justify-between">
                <div className="flex items-center gap-2">
-                  {activeTab !== "basic" && (
-                     <button onClick={() => setActiveTab(activeTab === "media" ? "basic" : "media")} className="flex items-center gap-1.5 px-4 py-2 text-[12px] text-[#5E5F60] border border-[#B8975A]/20 rounded-lg hover:text-headingColor hover:border-[#B8975A]/40 transition-colors">
+                  {tabIndex > 0 && (
+                     <button onClick={() => setActiveTab(tabs[tabIndex - 1].key)} className="flex items-center gap-1.5 px-4 py-2 text-[12px] text-[#5E5F60] border border-[#B8975A]/20 rounded-lg hover:text-headingColor hover:border-[#B8975A]/40 transition-colors">
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                            <path d="M8 2L4 6l4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                         Back
                      </button>
                   )}
-                  {activeTab !== "variants" && (
-                     <button onClick={() => setActiveTab(activeTab === "basic" ? "media" : "variants")} className="flex items-center gap-1.5 px-4 py-2 text-[12px] text-[#5E5F60] border border-[#B8975A]/20 rounded-lg hover:text-headingColor hover:border-[#B8975A]/40 transition-colors">
+                  {tabIndex < tabs.length - 1 && (
+                     <button onClick={() => setActiveTab(tabs[tabIndex + 1].key)} className="flex items-center gap-1.5 px-4 py-2 text-[12px] text-[#5E5F60] border border-[#B8975A]/20 rounded-lg hover:text-headingColor hover:border-[#B8975A]/40 transition-colors">
                         Next
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                            <path d="M4 2l4 4-4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />

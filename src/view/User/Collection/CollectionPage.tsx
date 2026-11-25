@@ -4,7 +4,7 @@ import ProductCard from "@/components/Cards/ProductCard/ProductCard";
 import MainLayout from "@/layout/MainLayout";
 import HeadingSection from "@/ui/User/Category/HeadingSection/HeadingSection";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Product } from "@/Types/Collection/CollectionTypes";
 import AddCartModal from "@/components/Modal/AddCartModal";
 import TabsSection from "@/ui/User/Category/TabsSection/TabsSection";
@@ -12,6 +12,7 @@ import { useGetProductFilterHandler, useGetProductHandler } from "@/modals/Produ
 import { useParams, useRouter } from "next/navigation";
 import MessageModal from "@/components/MessageModal/MessageModal";
 import ProductCardSkeleton from "@/components/Skeleton/Productcardskeleton/Productcardskeleton";
+import { useDetectCountryHandler } from "@/modals/PaymentModal";
 
 const CollectionPage = () => {
    const [page, setPage] = useState(1);
@@ -23,19 +24,34 @@ const CollectionPage = () => {
    });
    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
    const [openModal, setOpenModal] = useState<boolean>(false);
+   const [countryCode, setCountryCode] = useState<string>("");
    const [isFilter, setIsFilter] = useState(false);
 
    const pageLimit = 20;
 
    const { id } = useParams();
 
-   // Get Product API
-   const { data, isLoading } = useGetProductHandler({ limit: pageLimit, page: page, badge: productFilters.badge, material: productFilters.material, color: productFilters.color, category: (id as string) === "shop" ? "" : (id as string) });
+   // Detect Country
+   const { location: detectedLocation } = useDetectCountryHandler();
 
+   // Get Product API
+   const { data, isLoading } = useGetProductHandler({ limit: pageLimit, page: page, badge: productFilters.badge, material: productFilters.material, color: productFilters.color, category: (id as string) === "shop" ? "" : (id as string), regionCode: countryCode });
    // Get Product Filter API
    const { productFilterdata } = useGetProductFilterHandler((id as string) === "shop" ? "" : (id as string));
 
    const products = data?.products ?? [];
+
+   // Sync detected country from Redux Payment query
+   useEffect(() => {
+      if (detectedLocation) {
+         if (!detectedLocation.isPakistan) {
+            setCountryCode("GB");
+         } else {
+            const countryCode = detectedLocation.countryCode || "GB";
+            setCountryCode(countryCode);
+         }
+      }
+   }, [detectedLocation]);
 
    const uniqueBadges = ["All", ...(productFilterdata?.filters.badges ?? [])];
 

@@ -339,8 +339,6 @@ export const useUpdateWebSectionHandler = () => {
                 }
 
                 formData.append("enabled", String(data.enabled));
-                console.log(data.desktopImagePreview)
-                console.log(data.mobileImagePreview)
                 formData.append("desktopImage", data.desktopImage || data.desktopImagePreview);
 
                 formData.append("mobileImage", data.mobileImage || data.mobileImagePreview);

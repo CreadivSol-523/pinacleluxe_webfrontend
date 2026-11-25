@@ -1,4 +1,4 @@
-import { OrderStatus } from "@/Types/Order/OrderType";
+import { OrderStatus, PaymentStatus } from "@/Types/Order/OrderType";
 import { TopBarConfig } from "@/Types/WebSection/WebSection";
 
 export const Label = ({ children }: { children: React.ReactNode }) => <p className="text-[11px] tracking-[0.08em] uppercase text-[#5E5F60] mb-1.5">{children}</p>;
@@ -155,13 +155,31 @@ export function InfoIconRow({ icon, value }: { icon: React.ReactNode; value: str
    );
 }
 
-const STATUS_STYLE: Record<OrderStatus, string> = {
-   Pending: "bg-amber-50 text-amber-700",
+type BadgeStatus = OrderStatus | PaymentStatus;
+
+const STATUS_STYLE: Record<BadgeStatus, string> = {
+   // Order status
+   Pending: "bg-amber-50 text-amber-700", // order aur payment dono mein same
    Processing: "bg-blue-50 text-blue-700",
    Shipped: "bg-purple-50 text-purple-700",
    Delivered: "bg-green-50 text-green-700",
    Cancelled: "bg-red-50 text-red-600",
+
+   // Payment status
+   Paid: "bg-green-50 text-green-700",
+   Failed: "bg-red-50 text-red-600",
+   Refunded: "bg-slate-100 text-slate-600",
 };
-export function StatusBadge({ status }: { status: OrderStatus }) {
-   return <span className={`text-[11px] font-medium px-2.5 py-1 rounded-full w-fit ${STATUS_STYLE[status]}`}>{status}</span>;
+
+const FALLBACK_STYLE = "bg-gray-100 text-gray-600";
+
+export function StatusBadge({ status }: { status: BadgeStatus | string }) {
+   const style = STATUS_STYLE[status as BadgeStatus] ?? FALLBACK_STYLE;
+
+   return <span className={`text-[11px] font-medium px-2.5 py-1 rounded-full w-fit ${style}`}>{status}</span>;
+}
+
+// Optional: payment ke liye alag naam, taake page mein code readable rahe
+export function PaymentBadge({ status }: { status: PaymentStatus | string }) {
+   return <StatusBadge status={status} />;
 }

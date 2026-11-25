@@ -15,6 +15,15 @@ export interface Product {
    images: (string | File)[];
    gallery: (string | File)[];
    variants: VariantSchema[];
+   accessories?: accessories[]
+}
+export interface accessories {
+   _id: string,
+   name: string,
+   slug: string,
+   pricing: [],
+   thumbnail: string[],
+   variants: VariantSchema[];
 }
 
 export interface colorVariants {

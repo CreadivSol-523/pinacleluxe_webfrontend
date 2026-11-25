@@ -9,7 +9,7 @@ export const useCreateProductHandler = () => {
 
    const handleCreateProduct = async ({ form, partialFields }: { form: Omit<Product, "_id">; partialFields?: boolean }): Promise<{ success: boolean; data?: unknown }> => {
       try {
-         const { variants, gallery, images, stock, badge, categories, description, isVariable, name, slug, subCategory } = form
+         const { variants, gallery, images, stock, badge, categories, description, isVariable, name, slug, subCategory, accessories } = form
 
          const formData = new FormData();
 
@@ -36,6 +36,9 @@ export const useCreateProductHandler = () => {
             for (const img of gallery) {
                formData.append("productImages", img);
             }
+            for (const accessory of accessories || []) {
+               formData.append("accessories", accessory as any);
+            }
          }
 
          if (isVariable) {
@@ -50,7 +53,9 @@ export const useCreateProductHandler = () => {
             formData.append("categories", JSON.stringify(catArray));
             formData.append("isVariable", "true");
             formData.append("badge", badge ?? "");
-
+            for (const accessory of accessories || []) {
+               formData.append("accessories", accessory as any);
+            }
             // remove files from variants
             const cleanVariants = variants.map((v) => ({
                material: v.material,
@@ -82,6 +87,7 @@ export const useCreateProductHandler = () => {
          }
 
          const res = await CreateProduct({ data: formData });
+         console.log({ form, res })
 
          if (res.error) {
             show({
@@ -119,7 +125,7 @@ export const useUpdateProductHandler = () => {
    const handleUpdateProduct = async ({ form }: { form: Product }): Promise<{ success: boolean; data?: unknown }> => {
       try {
          const { variants, gallery, images, badge, categories, stock, description, isVariable, name, slug, subCategory, _id } = form
-         console.log(form, "From API")
+
          const formData = new FormData();
 
          if (!isVariable) {
@@ -191,7 +197,6 @@ export const useUpdateProductHandler = () => {
 
          const res = await UpdateProduct({ data: formData, id: _id ?? "" });
 
-         console.log(res);
 
          if (res.error) {
             show({
@@ -240,8 +245,6 @@ export const useDeleteProductHandler = () => {
 
          const res = await DeleteProduct({ id: id ?? "" });
 
-         console.log(res);
-
          if (res.error) {
             show({
                type: "banner",
@@ -271,8 +274,8 @@ export const useDeleteProductHandler = () => {
 };
 
 // Get Product API
-export const useGetProductHandler = ({ limit = 10, page = 1, badge, material, color, category }: { limit: number; page: number, badge?: string, material?: string, color?: string, category?: string }) => {
-   const { data, isLoading, isFetching, isError, error, refetch } = useGetProductQuery({ limit, page, badge, material, color, category });
+export const useGetProductHandler = ({ limit = 10, page = 1, badge, material, color, category, regionCode }: { limit: number; page: number, badge?: string, material?: string, color?: string, category?: string, regionCode?: string }) => {
+   const { data, isLoading, isFetching, isError, error, refetch } = useGetProductQuery({ limit, page, badge, material, color, category, regionCode });
 
    return {
       data,
@@ -284,8 +287,8 @@ export const useGetProductHandler = ({ limit = 10, page = 1, badge, material, co
 };
 
 // Get Single Product API
-export const useGetSingleProductHandler = ({ id }: { id: string }) => {
-   const { data, isLoading, isFetching, isError, error, refetch } = useGetSingleProductQuery({ id }, { skip: !id });
+export const useGetSingleProductHandler = ({ id, regionCode }: { id: string, regionCode: string }) => {
+   const { data, isLoading, isFetching, isError, error, refetch } = useGetSingleProductQuery({ id, regionCode }, { skip: !id });
 
    return {
       data,

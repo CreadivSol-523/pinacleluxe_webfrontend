@@ -29,12 +29,19 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
    const [current, setCurrent] = useState(0);
    const [visibleImages, setVisibleImages] = useState<Set<number>>(new Set());
 
+   // FIX 3: fallback "" (pehle 0 tha, jo number ban kar match kharab karta tha)
+   const currency: string = selectedProduct?.isVariable == true ? (selectedProduct?.variants?.[0].price?.[0]?.region as any)?.currency || "" : (selectedProduct as any)?.pricing?.[0]?.region?.currency || "";
+
    const startX = useRef(0);
    const imageRefs = useRef<(HTMLDivElement | null)[]>([]);
 
    const { setCartOpen, addToCart, updateQuantity } = useCartStore();
 
-   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === selectedProduct?._id && item.colorVariants === selectedColor.hex?.code && item.material === selectedMaterials.material));
+   const regionID = (selectedProduct as any)?.pricing?.[0]?.region?._id || (selectedProduct as any)?.variants?.[0]?.price?.[0]?.region?._id;
+
+   console.log({ selectedProduct, regionID });
+   // FIX 2: currency bhi match karo (store bhi currency match karta hai)
+   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === selectedProduct?._id && item.colorVariants === (selectedColor.hex?.code || "") && item.material === selectedMaterials.material && item.currency === currency));
 
    const GetQuantitySelected = useEffectEvent(() => {
       setQuantity(GetCartSingleItem?.quantity || 1);
@@ -43,19 +50,21 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
    useEffect(() => {
       GetQuantitySelected();
    }, [GetCartSingleItem, openModal]);
-   console.log(selectedMaterials);
 
    // Update Quantity
+   // FIX 1: currency pass karo + cart item ki quantity ko base banao
    const handleIncreaseQuantity = () => {
-      const updateProductQuantity = quantity < (selectedMaterials?.stock ?? 0) ? quantity + 1 : quantity;
+      const currentQty = GetCartSingleItem?.quantity ?? quantity;
+      const updateProductQuantity = currentQty < (selectedMaterials?.stock ?? 0) ? currentQty + 1 : currentQty;
       setQuantity(updateProductQuantity);
-      updateQuantity(selectedProduct?._id || "", updateProductQuantity, selectedColor.hex?.code, selectedMaterials.material);
+      updateQuantity(selectedProduct?._id || "", updateProductQuantity, selectedColor.hex?.code || "", selectedMaterials.material, currency);
    };
 
    const handleDecreaseQuantity = () => {
-      const updateProductQuantity = quantity == 1 ? 1 : quantity - 1;
+      const currentQty = GetCartSingleItem?.quantity ?? quantity;
+      const updateProductQuantity = currentQty <= 1 ? 1 : currentQty - 1;
       setQuantity(updateProductQuantity);
-      updateQuantity(selectedProduct?._id || "", updateProductQuantity, selectedColor.hex?.code, selectedMaterials.material);
+      updateQuantity(selectedProduct?._id || "", updateProductQuantity, selectedColor.hex?.code || "", selectedMaterials.material, currency);
    };
 
    const onProductChange = useEffectEvent(() => {
@@ -155,7 +164,7 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                      onClick={() => scrollToImage(i)} // 👈 yeh add karo
                      className="cursor-pointer"
                   >
-                     <Image src={img as string} width={100} height={120} alt="Product side image" className={`xl:flex hidden border transition-all duration-300 ${activeIndex === i ? "border-textBlack" : "border-transparent"}`} />
+                     <Image unoptimized src={img as string} width={100} height={120} alt="Product side image" className={`xl:flex hidden border transition-all duration-300 ${activeIndex === i ? "border-textBlack" : "border-transparent"}`} />
                      <div className={`w-4 h-4 bg-transparent border border-textBlack rounded-full xl:hidden flex justify-center items-center `}>
                         <div className={`rounded-full transition-all duration-300 ${activeIndex === i ? "bg-textBlack  w-full h-full" : "bg-transparent  w-0 h-0"}`} />
                      </div>
@@ -170,7 +179,7 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                         imageRefs.current[i] = el;
                      }}
                   >
-                     <Image src={img as string} width={800} height={900} alt="Product side image" />
+                     <Image unoptimized src={img as string} width={800} height={900} alt="Product side image" />
                   </div>
                ))}
             </div>
@@ -195,7 +204,9 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
             <div className=" md:p-10 px-5 flex flex-col gap-10 md:w-200 top-0 sticky md:max-h-[calc(100vh-50px)] pb-10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                <div className="flex flex-col gap-2.5">
                   <h2 className="text-headingColor">{selectedProduct?.name}</h2>
-                  <h3 className="text-[20px]! text-headingColor">Rs {selectedProduct?.isVariable == true ? selectedMaterials?.price?.[0]?.price : (selectedProduct as any)?.pricing?.[0]?.price}</h3>
+                  <h3 className="text-[20px]! text-headingColor">
+                     {currency || "Rs"} {selectedProduct?.isVariable == true ? selectedMaterials?.price?.[0]?.price : (selectedProduct as any)?.pricing?.[0]?.price}
+                  </h3>
                   <p className="text-textBlack">{selectedProduct?.description}</p>
                </div>
                {selectedProduct?.isVariable && (
@@ -257,6 +268,7 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                         className="w-full"
                         onClick={() => {
                            const availableStock = selectedMaterials?.stock ?? 0;
+
                            if (availableStock <= 0) {
                               show({
                                  type: "toast",
@@ -290,6 +302,8 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                                     material: selectedMaterials.material,
                                     price: selectedMaterials?.price?.[0]?.price ?? 0,
                                     stock: availableStock,
+                                    regionId: regionID,
+                                    currency,
                                  },
                                  quantity,
                               );
@@ -303,7 +317,6 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                                  });
                                  return;
                               }
-
                               setCartOpen(true);
                               setOpenModal(false);
                            }

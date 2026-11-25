@@ -4,7 +4,6 @@ import { X } from "lucide-react";
 
 const Favorite = ({ isOpen, setIsSidebarOpen }: { isOpen: boolean; setIsSidebarOpen: (isOpen: boolean) => void }) => {
    const favoriteItems = useFavoriteStore((state) => state.favorites);
-   console.log(favoriteItems);
    return (
       <aside className={`sm:w-100 w-full h-full bg-white fixed transition-all duration-500 ${isOpen ? "sm:right-0 translate-x-0" : "sm:-right-full  translate-x-full"} z-60!`}>
          <div className="p-5 flex justify-between items-center border-b border-b-gray-200">

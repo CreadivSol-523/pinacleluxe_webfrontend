@@ -229,7 +229,6 @@ export default function RegionsPage() {
    const handleDelete = async (id: string) => {
       await handleDeleteRegion({ id });
       setDeleteTarget(undefined);
-      console.log(id);
    };
 
    const toggleActive = (id: string) => {

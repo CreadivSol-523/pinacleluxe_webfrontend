@@ -47,7 +47,7 @@ const MainLayout = ({ children, isHeader = true, isFooter = true, isFilter, setI
          document.body.style.overflow = "auto";
       };
    }, [isCartOpen, isFavoriteOpen]);
-
+   const paddingClass = isHeader === false ? "pt-0!" : isTopbarEnabled ? "pt-28.5!" : "pt-17.5!";
    return (
       <main>
          <div onClick={() => setCartOpen(false)} className={isCartOpen ? "fixed w-full h-full z-60! bg-black/20 transition-all duration-500" : "fixed w-full h-full z-60! bg-transparent transition-all duration-500 pointer-events-none"}>
@@ -78,8 +78,7 @@ const MainLayout = ({ children, isHeader = true, isFooter = true, isFilter, setI
          ) : (
             isTopbarEnabled && <TopBar topbarData={topbar?.data as TopBarConfig} />
          )}
-         {isStyle ? <div className={isTopbarEnabled ? "pt-28.5!" : "pt-17.5!"}>{children}</div> : <div>{children}</div>}
-         {isFooter && <Footer />}
+         {isStyle ? <div className={paddingClass}>{children}</div> : <div>{children}</div>} {isFooter && <Footer />}
       </main>
    );
 };

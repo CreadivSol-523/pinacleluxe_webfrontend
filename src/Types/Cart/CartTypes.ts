@@ -11,6 +11,7 @@ export interface Cart {
       name: string;
       price: number;
       stock: number;
+      currency: string;
    };
 }
 export interface FavoriteCart {
@@ -23,5 +24,6 @@ export interface FavoriteCart {
       name: string;
       price: number;
       stock: number;
+      currency: string;
    };
 }

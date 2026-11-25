@@ -119,8 +119,6 @@ export default function ProductManagement() {
    const [currentPage, setCurrentPage] = useState(1);
    const [addOpen, setAddOpen] = useState(false);
 
-   console.log(selected.length);
-
    const router = useRouter();
 
    // ---------- Handle API ------------
@@ -132,7 +130,6 @@ export default function ProductManagement() {
 
    //  Get Category API
    const { data: CategoryData, error, isError, isLoading: GetCategory, refetch } = useGetCategoryHandler();
-   console.log(CategoryData);
    const productss: Product[] = data?.products ?? [];
 
    // ── Filter logic ──────────────────────────────────────────────────────────
@@ -144,8 +141,6 @@ export default function ProductManagement() {
          return matchSearch && matchCat && matchStock;
       });
    }, [search, stockFilter, categoryFilter, isLoading, currentPage]);
-
-   console.log("Filtered Data", filtered);
 
    // ── Table stock filter handler ────────────────────────────────────────────
    const handleTableStatusFilter = (_key: string, value: string | number) => {
@@ -164,8 +159,6 @@ export default function ProductManagement() {
    };
 
    const handleDeleteSelected = () => {
-      console.log("Delete selected", selected);
-      console.log(deleteID);
       // setSelected([]);
    };
 

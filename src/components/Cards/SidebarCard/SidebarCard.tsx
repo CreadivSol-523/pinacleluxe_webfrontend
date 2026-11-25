@@ -7,11 +7,10 @@ import React, { useEffect, useEffectEvent, useState } from "react";
 const SidebarCard = ({ product, quantity }: Cart) => {
    const [updateQuantityState, setUpdateQuantityState] = useState<number>(quantity);
 
-   console.log(product);
-
    const { updateQuantity, removeFromCart } = useCartStore();
 
-   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === product?.id && item?.colorVariants === product.colorVariants && item.material === product.material));
+   // FIX: currency bhi match karo (store bhi currency match karta hai)
+   const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === product?.id && item?.colorVariants === product.colorVariants && item.material === product.material && item.currency === product.currency));
 
    const GetQuantitySelected = useEffectEvent(() => {
       setUpdateQuantityState(GetCartSingleItem?.quantity || 1);
@@ -21,16 +20,19 @@ const SidebarCard = ({ product, quantity }: Cart) => {
       GetQuantitySelected();
    }, [GetCartSingleItem]);
 
+   // FIX: currency pass karo + cart item ki quantity ko base banao
    const handleIncreaseQuantity = () => {
-      const updateProductQuantity = updateQuantityState < product.stock ? updateQuantityState + 1 : updateQuantityState;
+      const currentQty = GetCartSingleItem?.quantity ?? updateQuantityState;
+      const updateProductQuantity = currentQty < product.stock ? currentQty + 1 : currentQty;
       setUpdateQuantityState(updateProductQuantity);
-      updateQuantity(product.id, updateProductQuantity, product?.colorVariants, product.material);
+      updateQuantity(product.id, updateProductQuantity, product?.colorVariants, product.material, product.currency);
    };
 
    const handleDecreaseQuantity = () => {
-      const updateProductQuantity = updateQuantityState <= 1 ? 1 : updateQuantityState - 1;
+      const currentQty = GetCartSingleItem?.quantity ?? updateQuantityState;
+      const updateProductQuantity = currentQty <= 1 ? 1 : currentQty - 1;
       setUpdateQuantityState(updateProductQuantity);
-      updateQuantity(product.id, updateProductQuantity, product?.colorVariants, product.material);
+      updateQuantity(product.id, updateProductQuantity, product?.colorVariants, product.material, product.currency);
    };
 
    return (
@@ -45,13 +47,11 @@ const SidebarCard = ({ product, quantity }: Cart) => {
             <div className="flex flex-col gap-2">
                <p className="text-[18px]! font-medium text-gray-900 leading-tight line-clamp-1">{product.name || "Easy Zipper Tote"}</p>
 
-               <p className="text-[13px] text-gray-500" style={{ fontFamily: "InterRegular" }}>
-                  Material: {product.material}
-               </p>
+               <p className="text-[13px] text-gray-500">Material: {product.material}</p>
 
                {/* Price - light, secondary tone */}
-               <p className="text-[13px] text-gray-400 font-normal" style={{ fontFamily: "InterRegular" }}>
-                  Rs {(product.price * (updateQuantityState ?? 0)).toFixed(2) || "65.00"}
+               <p className="text-[13px] text-gray-400 font-normal">
+                  {product.currency || "Rs"} {(product.price * (updateQuantityState ?? 0)).toFixed(2) || "65.00"}
                </p>
             </div>
 
@@ -67,7 +67,7 @@ const SidebarCard = ({ product, quantity }: Cart) => {
                   </button>
                </div>
 
-               <button type="button" onClick={() => removeFromCart(product.id, product?.colorVariants, product.material)} className="text-gray-400 hover:text-red-500 transition-colors">
+               <button type="button" onClick={() => removeFromCart(product.id, product?.colorVariants, product.material, product.currency)} className="text-gray-400 hover:text-red-500 transition-colors">
                   <Trash2 className="w-4 h-4" />
                </button>
             </div>
