@@ -49,7 +49,7 @@ const ProductSlice = createApi({
          providesTags: ["CreateProduct", "DeleteProduct", "UpdateProduct"],
       }),
 
-      getSingleProduct: builder.query<{ product: Product; success: boolean }, { id: string, regionCode: string }>({
+      getSingleProduct: builder.query<{ product: Product; success: boolean }, { id: string, regionCode?: string }>({
          query: ({ id, regionCode }) => ({
             url: `/api/product/${id}?regionCode=${regionCode}`,
             method: "GET",

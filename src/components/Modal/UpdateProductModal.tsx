@@ -227,10 +227,12 @@ function RegionPriceSection({
                   <div key={r.region._id} className="flex items-center justify-between px-3 py-2 bg-[#F5F0E8] rounded-lg border border-[#B8975A]/10">
                      <div className="flex items-center gap-3 flex-wrap">
                         <span className="text-[11px] font-medium text-[#B8975A] uppercase tracking-widest">{r.region.code}</span>
-                        <span className="text-[12px] text-headingColor">Rs {r.price?.toLocaleString()}</span>
+                        <span className="text-[12px] text-headingColor">
+                           {r?.region?.currency || "Rs"} {r.price?.toLocaleString()}
+                        </span>
                         {r.discountValue && (
                            <span className="text-[11px] text-[#5E5F60]">
-                              -{r.discountMode === "percentage" ? `${r.discountValue}%` : `Rs ${r.discountValue.toLocaleString()}`}
+                              -{r.discountMode === "percentage" ? `${r.discountValue}%` : `${r?.region?.currency || "Rs"} ${r.discountValue.toLocaleString()}`}
                               {" → "}
                               {r.discountMode === "percentage" ? Math.round(r.price - (r.price * r.discountValue) / 100).toLocaleString() : Math.round(r.price - r.discountValue).toLocaleString()}
                            </span>
@@ -431,6 +433,8 @@ function VariantCard({
    const hasColors = (variant.colors?.length ?? 0) > 0;
    const hasPrices = (variant.price?.length ?? 0) > 0;
 
+   console.log(variant);
+
    return (
       <div className="bg-[#F5F0E8] rounded-xl border border-[#B8975A]/10 overflow-hidden">
          {/* Header */}
@@ -466,10 +470,12 @@ function VariantCard({
                   <div key={r._id + i} className="flex items-center justify-between">
                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-[10px] font-medium text-[#B8975A] uppercase tracking-widest">{r.code}</span>
-                        <span className="text-[12px] text-headingColor">Rs {r.price?.toLocaleString()}</span>
+                        <span className="text-[12px] text-headingColor">
+                           {r.region.currency || "Rs"} {r.price?.toLocaleString()}
+                        </span>
                         {r.discountValue && (
                            <span className="text-[11px] text-[#5E5F60]">
-                              -{r.discountMode === "percentage" ? `${r.discountValue}%` : `Rs ${r.discountValue.toLocaleString()}`}
+                              -{r.discountMode === "percentage" ? `${r.discountValue}%` : `${r.region.currency || "Rs"} ${r.discountValue.toLocaleString()}`}
                               {" → "}
                               {r.discountMode === "percentage" ? Math.round(r.price - (r.price * r.discountValue) / 100).toLocaleString() : Math.round(r.price - r.discountValue).toLocaleString()}
                            </span>

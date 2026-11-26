@@ -2,12 +2,19 @@ import { useNotification } from "@/context/NotificationContext";
 import { useCreateProductMutation, useDeleteProductMutation, useGetProductFilterQuery, useGetProductQuery, useGetSingleProductQuery, useUpdateProductMutation } from "@/redux/Product/ProductSlice";
 import { Product } from "@/Types/Collection/CollectionTypes";
 
+type AccessoryItem = NonNullable<Product["accessories"]>[number];
+
+// form mein accessories IDs (string) bhi ho sakti hain ya populated objects
+type UpdateProductForm = Omit<Product, "accessories"> & {
+   accessories?: Array<string | AccessoryItem>;
+};
+
 // Create Product API
 export const useCreateProductHandler = () => {
    const [CreateProduct, { isLoading }] = useCreateProductMutation();
    const { show } = useNotification();
 
-   const handleCreateProduct = async ({ form, partialFields }: { form: Omit<Product, "_id">; partialFields?: boolean }): Promise<{ success: boolean; data?: unknown }> => {
+   const handleCreateProduct = async ({ form, partialFields }: { form: UpdateProductForm; partialFields?: boolean }): Promise<{ success: boolean; data?: unknown }> => {
       try {
          const { variants, gallery, images, stock, badge, categories, description, isVariable, name, slug, subCategory, accessories } = form
 
@@ -122,40 +129,50 @@ export const useUpdateProductHandler = () => {
    const [UpdateProduct, { isLoading }] = useUpdateProductMutation();
    const { show } = useNotification();
 
-   const handleUpdateProduct = async ({ form }: { form: Product }): Promise<{ success: boolean; data?: unknown }> => {
+   // region populated object bhi ho sakta hai ya plain id
+   const getRegionId = (p: any): string | undefined => {
+      if (p?.region) return typeof p.region === "object" ? p.region._id : p.region;
+      return p?._id;
+   };
+
+   // accessory populated object ho ya id, dono handle
+   const getAccessoryId = (a: any): string => (a && typeof a === "object" ? a._id ?? a : a);
+
+   const handleUpdateProduct = async ({ form }: { form: UpdateProductForm }): Promise<{ success: boolean; data?: unknown }> => {
       try {
-         const { variants, gallery, images, badge, categories, stock, description, isVariable, name, slug, subCategory, _id } = form
+         const { variants, gallery, images, badge, categories, stock, description, isVariable, name, slug, subCategory, accessories, _id } = form;
 
          const formData = new FormData();
+         const catArray = subCategory ? [subCategory] : categories ? [categories] : [];
 
          if (!isVariable) {
-            const priceObject = variants?.[0]?.price?.map((v) => ({
-               region: v._id,
-               price: v.price,
-               discountMode: v.discountMode,
-               discountValue: v.discountValue,
+            const priceObject = variants?.[0]?.price?.map((p) => ({
+               region: getRegionId(p),
+               price: p.price,
+               discountMode: p.discountMode,
+               discountValue: p.discountValue,
             }));
-
-            const catArray = subCategory ? [subCategory] : categories ? [categories] : [];
 
             formData.append("name", name ?? "");
             formData.append("slug", slug ?? "");
             formData.append("description", description ?? "");
             formData.append("categories", JSON.stringify(catArray));
-            formData.append("isVariable", isVariable ? "true" : "false");
+            formData.append("isVariable", "false");
             formData.append("badge", badge ?? "");
             formData.append("thumbnail", images?.[0] ?? "");
             formData.append("stock", stock ? String(stock) : "0");
-            formData.append("pricing", JSON.stringify(priceObject));
+            formData.append("pricing", JSON.stringify(priceObject ?? []));
             formData.append("variants", JSON.stringify([]));
-            for (const img of gallery) {
+
+            for (const img of gallery || []) {
                formData.append("productImages", img);
+            }
+            for (const accessory of accessories || []) {
+               formData.append("accessories", getAccessoryId(accessory));
             }
          }
 
          if (isVariable) {
-            const catArray = subCategory ? [subCategory] : categories ? [categories] : [];
-
             formData.append("name", name ?? "");
             formData.append("slug", slug ?? "");
             formData.append("stock", stock ? String(stock) : "0");
@@ -165,11 +182,15 @@ export const useUpdateProductHandler = () => {
             formData.append("isVariable", "true");
             formData.append("badge", badge ?? "");
 
+            for (const accessory of accessories || []) {
+               formData.append("accessories", getAccessoryId(accessory));
+            }
+
             // remove files from variants
-            const cleanVariants = variants.map((v) => ({
+            const cleanVariants = (variants || []).map((v) => ({
                material: v.material,
                price: v.price?.map((p) => ({
-                  region: (p?.region as any)?._id,
+                  region: p?._id || (p?.region as any)?._id,
                   price: p.price,
                   discountMode: p.discountMode,
                   discountValue: p.discountValue,
@@ -180,44 +201,49 @@ export const useUpdateProductHandler = () => {
                })),
             }));
 
-            variants.forEach((v, vi) => {
+
+
+            (variants || []).forEach((v, vi) => {
                v?.colors?.forEach((c, ci) => {
                   c?.images?.forEach((file: any) => {
                      formData.append(`v${vi}_c${ci}`, file);
                   });
                });
             });
-
+            console.log(cleanVariants)
             formData.append("variants", JSON.stringify(cleanVariants));
 
-            gallery.forEach((img) => {
+            for (const img of gallery || []) {
                formData.append("productImages", img);
-            });
+            }
          }
 
          const res = await UpdateProduct({ data: formData, id: _id ?? "" });
 
-
+         console.log({ formData, res })
+         for (const a of formData) {
+            console.log(a)
+         }
          if (res.error) {
             show({
                type: "banner",
                variant: "error",
-               message: "Product is Not Created! Please try again.",
+               message: "Product is Not Updated! Please try again.",
             });
             return { success: false };
-         } else {
-            show({
-               type: "banner",
-               variant: "success",
-               message: "Product created successfully.",
-            });
-            return { success: true, data: res.data };
          }
+
+         show({
+            type: "banner",
+            variant: "success",
+            message: "Product updated successfully.",
+         });
+         return { success: true, data: res.data };
       } catch (error) {
          show({
             type: "banner",
             variant: "error",
-            message: "Product is Not Created! Please try again.",
+            message: "Product is Not Updated! Please try again.",
          });
          return { success: false };
       }
@@ -225,7 +251,6 @@ export const useUpdateProductHandler = () => {
 
    return { handleUpdateProduct, isLoading };
 };
-
 // Delete Product API
 export const useDeleteProductHandler = () => {
    const [DeleteProduct, { isLoading }] = useDeleteProductMutation();
@@ -287,7 +312,7 @@ export const useGetProductHandler = ({ limit = 10, page = 1, badge, material, co
 };
 
 // Get Single Product API
-export const useGetSingleProductHandler = ({ id, regionCode }: { id: string, regionCode: string }) => {
+export const useGetSingleProductHandler = ({ id, regionCode }: { id: string, regionCode?: string }) => {
    const { data, isLoading, isFetching, isError, error, refetch } = useGetSingleProductQuery({ id, regionCode }, { skip: !id });
 
    return {

@@ -484,7 +484,8 @@ export const useUpdateWebSectionHandler = () => {
     };
 };
 
-const API_URL = process.env.NEXT_PUBLIC_PORT;
+
+const API_URL = process.env.NEXT_PUBLIC_PORT || "http://localhost:5000";
 
 export async function getWebSections() {
     try {
@@ -507,7 +508,12 @@ export async function getWebSections() {
         }
 
         return res?.data;
-    } catch (error) {
+    } catch (error: any) {
+        // Next.js ka internal signal hai (route dynamic hai), isko swallow nahi karna
+        if (error?.digest === "DYNAMIC_SERVER_USAGE") {
+            throw error;
+        }
+
         console.error("Web sections fetch failed:", error);
 
         return [];

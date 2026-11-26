@@ -8,6 +8,8 @@ import { useCartStore } from "@/Storage/UseCartStore";
 import { colorVariants, VariantSchema } from "@/Types/Collection/CollectionTypes";
 import { useNotification } from "@/context/NotificationContext";
 
+const formatPrice = (n: number) => n.toLocaleString("en-US");
+
 const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) => {
    const { show } = useNotification();
    const [selectedColor, setSelectedColor] = useState<colorVariants>({ hex: { code: "", colorName: "" }, images: [] });
@@ -29,18 +31,32 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
    const [current, setCurrent] = useState(0);
    const [visibleImages, setVisibleImages] = useState<Set<number>>(new Set());
 
-   // FIX 3: fallback "" (pehle 0 tha, jo number ban kar match kharab karta tha)
-   const currency: string = selectedProduct?.isVariable == true ? (selectedProduct?.variants?.[0].price?.[0]?.region as any)?.currency || "" : (selectedProduct as any)?.pricing?.[0]?.region?.currency || "";
+   // Currency selected material ke price se aati hai (variable product ke liye)
+   const currency: string = selectedProduct?.isVariable == true ? (selectedMaterials?.price?.[0]?.region as any)?.currency || "" : (selectedProduct as any)?.pricing?.[0]?.region?.currency || "";
 
    const startX = useRef(0);
    const imageRefs = useRef<(HTMLDivElement | null)[]>([]);
 
    const { setCartOpen, addToCart, updateQuantity } = useCartStore();
 
-   const regionID = (selectedProduct as any)?.pricing?.[0]?.region?._id || (selectedProduct as any)?.variants?.[0]?.price?.[0]?.region?._id;
+   // regionID bhi selected material se
+   const regionID = selectedProduct?.isVariable == true ? (selectedMaterials?.price?.[0]?.region as any)?._id : (selectedProduct as any)?.pricing?.[0]?.region?._id;
 
-   console.log({ selectedProduct, regionID });
-   // FIX 2: currency bhi match karo (store bhi currency match karta hai)
+   // ---------- Price + Discount calculation ----------
+   const priceInfo: any = selectedProduct?.isVariable == true ? selectedMaterials?.price?.[0] : (selectedProduct as any)?.pricing?.[0];
+
+   const originalPrice = Number(priceInfo?.price ?? 0);
+   const discountValue = Number(priceInfo?.discountValue ?? 0);
+   const discountMode = String(priceInfo?.discountMode ?? "").toLowerCase();
+   const isPercentage = discountMode === "percentage" || discountMode === "percent";
+
+   const rawDiscountAmount = discountValue > 0 ? (isPercentage ? Math.round((originalPrice * discountValue) / 100) : discountValue) : 0;
+   const discountAmount = Math.min(rawDiscountAmount, originalPrice);
+   const discountPercent = originalPrice > 0 ? Math.round((discountAmount / originalPrice) * 100) : 0;
+   const hasDiscount = discountAmount > 0;
+   const finalPrice = originalPrice - discountAmount;
+   const currencyLabel = currency || "Rs";
+
    const GetCartSingleItem = useCartStore((state) => state.items.find((item) => item.id === selectedProduct?._id && item.colorVariants === (selectedColor.hex?.code || "") && item.material === selectedMaterials.material && item.currency === currency));
 
    const GetQuantitySelected = useEffectEvent(() => {
@@ -52,7 +68,6 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
    }, [GetCartSingleItem, openModal]);
 
    // Update Quantity
-   // FIX 1: currency pass karo + cart item ki quantity ko base banao
    const handleIncreaseQuantity = () => {
       const currentQty = GetCartSingleItem?.quantity ?? quantity;
       const updateProductQuantity = currentQty < (selectedMaterials?.stock ?? 0) ? currentQty + 1 : currentQty;
@@ -137,6 +152,25 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
       });
    };
 
+   // Material change handler
+   const handleMaterialChange = (materials: VariantSchema) => {
+      setSelectedMaterials({
+         material: materials.material,
+         price: materials.price,
+         colors: materials.colors,
+         stock: selectedProduct?.stock,
+      });
+
+      // naye material ka pehla color select karo
+      const firstColor = materials.colors?.[0];
+      setSelectedColor({
+         hex: { code: firstColor?.hex?.code || "", colorName: firstColor?.hex?.colorName || "" },
+         images: firstColor?.images || [],
+      });
+
+      setQuantity(1);
+   };
+
    return (
       <Modal
          isOpen={openModal}
@@ -159,11 +193,7 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
             </div>
             <div className="pl-5 max-[950px]:pl-0 flex flex-col xl:w-auto w-15 gap-2 max-xl:items-center max-xl:justify-center sticky top-10 max-xl:h-[calc(100vh-150px)]  overflow-scroll [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-[950px]:hidden">
                {images.map((img, i) => (
-                  <div
-                     key={i}
-                     onClick={() => scrollToImage(i)} // 👈 yeh add karo
-                     className="cursor-pointer"
-                  >
+                  <div key={i} onClick={() => scrollToImage(i)} className="cursor-pointer">
                      <Image unoptimized src={img as string} width={100} height={120} alt="Product side image" className={`xl:flex hidden border transition-all duration-300 ${activeIndex === i ? "border-textBlack" : "border-transparent"}`} />
                      <div className={`w-4 h-4 bg-transparent border border-textBlack rounded-full xl:hidden flex justify-center items-center `}>
                         <div className={`rounded-full transition-all duration-300 ${activeIndex === i ? "bg-textBlack  w-full h-full" : "bg-transparent  w-0 h-0"}`} />
@@ -202,25 +232,45 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                </div>
             </div>
             <div className=" md:p-10 px-5 flex flex-col gap-10 md:w-200 top-0 sticky md:max-h-[calc(100vh-50px)] pb-10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-               <div className="flex flex-col gap-2.5">
+               <div className="flex flex-col gap-3">
                   <h2 className="text-headingColor">{selectedProduct?.name}</h2>
-                  <h3 className="text-[20px]! text-headingColor">
-                     {currency || "Rs"} {selectedProduct?.isVariable == true ? selectedMaterials?.price?.[0]?.price : (selectedProduct as any)?.pricing?.[0]?.price}
-                  </h3>
+
+                  {/* Pricing */}
+                  <div className="flex flex-col gap-1.5">
+                     <div className="flex items-center flex-wrap gap-x-3 gap-y-2 pt-4">
+                        <span className="text-[22px] font-semibold leading-none text-headingColor">
+                           {currencyLabel} {formatPrice(finalPrice)}
+                        </span>
+                        {hasDiscount && (
+                           <>
+                              <span className="text-[16px] leading-none text-gray-400 line-through">
+                                 {currencyLabel} {formatPrice(originalPrice)}
+                              </span>
+                              <span className="rounded-full bg-BtnBlack px-2.5 py-1 text-xs font-medium tracking-wide text-white">-{discountPercent}% OFF</span>
+                           </>
+                        )}
+                     </div>
+                     {hasDiscount && (
+                        <p className="text-[12px]! text-green-700">
+                           You save {currencyLabel} {formatPrice(discountAmount)}
+                        </p>
+                     )}
+                  </div>
+
                   <p className="text-textBlack">{selectedProduct?.description}</p>
                </div>
                {selectedProduct?.isVariable && (
                   <div className="flex flex-col gap-5">
                      <div className="flex flex-col gap-2">
-                        <p className="text-headingColor">Color - Green</p>
+                        <p className="text-headingColor">Color{selectedColor.hex?.colorName ? ` - ${selectedColor.hex.colorName}` : ""}</p>
                         <div className="flex items-center flex-wrap gap-2">
                            {selectedMaterials?.colors?.map((item, i) =>
                               selectedColor.hex?.code === item.hex?.code ? (
                                  <div className="w-6 h-6 border-2 border-gray-500 cursor-pointer  rounded-full flex items-center justify-center" key={item.hex?.code}>
-                                    <div className={`w-4 h-4 rounded-full bg-[${item.hex}]`} style={{ background: item.hex?.code }} />
+                                    <div className="w-4 h-4 rounded-full" style={{ background: item.hex?.code }} />
                                  </div>
                               ) : (
-                                 <div onClick={() => setSelectedColor({ hex: item.hex, images: item.images })} className={`w-6 h-6 cursor-pointer rounded-full ${item.hex}`} style={{ background: item.hex?.code }} key={i} />
+                                 <div onClick={() => setSelectedColor({ hex: item.hex, images: item.images })} className="w-6 h-6 cursor-pointer rounded-full" style={{ background: item.hex?.code }} key={i} />
                               ),
                            )}
                         </div>
@@ -229,7 +279,7 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                         <p className="text-headingColor">Material:</p>
                         <div className="flex items-center flex-wrap gap-3.5">
                            {selectedProduct?.variants?.map((materials, i) => (
-                              <div key={i} className={`cursor-pointer active:scale-99 py-2 px-6 rounded-full border-2 ${selectedMaterials.material === materials.material ? "border-BtnBlack bg-BtnBlack" : "border-gray-400 bg-white"} `} onClick={() => setSelectedMaterials(materials)}>
+                              <div key={i} className={`cursor-pointer active:scale-99 py-2 px-6 rounded-full border-2 ${selectedMaterials.material === materials.material ? "border-BtnBlack bg-BtnBlack" : "border-gray-400 bg-white"} `} onClick={() => handleMaterialChange(materials)}>
                                  <p className={`${selectedMaterials.material === materials.material ? "text-white" : "text-textBlack"}  tracking-wide`}>{materials.material}</p>
                               </div>
                            ))}
@@ -300,7 +350,8 @@ const AddCartModal = ({ setOpenModal, openModal, selectedProduct }: ModalType) =
                                     images: (selectedProduct?.images?.[0] as any) || "",
                                     colorVariants: selectedColor.hex?.code || "",
                                     material: selectedMaterials.material,
-                                    price: selectedMaterials?.price?.[0]?.price ?? 0,
+                                    // discounted price cart mein jayegi
+                                    price: finalPrice,
                                     stock: availableStock,
                                     regionId: regionID,
                                     currency,

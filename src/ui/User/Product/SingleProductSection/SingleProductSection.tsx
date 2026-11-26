@@ -13,6 +13,8 @@ import { useGetSingleProductHandler } from "@/modals/ProductModal";
 import { ParamValue } from "next/dist/server/request/params";
 import { useNotification } from "@/context/NotificationContext";
 
+const formatPrice = (n: number) => n.toLocaleString("en-US");
+
 const SingleProductSection = ({ data, id }: { data?: Product; id?: ParamValue }) => {
    const [selectedColor, setSelectedColor] = useState<{ hex: { code: string; colorName: string }; images: (string | File)[] }>({ hex: { code: "", colorName: "" }, images: [] });
    const [selectedMaterials, setSelectedMaterials] = useState<VariantSchema>({
@@ -59,15 +61,25 @@ const SingleProductSection = ({ data, id }: { data?: Product; id?: ParamValue })
    const findProduct = data;
    const regionID = (findProduct as any)?.pricing?.[0]?.region?._id || (findProduct as any)?.variants?.[0]?.price?.[0]?.region?._id;
 
+   // Currency selected material ke price se aati hai, fallback product ke pehle price se
+   const currency: string = (selectedMaterials?.price?.[0]?.region as any)?.currency || (findProduct?.variants?.[0]?.price?.[0]?.region as any)?.currency || (findProduct as any)?.pricing?.[0]?.region?.currency || "";
+   const currencyLabel = currency?.replace("RS", "Rs") || "Rs";
+
+   // ---------- Price + Discount calculation ----------
+   const priceInfo: any = selectedMaterials?.material != "" ? selectedMaterials?.price?.[0] : findProduct?.isVariable ? findProduct?.variants?.[0]?.price?.[0] : (findProduct as any)?.pricing?.[0];
+
+   const originalPrice = Number(priceInfo?.price ?? 0);
+   const discountValue = Number(priceInfo?.discountValue ?? 0);
+   const discountMode = String(priceInfo?.discountMode ?? "").toLowerCase();
+   const isPercentage = discountMode === "percentage" || discountMode === "percent";
+
    console.log(findProduct);
-   // FIX: hamesha string (undefined / 0 nahi), taake cart item se match ho
-   const currency: string = (findProduct?.variants?.[0]?.price?.[0]?.region as any)?.currency || (findProduct as any)?.pricing?.[0]?.region?.currency || "";
 
-   const originalPrice = selectedMaterials?.material != "" ? selectedMaterials?.price?.[0]?.price : findProduct?.isVariable ? findProduct?.variants?.[0]?.price?.[0]?.price : (findProduct as any)?.pricing?.[0]?.price;
-
-   const discountValue = selectedMaterials?.material != "" ? selectedMaterials?.price?.[0]?.discountValue : findProduct?.isVariable ? findProduct?.variants?.[0]?.price?.[0]?.discountValue : (findProduct as any)?.pricing?.[0]?.discountValue;
-
-   const discountPercentage = originalPrice > 0 ? Math.round((discountValue / originalPrice) * 100) : 0;
+   const rawDiscountAmount = discountValue > 0 ? (isPercentage ? Math.round((originalPrice * discountValue) / 100) : discountValue) : 0;
+   const discountAmount = Math.min(rawDiscountAmount, originalPrice);
+   const discountPercent = originalPrice > 0 ? Math.round((discountAmount / originalPrice) * 100) : 0;
+   const hasDiscount = discountAmount > 0;
+   const finalPrice = originalPrice - discountAmount;
 
    const GetCartSingleItem = useCartStore((state) =>
       state.items.find((item) => {
@@ -128,7 +140,7 @@ const SingleProductSection = ({ data, id }: { data?: Product; id?: ParamValue })
 
    useEffect(() => {
       if (findProduct?.isVariable) {
-         // FIX: default color ka code set karo (pehle "" tha, isliye cart item match nahi hota tha)
+         // default color ka code set karo taake cart item match ho
          const firstColor = findProduct?.variants?.[0]?.colors?.[0];
          setSelectedColor({
             hex: { code: firstColor?.hex?.code || "", colorName: firstColor?.hex?.colorName || "" },
@@ -151,7 +163,7 @@ const SingleProductSection = ({ data, id }: { data?: Product; id?: ParamValue })
    }, [findProduct]);
 
    // Update Quantity
-   // FIX: cart item ki apni fields (id/color/material/currency) use karo, taake key hamesha match ho
+   // cart item ki apni fields (id/color/material/currency) use karo, taake key hamesha match ho
    const handleIncreaseQuantity = () => {
       if (!GetCartSingleItem) return;
       const currentQty = GetCartSingleItem.quantity;
@@ -234,18 +246,28 @@ const SingleProductSection = ({ data, id }: { data?: Product; id?: ParamValue })
          </div>
          <div className="lg:pr-10 pr-5 max-md:px-5 flex flex-col gap-10 md:w-200 sticky top-10 md:max-h-[calc(100vh-50px)] pb-10 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <p className="text-[#5E5F60]! lg:flex hidden">Cart / Shipping / {id}</p>
-            <div className="flex flex-col gap-2.5">
+            <div className="flex flex-col gap-3">
                <h2 className="text-headingColor">{findProduct?.name}</h2>
-               <div className="flex gap-5">
-                  <h3 className={`text-[20px]! text-headingColor ${discountValue ? "line-through" : ""} `}>
-                     {currency?.replace("RS", "Rs") || "Rs"} {selectedMaterials?.price?.[0]?.price}
-                  </h3>
-                  {discountValue > 0 && (
-                     <span className="bg-BtnBlack px-2 py-0.5">
-                        <p className="text-white">
-                           -{discountPercentage}% {currency?.replace("RS", "Rs") || "Rs"} {discountValue}
-                        </p>
+
+               {/* Pricing */}
+               <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center flex-wrap gap-x-3 gap-y-2">
+                     <span className="text-[24px] font-semibold leading-none text-headingColor">
+                        {currencyLabel} {formatPrice(finalPrice)}
                      </span>
+                     {hasDiscount && (
+                        <>
+                           <span className="text-[16px] leading-none text-gray-400 line-through">
+                              {currencyLabel} {formatPrice(originalPrice)}
+                           </span>
+                           <span className="rounded-full bg-BtnBlack px-2.5 py-1 text-xs font-medium tracking-wide text-white">-{discountPercent}% OFF</span>
+                        </>
+                     )}
+                  </div>
+                  {hasDiscount && (
+                     <p className="text-[12px]! text-green-700">
+                        You save {currencyLabel} {formatPrice(discountAmount)}
+                     </p>
                   )}
                </div>
             </div>
@@ -253,12 +275,12 @@ const SingleProductSection = ({ data, id }: { data?: Product; id?: ParamValue })
             {findProduct?.isVariable && (
                <div className="flex flex-col gap-5">
                   <div className="flex flex-col gap-2">
-                     <p className="text-headingColor">Color - Green</p>
+                     <p className="text-headingColor">Color{selectedColor.hex?.colorName ? ` - ${selectedColor.hex.colorName}` : ""}</p>
                      <div className="flex items-center flex-wrap gap-2">
                         {selectedMaterials?.colors?.map((item, i) =>
                            selectedColor.hex?.code === item.hex?.code ? (
                               <div className="w-6 h-6 border-2 border-gray-500 cursor-pointer  rounded-full flex items-center justify-center" key={item.hex?.code}>
-                                 <div className={`w-4 h-4 rounded-full ${item.hex?.code}`} style={{ background: item.hex?.code }} />
+                                 <div className="w-4 h-4 rounded-full" style={{ background: item.hex?.code }} />
                               </div>
                            ) : (
                               <div
@@ -266,7 +288,7 @@ const SingleProductSection = ({ data, id }: { data?: Product; id?: ParamValue })
                                     setSelectedColor({ hex: item.hex, images: item.images });
                                     setImages([...((item.images as any) ?? [])]);
                                  }}
-                                 className={`w-6 h-6 cursor-pointer rounded-full ${item.hex?.code}`}
+                                 className="w-6 h-6 cursor-pointer rounded-full"
                                  style={{ background: item.hex?.code }}
                                  key={i}
                               />
@@ -283,8 +305,13 @@ const SingleProductSection = ({ data, id }: { data?: Product; id?: ParamValue })
                                  key={i}
                                  className={`cursor-pointer active:scale-99 py-2 px-6 rounded-full border-2 ${selectedMaterials.material === materials.material ? "border-BtnBlack bg-BtnBlack" : "border-gray-400 bg-white"} `}
                                  onClick={() => {
-                                    setSelectedMaterials(materials);
-                                    // FIX: material change par us material ka pehla color select karo
+                                    setSelectedMaterials({
+                                       material: materials.material,
+                                       price: materials.price,
+                                       colors: materials.colors,
+                                       stock: findProduct.stock,
+                                    });
+                                    // material change par us material ka pehla color select karo
                                     // (warna purana color is material ki colors list mein nahi hota)
                                     const firstHex = materials.colors?.[0]?.hex;
                                     if (firstHex) {
@@ -359,10 +386,10 @@ const SingleProductSection = ({ data, id }: { data?: Product; id?: ParamValue })
                               id: findProduct?._id || "",
                               name: findProduct?.name || "",
                               images: (findProduct as any)?.images?.[0] || "",
-                              // FIX: selected color use karo (pehle hamesha variants[0] ka color jata tha)
                               colorVariants: findProduct?.isVariable ? selectedColor.hex?.code || "" : "",
                               material: findProduct?.isVariable ? selectedMaterials.material : "",
-                              price: selectedMaterials.price?.[0]?.price ?? 0,
+                              // discounted price cart mein jayegi
+                              price: finalPrice,
                               stock: availableStock,
                               regionId: regionID,
                               currency,
@@ -392,18 +419,20 @@ const SingleProductSection = ({ data, id }: { data?: Product; id?: ParamValue })
                      <p className="text-textBlack font-semibold!">Share on Whatsapp</p>
                   </div>
                   <div className="flex flex-col ">
-                     <div className={`${showAccessories ? "mb-2" : "pb-0"} transition-all duration-500    rounded-xl`}>
-                        <span className={`${showAccessories && "text-headingColor"} transition-all duration-700  flex items-center justify-between  py-4 px-6 cursor-pointer`} onClick={() => setShowAccessories(!showAccessories)}>
-                           <p className=" text-headingColor font-semibold!">Add Accessories</p>
-                           <ChevronDown className={showAccessories ? "transition-transform duration-300 rotate-0 text-headingColor" : " transition-transform duration-300 rotate-180 text-headingColor"} />
-                        </span>
-                        <div className={`${showAccessories ? "max-h-50 opacity-100  pb-4" : "max-h-0 opacity-0"} px-6  overflow-y-auto overflow-x-hidden flex flex-col gap-3 text-headingColor relative transition-normal duration-700 `}>
-                           {findProduct?.accessories?.map((item) => (
-                              <AccessoriesCard selectedColor={selectedColor} currency={currency} selectedMaterials={selectedMaterials} product={item} isButton key={item?._id + "123"} />
-                           ))}
+                     {findProduct?.accessories && findProduct.accessories.length > 0 && (
+                        <div className={`${showAccessories ? "mb-2" : "pb-0"} transition-all duration-500    rounded-xl`}>
+                           <span className={`${showAccessories && "text-headingColor"} transition-all duration-700  flex items-center justify-between  py-4 px-6 cursor-pointer`} onClick={() => setShowAccessories(!showAccessories)}>
+                              <p className=" text-headingColor font-semibold!">Add Accessories</p>
+                              <ChevronDown className={showAccessories ? "transition-transform duration-300 rotate-0 text-headingColor" : " transition-transform duration-300 rotate-180 text-headingColor"} />
+                           </span>
+                           <div className={`${showAccessories ? "max-h-50 opacity-100  pb-4" : "max-h-0 opacity-0"} px-6  overflow-y-auto overflow-x-hidden flex flex-col gap-3 text-headingColor relative transition-normal duration-700 `}>
+                              {findProduct?.accessories?.map((item) => (
+                                 <AccessoriesCard selectedColor={selectedColor} currency={currency} selectedMaterials={selectedMaterials} product={item} isButton key={item?._id + "123"} />
+                              ))}
+                           </div>
+                           <Separator className="bg-gray-400" />
                         </div>
-                        <Separator className="bg-gray-400" />
-                     </div>
+                     )}
                      {contactFAQs.map((item, index) => (
                         <div key={index} className={`${accordion == index + 1 ? "mb-2" : "pb-0"} transition-all duration-500    rounded-xl`}>
                            <span className={`${accordion == index + 1 && "text-headingColor"} transition-all duration-700  flex items-center justify-between  py-4 px-6 cursor-pointer`} onClick={() => setAccordion((prev) => (prev === index + 1 ? null : index + 1))}>

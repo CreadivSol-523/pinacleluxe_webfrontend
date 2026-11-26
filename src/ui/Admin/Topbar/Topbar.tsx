@@ -1,6 +1,7 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useLogoutAdminHandler } from "@/Hooks/useAdminHandler";
+import { usePathname, useRouter } from "next/navigation";
 
 const pageTitles: Record<string, { title: string; crumb: string }> = {
    "/admin/dashboard": { title: "Dashboard", crumb: "Admin / Overview" },
@@ -28,8 +29,17 @@ interface TopbarProps {
 
 export default function Topbar({ onMenuClick, onActionClick }: TopbarProps) {
    const pathname = usePathname();
+   const router = useRouter();
    const meta = pageTitles[pathname] ?? { title: "Admin", crumb: "Admin" };
    const actionLabel = actionMap[pathname];
+   const { handleLogoutAdmin, isLoading: isLoggingOut } = useLogoutAdminHandler();
+
+   const onLogout = async () => {
+      if (isLoggingOut) return;
+      await handleLogoutAdmin();
+      router.replace("/admin/login");
+      router.refresh();
+   };
 
    return (
       <header className="h-20 bg-staticSecondaryBG border-b border-[#B8975A]/20 px-5 lg:px-7 flex items-center justify-between shrink-0">
@@ -75,6 +85,20 @@ export default function Topbar({ onMenuClick, onActionClick }: TopbarProps) {
                   {actionLabel}
                </button>
             )}
+
+            {/* Logout */}
+            <button
+               onClick={onLogout}
+               disabled={isLoggingOut}
+               aria-label="Log out"
+               title="Log out"
+               className="w-8 h-8 lg:w-8.5 lg:h-8.5 rounded-lg border border-[#B8975A]/20 bg-transparent flex items-center justify-center text-[#5E5F60] hover:bg-[#E8E0D0] hover:text-red-600 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+               <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path d="M6 2.5H3.5A1 1 0 002.5 3.5v9a1 1 0 001 1H6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                  <path d="M10 5l3 3-3 3M13 8H6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+               </svg>
+            </button>
          </div>
       </header>
    );

@@ -7,30 +7,35 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 
-type LeafItem = { name: string; href: string };
+type LeafItem = { name: string; href: string; image?: string };
 type NestedItem = { label: { name: string; href: string }; children: LeafItem[] | NestedItem[] };
+
+const DEFAULT_NAV_IMAGE = "/Dummy/Product/ProductImg2.png";
 
 const Header = ({ setIsSidebarOpen, setIsFavoriteOpen }: { setIsSidebarOpen: (isOpen: boolean) => void; setIsFavoriteOpen: (isOpen: boolean) => void }) => {
    const [CatData, setCatData] = useState<LeafItem[]>([]);
    const [isNavbar, setIsNavbar] = useState(false);
    const [isSidebar, setIsSidebar] = useState(false);
    const [scrolled, setScrolled] = useState(false);
+   // hover wali category ki image (null = default image)
+   const [hoveredImage, setHoveredImage] = useState<string | null>(null);
 
    const TOPBAR_HEIGHT = 15;
    const { data, isLoading } = useGetCategoryHandler();
 
    const handleStructuredData = () => {
-      const cat = data?.categories.map((item) => ({
+      const cat = data?.categories?.map((item) => ({
          name: item.name,
          slug: item.slug,
          href: `/collection/${item.slug}`,
+         image: (item as any).image as string | undefined,
       }));
-      setCatData(cat as LeafItem[]);
+      setCatData((cat || []) as LeafItem[]);
    };
 
    useEffect(() => {
       handleStructuredData();
-   }, [isLoading]);
+   }, [data]);
 
    const menuData: { label: { name: string; href: string }; children: (LeafItem | NestedItem)[] }[] = [
       {
@@ -53,6 +58,9 @@ const Header = ({ setIsSidebarOpen, setIsFavoriteOpen }: { setIsSidebarOpen: (is
          children: [],
       },
    ];
+
+   // Nav ki image panel ke liye saari category images (stack karke fade karne ke liye)
+   const navImages: string[] = CatData.map((c) => c.image).filter((img, i, arr): img is string => !!img && arr.indexOf(img) === i);
 
    function AccordionItem({ label, children, depth = 0 }: { label: { name: string; href: string }; children?: (LeafItem | NestedItem)[]; depth?: number }) {
       const [open, setOpen] = useState(depth === 0);
@@ -107,7 +115,7 @@ const Header = ({ setIsSidebarOpen, setIsFavoriteOpen }: { setIsSidebarOpen: (is
       if (isNavbar) {
          document.body.style.overflow = "hidden";
       } else {
-         document.body.style.overflow = "auto"; // ← sirf tab jab dono false hon
+         document.body.style.overflow = "auto";
       }
 
       return () => {
@@ -119,7 +127,7 @@ const Header = ({ setIsSidebarOpen, setIsFavoriteOpen }: { setIsSidebarOpen: (is
       if (isSidebar) {
          document.body.style.overflow = "hidden";
       } else {
-         document.body.style.overflow = "auto"; // ← sirf tab jab dono false hon
+         document.body.style.overflow = "auto";
       }
 
       return () => {
@@ -132,8 +140,13 @@ const Header = ({ setIsSidebarOpen, setIsFavoriteOpen }: { setIsSidebarOpen: (is
 
    return (
       <>
-         {/* <header onMouseLeave={() => setIsNavbar(false)} className={`lg:px-10 px-5 h-17.5 flex z-60! items-center border-b justify-between border-b-gray-200 fixed w-full  bg-white transition-all duration-75    ${scrolled ? "top-0!" : "top-11"}`}> */}
-         <header onMouseLeave={() => setIsNavbar(false)} className={`lg:px-10 px-5 h-17.5 flex z-60! items-center border-b justify-between border-b-gray-200 sticky top-0! w-full bg-white transition-all duration-300`}>
+         <header
+            onMouseLeave={() => {
+               setIsNavbar(false);
+               setHoveredImage(null);
+            }}
+            className={`lg:px-10 px-5 h-17.5 flex z-60! items-center border-b justify-between border-b-gray-200 sticky top-0! w-full bg-white transition-all duration-300`}
+         >
             <TextAlignJustify className="xl:hidden min-[500px]:w-auto w-[6vw] min-[500px]:hidden flex" onClick={() => setIsSidebar(true)} />
             <div className="flex items-center gap-10">
                <TextAlignJustify className="xl:hidden hidden min-[500px]:w-auto w-[6vw] min-[500px]:flex" onClick={() => setIsSidebar(true)} />
@@ -156,7 +169,6 @@ const Header = ({ setIsSidebarOpen, setIsFavoriteOpen }: { setIsSidebarOpen: (is
                   <Image src={"/Icons/SearchIcon.svg"} width={16} height={16} alt="profile icon" className="lg:w-4 sm:w-4.5 w-[3.2vw]" />
                </span>
                <Image src={"/Icons/ProfileIcon.svg"} width={20} height={20} alt="profile icon" className="sm:w-5 w-[3.2vw] min-w-4 cursor-pointer" />
-               {/* <Image src={"/Icons/HeartIcon.svg"} width={20} height={20} alt="profile icon" className="sm:w-5 w-[3.2vw] min-w-4 cursor-pointer" /> */}
                <span className="flex items-center gap-1.5 cursor-pointer" onClick={() => setIsFavoriteOpen(true)}>
                   <Image src={"/Icons/HeartIcon.svg"} width={20} height={20} alt="profile icon" className="sm:w-5 w-[3.2vw] min-w-4" />
                   {totalFavoriteItems || 0}
@@ -205,12 +217,12 @@ const Header = ({ setIsSidebarOpen, setIsFavoriteOpen }: { setIsSidebarOpen: (is
                                           </a>
 
                                           {sectionHasChildren && (
-                                             <ul className="flex flex-col gap-2">
+                                             <ul className="flex flex-col gap-2" onMouseLeave={() => setHoveredImage(null)}>
                                                 {section.children.map((child, k) => {
                                                    if (!("name" in child)) return null;
                                                    return (
                                                       <li key={k}>
-                                                         <a href={child.href} className="text-sm text-gray-500 hover:text-black hover:underline transition-colors">
+                                                         <a onMouseEnter={() => setHoveredImage(child.image || null)} onFocus={() => setHoveredImage(child.image || null)} href={child.href} className="text-sm text-gray-500 hover:text-black hover:underline transition-colors">
                                                             {child.name}
                                                          </a>
                                                       </li>
@@ -226,7 +238,13 @@ const Header = ({ setIsSidebarOpen, setIsFavoriteOpen }: { setIsSidebarOpen: (is
                         })}
                      </div>
 
-                     <Image src={"/Dummy/Product/ProductImg2.png"} width={400} height={200} alt="product image" className="lg:w-72 min-[500px]:w-52 w-[40vw] h-full xl:flex hidden" />
+                     {/* Image panel — hover par category image fade hoti hai */}
+                     <div className="relative lg:w-72 min-[500px]:w-52 w-[40vw] h-full xl:block hidden overflow-hidden">
+                        <Image unoptimized src={DEFAULT_NAV_IMAGE} fill alt="Default navbar image" className={`object-cover transition-opacity duration-500 ${hoveredImage ? "opacity-0" : "opacity-100"}`} />
+                        {navImages.map((img) => (
+                           <Image unoptimized key={img} src={img} fill alt="Category image" className={`object-cover transition-opacity duration-500 ${hoveredImage === img ? "opacity-100" : "opacity-0"}`} />
+                        ))}
+                     </div>
                   </div>
 
                   <div className="xl:hidden">

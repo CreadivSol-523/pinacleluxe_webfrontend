@@ -45,11 +45,11 @@ const Checkout = () => {
 
    const cartItems = useCartStore((state) => state.items);
    const clearCart = useCartStore((state) => state.clearCart);
-   console.log(cartItems);
+
    const subtotal = cartItems.reduce((acc, item) => acc + (item.price || 45) * item.quantity, 0);
    const shippingFee = 15;
    const total = subtotal + shippingFee;
-
+   console.log(cartItems);
    // Sync detected country from Redux Payment query
    useEffect(() => {
       if (detectedLocation) {
@@ -229,18 +229,22 @@ const Checkout = () => {
                   <div className="flex flex-col gap-4 ">
                      <span className="flex justify-between">
                         <p className="text-[#5E5F5F]">Subtotal</p>
-                        <p className="text-headingColor">${subtotal.toFixed(2)}</p>
+                        <p className="text-headingColor">
+                           {cartItems?.[0]?.currency || "Rs"} {subtotal.toFixed(2)}
+                        </p>
                      </span>
                      <span className="flex justify-between ">
                         <p className="text-[#5E5F5F]">Shipping</p>
-                        <p className="text-headingColor">${shippingFee.toFixed(2)}</p>
+                        <p className="text-headingColor">
+                           {cartItems?.[0]?.currency || "Rs"} {shippingFee.toFixed(2)}
+                        </p>
                      </span>
                      <span className="flex justify-between">
                         <p className="text-[#5E5F5F]" style={{ fontWeight: 800, fontSize: 16 }}>
                            Total
                         </p>
                         <p className="text-headingColor" style={{ fontWeight: 800, fontSize: 16 }}>
-                           ${total.toFixed(2)}
+                           {cartItems?.[0]?.currency || "Rs"} {total.toFixed(2)}
                         </p>
                      </span>
                   </div>
@@ -395,18 +399,22 @@ const Checkout = () => {
                   <div className="flex flex-col gap-4 w-100">
                      <span className="flex justify-between">
                         <p className="text-[#5E5F5F]">Subtotal</p>
-                        <p className="text-headingColor">${subtotal.toFixed(2)}</p>
+                        <p className="text-headingColor">
+                           {cartItems?.[0]?.currency || "Rs"} {subtotal.toFixed(2)}
+                        </p>
                      </span>
                      <span className="flex justify-between ">
                         <p className="text-[#5E5F5F]">Shipping</p>
-                        <p className="text-headingColor">${shippingFee.toFixed(2)}</p>
+                        <p className="text-headingColor">
+                           {cartItems?.[0]?.currency || "Rs"} {shippingFee.toFixed(2)}
+                        </p>
                      </span>
                      <span className="flex justify-between">
                         <p className="text-[#5E5F5F]" style={{ fontWeight: 800, fontSize: 16 }}>
                            Total
                         </p>
                         <p className="text-headingColor" style={{ fontWeight: 800, fontSize: 16 }}>
-                           ${total.toFixed(2)}
+                           {cartItems?.[0]?.currency || "Rs"} {total.toFixed(2)}
                         </p>
                      </span>
                   </div>

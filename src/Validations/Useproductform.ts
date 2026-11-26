@@ -435,17 +435,17 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
             },
          ];
       }
-
       try {
          if (type === "create") {
             await handleCreateProduct({ form: finalForm });
          } else {
+            console.log(finalForm)
             await handleUpdateProduct({ form: finalForm });
          }
          onSuccess?.(finalForm);
-         // setForm(emptyForm());
-         // setSingleVariant(emptySingleVariant());
-         // setImageURLs(emptyImageURLs());
+         setForm(emptyForm());
+         setSingleVariant(emptySingleVariant());
+         setImageURLs(emptyImageURLs());
       } finally {
          setLoading(false);
       }
