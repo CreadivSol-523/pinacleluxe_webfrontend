@@ -44,6 +44,4 @@ config.bat
 branch_structure.json
 
 # env files
-.env
-.env.*
 !.env.example
