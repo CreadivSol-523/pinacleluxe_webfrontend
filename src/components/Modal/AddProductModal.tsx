@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useProductForm, DiscountMode, ColorVariant, RegionPriceDraft, RegionPrice } from "@/Validations/Useproductform";
-import { Region } from "@/Types/Region/Region";
 import { useGetRegionHandler } from "@/modals/RegionModal";
+import { MediaItem } from "@/lib/uploadImages";
 import AccessoriesSection from "../Cards/AccessoriesCard/AccessoriesSection";
 
 interface AddProductModalProps {
@@ -51,29 +51,85 @@ const Toggle = ({ active, onChange, label }: { active: boolean; onChange: () => 
    </div>
 );
 
+// ── Media tile: image + neeche progress bar + cross ──────────────────────────
+// string (purani URL) ko bhi "done" item ki tarah handle karta hai
+const normalizeItem = (x: MediaItem | string): MediaItem => (typeof x === "string" ? { id: x, preview: x, status: "done", progress: 100 } : x);
+
+function MediaTile({ item, onRemove, onRetry, label, compact = false }: { item: MediaItem | string; onRemove: () => void; onRetry: (id: string) => void; label?: string; compact?: boolean }) {
+   const it = normalizeItem(item);
+
+   return (
+      <div className="flex flex-col gap-1">
+         <div className="relative rounded-lg overflow-hidden bg-[#F5F0E8] aspect-square border border-[#B8975A]/10">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={it.preview} alt="" className={`w-full h-full object-cover transition-opacity ${it.status === "uploading" ? "opacity-60" : ""} ${it.status === "error" ? "opacity-30" : ""}`} />
+            <button type="button" onClick={onRemove} title={it.status === "uploading" ? "Cancel upload" : "Remove image"} className={`absolute top-1 right-1 rounded-full bg-red-500 text-white flex items-center justify-center ${compact ? "w-4 h-4" : "w-5 h-5"}`}>
+               <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                  <path d="M1 1l6 6M7 1L1 7" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+               </svg>
+            </button>
+            {label && <span className="absolute bottom-1 left-1 text-[9px] bg-primaryBG text-[#B8975A] px-1.5 py-0.5 rounded leading-none">{label}</span>}
+         </div>
+
+         {it.status === "uploading" && (
+            <div>
+               <div className="w-full h-1 bg-[#B8975A]/15 rounded-full overflow-hidden">
+                  <div className="h-full bg-[#B8975A] transition-all duration-150" style={{ width: `${it.progress}%` }} />
+               </div>
+               <p className="text-[9px] text-[#5E5F60] mt-0.5 text-right">{it.progress}%</p>
+            </div>
+         )}
+
+         {it.status === "error" && (
+            <div className="flex items-center justify-between gap-1">
+               <span className="text-[9px] text-red-500">Failed</span>
+               <button type="button" onClick={() => onRetry(it.id)} className="text-[9px] text-[#B8975A] underline">
+                  Retry
+               </button>
+            </div>
+         )}
+      </div>
+   );
+}
+
 // ── Image uploader ────────────────────────────────────────────────────────────
-function ImageUploader({ label, images, onAdd, onRemove, error, firstLabel, multiple = true }: { label: string; images: string[] | File[]; onAdd: (url: string, file?: File) => void; onRemove: (i: number) => void; error?: string; firstLabel?: string; multiple?: boolean }) {
-   const [urlInput, setUrlInput] = useState("");
+function ImageUploader({
+   label,
+   items,
+   onAdd,
+   onRemove,
+   onRetry,
+   error,
+   firstLabel,
+   multiple = true,
+}: {
+   label: string;
+   items: (MediaItem | string)[];
+   onAdd: (url: string, file?: File) => void;
+   onRemove: (i: number) => void;
+   onRetry: (id: string) => void;
+   error?: string;
+   firstLabel?: string;
+   multiple?: boolean;
+}) {
    const fileRef = useRef<HTMLInputElement>(null);
+
    const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-      Array.from(e.target.files || []).forEach((file) => {
-         const r = new FileReader();
-         r.onload = () => onAdd(r.result as string, file); // file bhi pass karo
-         r.readAsDataURL(file);
-      });
+      const files = Array.from(e.target.files || []);
+      (multiple ? files : files.slice(0, 1)).forEach((file) => onAdd(URL.createObjectURL(file), file));
       e.target.value = "";
    };
-   const handleUrl = () => {
-      if (!urlInput.trim()) return;
-      onAdd(urlInput.trim());
-      setUrlInput("");
-   };
+
    return (
       <div>
          <Label>{label}</Label>
          {error && <p className="text-[11px] text-red-500 mb-2">{error}</p>}
          <div className="flex gap-2 mb-2">
-            <button onClick={() => fileRef.current?.click()} className="flex items-center justify-center gap-1.5 px-3 py-2.5 border border-[#B8975A]/20 bg-[#F5F0E8] text-[12px] text-[#5E5F60] rounded-lg w-full  hover:border-[#B8975A]/50 hover:text-headingColor transition-colors whitespace-nowrap">
+            <button
+               type="button"
+               onClick={() => fileRef.current?.click()}
+               className="flex items-center justify-center gap-1.5 px-3 py-2.5 border border-[#B8975A]/20 bg-[#F5F0E8] text-[12px] text-[#5E5F60] rounded-lg w-full  hover:border-[#B8975A]/50 hover:text-headingColor transition-colors whitespace-nowrap"
+            >
                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
                   <path d="M6.5 9V2M3.5 5l3-3 3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
                   <path d="M1.5 11h10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
@@ -82,19 +138,10 @@ function ImageUploader({ label, images, onAdd, onRemove, error, firstLabel, mult
             </button>
             <input ref={fileRef} type="file" accept="image/*" multiple={multiple} className="hidden" onChange={handleFile} />
          </div>
-         {images.length > 0 && (
+         {items.length > 0 && (
             <div className="grid grid-cols-4 gap-2 mt-2">
-               {images.map((url, i) => (
-                  <div key={i} className="relative group rounded-lg overflow-hidden bg-[#F5F0E8] aspect-square border border-[#B8975A]/10">
-                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                     <img src={url as string} alt="" className="w-full h-full object-cover" />
-                     <button onClick={() => onRemove(i)} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
-                           <path d="M1 1l6 6M7 1L1 7" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-                        </svg>
-                     </button>
-                     {i === 0 && firstLabel && <span className="absolute bottom-1 left-1 text-[9px] bg-primaryBG text-[#B8975A] px-1.5 py-0.5 rounded">{firstLabel}</span>}
-                  </div>
+               {items.map((item, i) => (
+                  <MediaTile key={normalizeItem(item).id} item={item} onRemove={() => onRemove(i)} onRetry={onRetry} label={i === 0 ? firstLabel : undefined} />
                ))}
             </div>
          )}
@@ -105,24 +152,22 @@ function ImageUploader({ label, images, onAdd, onRemove, error, firstLabel, mult
 // ── Color section (reused in both single & multi) ─────────────────────────────
 function ColorSection({
    colorDraft,
-   showColorDraft,
    setColorDraft,
    addColorImage,
    removeColorImage,
+   onRetryImage,
    onAddColor,
    onRemoveColor,
-   onRemoveColorImage,
    addedColors,
    errors,
 }: {
    colorDraft: ColorVariant;
-   showColorDraft: { hex: { code: string; colorName: string }; images?: string[] };
    setColorDraft: React.Dispatch<React.SetStateAction<ColorVariant>>;
    addColorImage: (url: string, file?: string | File) => void;
    removeColorImage: (i: number) => void;
+   onRetryImage: (id: string) => void;
    onAddColor: () => void;
    onRemoveColor: (hex: string) => void;
-   onRemoveColorImage: (hex: string, i: number) => void;
    addedColors: ColorVariant[];
    errors: { colorHex?: string; colorImage?: string };
 }) {
@@ -169,35 +214,23 @@ function ColorSection({
                      multiple
                      className="hidden"
                      onChange={(e) => {
-                        Array.from(e.target.files || []).forEach((f) => {
-                           const r = new FileReader();
-                           r.onload = () => addColorImage(r.result as string, e.target.files ? f : undefined); // file bhi pass karo
-                           r.readAsDataURL(f);
-                        });
+                        Array.from(e.target.files || []).forEach((f) => addColorImage(URL.createObjectURL(f), f));
                         e.target.value = "";
                      }}
                   />
                </label>
             </div>
             {errors.colorImage && <p className="text-[10px] text-red-500 mb-1">{errors.colorImage}</p>}
-            {(showColorDraft as any)?.images?.length > 0 && (
+            {colorDraft.images.length > 0 && (
                <div className="grid grid-cols-5 gap-1.5 mb-2">
-                  {(showColorDraft as any)?.images.map((img: string, i: number) => (
-                     <div key={i} className="relative group aspect-square rounded-lg overflow-hidden border border-[#B8975A]/15 bg-staticSecondaryBG">
-                        <img src={img} alt="" className="w-full h-full object-cover" />
-                        <button onClick={() => removeColorImage(i)} className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                           <svg width="7" height="7" viewBox="0 0 8 8" fill="none">
-                              <path d="M1 1l6 6M7 1L1 7" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-                           </svg>
-                        </button>
-                        {i === 0 && <span className="absolute bottom-0.5 left-0.5 text-[8px] bg-primaryBG text-[#B8975A] px-1 py-0.5 rounded leading-none">Main</span>}
-                     </div>
+                  {colorDraft.images.map((img, i) => (
+                     <MediaTile key={img.id} item={img} compact onRemove={() => removeColorImage(i)} onRetry={onRetryImage} label={i === 0 ? "Main" : undefined} />
                   ))}
                </div>
             )}
          </div>
 
-         <button onClick={onAddColor} className="w-full py-2 border border-dashed border-[#B8975A]/40 text-[#B8975A] text-[12px] rounded-lg hover:bg-[#B8975A]/5 transition-colors">
+         <button type="button" onClick={onAddColor} className="w-full py-2 border border-dashed border-[#B8975A]/40 text-[#B8975A] text-[12px] rounded-lg hover:bg-[#B8975A]/5 transition-colors">
             + Add Color Swatch
          </button>
 
@@ -213,7 +246,7 @@ function ColorSection({
                         <p className="text-[11px] text-[#5E5F60]">
                            {c.images.length} img{c.images.length !== 1 ? "s" : ""}
                         </p>
-                        <button onClick={() => onRemoveColor(c.hex.code)} className="text-[#5E5F60] hover:text-red-500 transition-colors">
+                        <button type="button" onClick={() => onRemoveColor(c.hex.code)} className="text-[#5E5F60] hover:text-red-500 transition-colors">
                            <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
                               <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
                            </svg>
@@ -228,19 +261,7 @@ function ColorSection({
 }
 
 // ── Added variant card (multi mode) ──────────────────────────────────────────
-function VariantCard({
-   variant,
-   onRemove,
-   onRemoveColor,
-   onRemoveColorImage,
-   onRemoveRegion,
-}: {
-   variant: import("@/Types/Collection/CollectionTypes").VariantSchema;
-   onRemove: () => void;
-   onRemoveColor: (hex: string) => void;
-   onRemoveColorImage: (hex: string, i: number) => void;
-   onRemoveRegion: (region: string) => void;
-}) {
+function VariantCard({ variant, onRemove, onRemoveColor, onRemoveRegion }: { variant: import("@/Types/Collection/CollectionTypes").VariantSchema; onRemove: () => void; onRemoveColor: (hex: string) => void; onRemoveRegion: (region: string) => void }) {
    const [expanded, setExpanded] = useState(false);
    const hasColors = (variant.colors?.length ?? 0) > 0;
    const hasPrices = (variant.price?.length ?? 0) > 0;
@@ -452,27 +473,24 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
       form,
       errors,
       loading,
+      mediaBusy,
+      submitError,
       setField,
       handleNameChange,
       handleCategoryChange,
       handleVariableToggle,
       addImage,
       removeImage,
-      imageURLs,
+      retryUpload,
       // single
       singleVariant,
-      setSingleField,
-      removeSingleColor,
-      removeSingleColorImage,
       // multi
       variantDraft,
       setVariantDraftField,
       addVariant,
       removeVariant,
       removeColorFromVariant,
-      removeColorVariantImage,
       removeColorFromVariantDraft,
-      removeColorImageFromVariantDraft,
       // region price
       regionDraft,
       setRegionDraftField,
@@ -482,7 +500,6 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
       // color draft (shared)
       colorDraft,
       setColorDraft,
-      showColorDraft,
       addColorImage,
       removeColorImage,
       addColorToTarget,
@@ -493,25 +510,26 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
       reset,
       subCategories,
       BADGES,
-      MATERIALS,
       CATEGORY_TREE,
    } = useProductForm((product) => {
       onSuccess?.(product);
-      onClose();
+      // onClose();
    });
 
+   // Save ke dauran Escape se modal band nahi hoga
    useEffect(() => {
       const handler = (e: KeyboardEvent) => {
-         if (e.key === "Escape") onClose();
+         if (e.key === "Escape" && !loading) onClose();
       };
       window.addEventListener("keydown", handler);
       return () => window.removeEventListener("keydown", handler);
-   }, [onClose]);
+   }, [onClose, loading]);
 
    if (!isOpen) return null;
 
    const handleClose = () => {
-      reset();
+      if (loading) return; // backend save ke dauran close nahi
+      reset(); // in-flight uploads cancel + uploaded images Cloudinary se delete
       onClose();
    };
 
@@ -532,7 +550,7 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
                   <h2 className="font-serif text-[20px] font-semibold text-headingColor tracking-[0.04em]">Add Product</h2>
                   <p className="text-[11px] text-[#5E5F60] mt-0.5">Fill in product details across all tabs</p>
                </div>
-               <button onClick={handleClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-[#5E5F60] hover:text-headingColor hover:bg-[#B8975A]/10 transition-colors">
+               <button onClick={handleClose} disabled={loading} className="w-8 h-8 flex items-center justify-center rounded-lg text-[#5E5F60] hover:text-headingColor hover:bg-[#B8975A]/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                      <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                   </svg>
@@ -642,9 +660,9 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
                {/* ══ TAB 2: Images ══ */}
                {activeTab === "media" && (
                   <div className="flex flex-col gap-6">
-                     <ImageUploader label="Main Images * (shown on product card)" multiple={false} images={imageURLs.images} onAdd={(url, file) => addImage("images", url, file)} onRemove={(i) => removeImage("images", i)} error={errors.images} firstLabel="Main" />
+                     <ImageUploader label="Main Images * (shown on product card)" multiple={false} items={form.images as any[]} onAdd={(url, file) => addImage("images", url, file)} onRemove={(i) => removeImage("images", i)} onRetry={retryUpload} error={errors.images} firstLabel="Main" />
                      <div className="border-t border-[#B8975A]/10" />
-                     <ImageUploader label="Gallery Images (shown on hover)" images={imageURLs.gallery} onAdd={(url, file) => addImage("gallery", url, file)} onRemove={(i) => removeImage("gallery", i)} />
+                     <ImageUploader label="Gallery Images (shown on hover)" items={form.gallery as any[]} onAdd={(url, file) => addImage("gallery", url, file)} onRemove={(i) => removeImage("gallery", i)} onRetry={retryUpload} />
                   </div>
                )}
 
@@ -704,12 +722,11 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
                               <ColorSection
                                  colorDraft={colorDraft}
                                  setColorDraft={setColorDraft}
-                                 showColorDraft={showColorDraft}
-                                 addColorImage={(url, file) => addColorImage(url, file as any)}
+                                 addColorImage={addColorImage}
                                  removeColorImage={removeColorImage}
+                                 onRetryImage={retryUpload}
                                  onAddColor={() => addColorToTarget("draft")}
                                  onRemoveColor={removeColorFromVariantDraft}
-                                 onRemoveColorImage={removeColorImageFromVariantDraft}
                                  addedColors={variantDraft.colors}
                                  errors={{ colorHex: errors.colorHex, colorImage: errors.colorImage }}
                               />
@@ -725,14 +742,7 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
                               <div className="flex flex-col gap-3">
                                  <p className="text-[10px] tracking-widest uppercase text-[#5E5F60]">Added Variants ({form.variants.length})</p>
                                  {form.variants.map((v) => (
-                                    <VariantCard
-                                       key={v.material}
-                                       variant={v}
-                                       onRemove={() => removeVariant(v.material)}
-                                       onRemoveColor={(hex) => removeColorFromVariant(v.material, hex)}
-                                       onRemoveColorImage={(hex, i) => removeColorVariantImage(v.material, hex, i)}
-                                       onRemoveRegion={(region: any) => removeRegionFromVariant(v.material, region)}
-                                    />
+                                    <VariantCard key={v.material} variant={v} onRemove={() => removeVariant(v.material)} onRemoveColor={(hex) => removeColorFromVariant(v.material, hex)} onRemoveRegion={(region: any) => removeRegionFromVariant(v.material, region)} />
                                  ))}
                               </div>
                            )}
@@ -756,6 +766,13 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
                {activeTab === "accessories" && <AccessoriesSection selected={form.accessories ?? []} onToggle={toggleAccessory} categories={CATEGORY_TREE ?? []} />}
             </div>
 
+            {/* Submit error */}
+            {submitError && (
+               <div className="px-6 pt-3">
+                  <p className="text-[11px] text-red-500">{submitError}</p>
+               </div>
+            )}
+
             {/* Footer */}
             <div className="px-6 py-4 border-t border-[#B8975A]/15 flex items-center justify-between">
                <div className="flex items-center gap-2">
@@ -777,20 +794,20 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
                   )}
                </div>
                <div className="flex items-center gap-3">
-                  <button onClick={handleClose} className="px-5 py-2.5 text-[12px] text-[#5E5F60] border border-[#B8975A]/20 rounded-lg hover:text-headingColor transition-colors">
+                  <button onClick={handleClose} disabled={loading} className="px-5 py-2.5 text-[12px] text-[#5E5F60] border border-[#B8975A]/20 rounded-lg hover:text-headingColor transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                      Cancel
                   </button>
                   <button
                      onClick={() => handleSubmit({ type: "create" })}
-                     disabled={loading}
+                     disabled={loading || mediaBusy}
                      className="flex items-center gap-2 px-5 py-2.5 bg-primaryBG text-[#B8975A] text-[12px] font-medium tracking-[0.04em] rounded-lg hover:bg-headingColor transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                     {loading ? (
+                     {loading || mediaBusy ? (
                         <>
                            <svg className="animate-spin" width="14" height="14" viewBox="0 0 14 14" fill="none">
                               <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="8 8" />
                            </svg>
-                           Saving...
+                           {loading ? "Saving..." : "Uploading images..."}
                         </>
                      ) : (
                         <>

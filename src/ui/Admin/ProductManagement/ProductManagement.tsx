@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Products from "@/DummyData/Products.json";
 import ProductFilters from "@/components/ProductFilters/ProductFilters";
@@ -8,12 +8,11 @@ import Table from "@/components/Table/Table";
 import { Product } from "@/Types/Collection/CollectionTypes";
 import AddProductModal from "@/components/Modal/AddProductModal";
 import { useRouter } from "next/navigation";
-import { useDeleteProductHandler, useGetProductHandler } from "@/modals/ProductModal";
+import { useBulkDeleteProductHandler, useDeleteProductHandler, useGetProductHandler } from "@/modals/ProductModal";
 import DeleteModal from "@/components/Modal/DeleteModal";
 import UpdateProductModal from "@/components/Modal/UpdateProductModal";
 import { useGetCategoryHandler } from "@/modals/CategoryModal";
 
-const CATEGORIES = ["Totes", "Shoulder Bags", "Crossbody", "Hobo", "Clutch", "Small Leather"];
 const PAGE_SIZE = 10;
 
 type StockFilter = "all" | "in" | "low" | "out";
@@ -25,6 +24,9 @@ function StockBadge({ stock }: { stock?: number }) {
    if (s <= 5) return <span className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-amber-50 text-amber-600">Low — {s}</span>;
    return <span className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-green-50 text-green-700">In Stock — {s}</span>;
 }
+
+// Badge + stock filter dono ek hi source use karein
+const getStock = (p: Product): number => (p as unknown as { stock?: number })?.stock ?? p.variants?.[0]?.stock ?? 0;
 
 // ── Table columns ─────────────────────────────────────────────────────────────
 const columns = [
@@ -104,7 +106,7 @@ const columns = [
    {
       key: "stock",
       header: "Stock",
-      render: (stock: number, item: Product) => <StockBadge stock={(item as unknown as { stock: number })?.stock} />,
+      render: (stock: number, item: Product) => <StockBadge stock={getStock(item)} />,
    },
 ];
 
@@ -116,31 +118,55 @@ export default function ProductManagement() {
    const [stockFilter, setStockFilter] = useState<StockFilter>("all");
    const [categoryFilter, setCategoryFilter] = useState("all");
    const [selected, setSelected] = useState<string[]>([]);
+   const [isBulkDelete, setIsBulkDelete] = useState(false);
    const [currentPage, setCurrentPage] = useState(1);
    const [addOpen, setAddOpen] = useState(false);
-
+   const [categories, setCategories] = useState<{ name: string; slug: string }[]>([{ name: "", slug: "" }]);
    const router = useRouter();
 
    // ---------- Handle API ------------
    // Get Products API
-   const { data, isLoading } = useGetProductHandler({ limit: PAGE_SIZE, page: currentPage });
+   const { data, isLoading } = useGetProductHandler({ limit: PAGE_SIZE, page: currentPage, category: categoryFilter === "all" ? "" : categoryFilter });
+
+   // Bulk Delete
+   const { handleBulkDeleteProduct, isLoading: BulkDeleteLoading } = useBulkDeleteProductHandler();
 
    // Delete Product API
    const { handleDeleteProduct, isLoading: isDeleting } = useDeleteProductHandler();
 
    //  Get Category API
    const { data: CategoryData, error, isError, isLoading: GetCategory, refetch } = useGetCategoryHandler();
+
+   useEffect(() => {
+      if (CategoryData?.categories?.length === 0) return;
+      const cat = CategoryData?.categories.flatMap((item) => [
+         {
+            name: item.name,
+            slug: item.slug,
+         },
+         ...(item.children?.map((child) => ({
+            name: child.name,
+            slug: child.slug,
+         })) || []),
+      ]);
+
+      setCategories(cat || [{ name: "", slug: "" }]);
+   }, [CategoryData?.categories]);
+
    const productss: Product[] = data?.products ?? [];
 
    // ── Filter logic ──────────────────────────────────────────────────────────
+   // NOTE: category filter API se already apply ho chuka hota hai (useGetProductHandler),
+   // isliye yahan dobara category filter NAHI lagana — warna API ka result bhi empty ho jata hai.
    const filtered = useMemo(() => {
       return productss.filter((p: Product) => {
+         const stock = getStock(p);
          const matchSearch = !search || p.name?.toLowerCase().includes(search.toLowerCase());
-         const matchCat = categoryFilter === "all" || p.variants?.[0]?.material?.includes(categoryFilter);
-         const matchStock = stockFilter === "all" || (stockFilter === "out" && (p.variants?.[0]?.stock ?? 0) === 0) || (stockFilter === "low" && (p.variants?.[0]?.stock ?? 0) > 0 && (p.variants?.[0]?.stock ?? 0) <= 5) || (stockFilter === "in" && (p.variants?.[0]?.stock ?? 0) > 5);
-         return matchSearch && matchCat && matchStock;
+         const matchStock = stockFilter === "all" || (stockFilter === "out" && stock === 0) || (stockFilter === "low" && stock > 0 && stock <= 5) || (stockFilter === "in" && stock > 5);
+         return matchSearch && matchStock;
       });
-   }, [search, stockFilter, categoryFilter, isLoading, currentPage]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [data?.products, search, stockFilter]);
 
    // ── Table stock filter handler ────────────────────────────────────────────
    const handleTableStatusFilter = (_key: string, value: string | number) => {
@@ -159,7 +185,11 @@ export default function ProductManagement() {
    };
 
    const handleDeleteSelected = () => {
-      // setSelected([]);
+      if (BulkDeleteLoading) return;
+
+      // handleBulkDeleteProduct({ ids: selected });
+      setIsBulkDelete(true);
+      console.log(selected);
    };
 
    return (
@@ -181,10 +211,11 @@ export default function ProductManagement() {
                setCategoryFilter(v);
                setCurrentPage(1);
             }}
-            categories={CATEGORIES}
+            categories={categories.map((item) => item.slug)}
             totalResults={filtered.length}
             selectedCount={selected.length}
             onDeleteSelected={handleDeleteSelected}
+            deleteLoading={BulkDeleteLoading}
             onAddProduct={() => setAddOpen(true)}
          />
 
@@ -220,6 +251,18 @@ export default function ProductManagement() {
          {/* ── Add Product Modal ── */}
          <AddProductModal isOpen={addOpen} onClose={() => setAddOpen(false)} onSuccess={(product, singleVarient) => console.log({ product, singleVarient }, "product,singleVarientproduct,singleVarientproduct,singleVarient")} />
          <DeleteModal isOpen={!!deleteID} onClose={() => setDeleteID(null)} onConfirm={handleDeleteSingle} loading={isDeleting} title="DELETE PRODUCT" description="Are you sure you want to delete this product? This action cannot be undone." />
+         <DeleteModal
+            isOpen={!!isBulkDelete}
+            onClose={() => setIsBulkDelete(false)}
+            onConfirm={async () => {
+               await handleBulkDeleteProduct({ ids: selected });
+               setIsBulkDelete(false);
+               setSelected([]);
+            }}
+            loading={BulkDeleteLoading}
+            title="DELETE PRODUCTS"
+            description={`Are you sure you want to delete ${selected.length} products? This action cannot be undone.`}
+         />
          <UpdateProductModal onSuccess={(product) => console.log(product, "product")} isOpen={!!updateData?._id} onClose={() => setUpdateData(null)} initialData={updateData?.initialData} categoryData={CategoryData?.categories} />
       </div>
    );

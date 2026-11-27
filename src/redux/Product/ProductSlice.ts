@@ -7,7 +7,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 const ProductSlice = createApi({
    reducerPath: "ProductSlice",
    baseQuery: fetchBaseQuery({ baseUrl: process.env.NEXT_PUBLIC_PORT }),
-   tagTypes: ["GetProduct", "CreateProduct", "UpdateProduct", "DeleteProduct"],
+   tagTypes: ["GetProduct", "CreateProduct", "UpdateProduct", "DeleteProduct", "BulkDeleteProduct"],
    endpoints: (builder) => ({
       createProduct: builder.mutation<{ success: boolean; product: Product }, { data: FormData }>({
          query: ({ data }) => ({
@@ -38,7 +38,7 @@ const ProductSlice = createApi({
                method: "GET",
             }
          },
-         providesTags: ["CreateProduct", "DeleteProduct", "UpdateProduct"],
+         providesTags: ["CreateProduct", "DeleteProduct", "UpdateProduct", "BulkDeleteProduct"],
       }),
 
       getProductFilter: builder.query<{ filters: { badges: string[], colors: string[], materials: string[] }; success: boolean }, { category: string }>({
@@ -46,7 +46,7 @@ const ProductSlice = createApi({
             url: `/api/product/filter?category=${category}`,
             method: "GET",
          }),
-         providesTags: ["CreateProduct", "DeleteProduct", "UpdateProduct"],
+         providesTags: ["CreateProduct", "DeleteProduct", "UpdateProduct", "BulkDeleteProduct"],
       }),
 
       getSingleProduct: builder.query<{ product: Product; success: boolean }, { id: string, regionCode?: string }>({
@@ -74,6 +74,15 @@ const ProductSlice = createApi({
          }),
          invalidatesTags: ["DeleteProduct"],
       }),
+
+      bulkdeleteProduct: builder.mutation<{ message: string }, { ids: string[] }>({
+         query: (ids) => ({
+            url: `/api/product/bulk/delete`,
+            method: "DELETE",
+            body: ids
+         }),
+         invalidatesTags: ["BulkDeleteProduct"],
+      }),
    }),
 });
 
@@ -84,6 +93,7 @@ export const {
    useGetProductFilterQuery,
    useUpdateProductMutation,
    useDeleteProductMutation,
+   useBulkdeleteProductMutation
 } = ProductSlice;
 
 export default ProductSlice;

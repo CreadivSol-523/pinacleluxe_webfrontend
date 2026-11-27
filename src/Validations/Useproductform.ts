@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { Product, VariantSchema, colorVariants } from "@/Types/Collection/CollectionTypes";
+import { useRef, useState } from "react";
+import { Product, VariantSchema } from "@/Types/Collection/CollectionTypes";
 import { useGetCategoryHandler } from "@/modals/CategoryModal";
 import { useCreateProductHandler, useUpdateProductHandler } from "@/modals/ProductModal";
+import { uploadImage, deleteImage, MediaItem } from "@/lib/uploadImages";
 
 export interface ColorVariant {
    hex: { code: string; colorName: string };
-   images: (string | File)[];
+   images: MediaItem[];
 }
 
 export const BADGES = ["Hot Sellers", "New Arrival", "Pinacle Special", "Archive Sale"];
@@ -35,7 +36,6 @@ export interface ProductFormData extends Omit<Product, "id" | "accessories"> {
 export interface SingleVariantForm {
    material: string;
    price: RegionPrice[];
-   // stock: number | undefined;
    colors: ColorVariant[];
 }
 
@@ -43,7 +43,6 @@ export interface SingleVariantForm {
 export interface VariantDraft {
    material: string;
    price: RegionPrice[];
-   // stock: number | undefined;
    colors: ColorVariant[];
 }
 
@@ -65,7 +64,6 @@ const emptyRegionPriceDraft = (): RegionPriceDraft => ({
 const emptySingleVariant = (): SingleVariantForm => ({
    material: "",
    price: [],
-   // stock: undefined,
    colors: [],
 });
 
@@ -90,11 +88,7 @@ const emptyForm = (): ProductFormData => ({
    accessories: [],
 });
 
-const emptyImageURLs = (): {
-   images: string[];
-   gallery: string[];
-   colorImages: string[]; // sab colors ke images
-} => ({ images: [], gallery: [], colorImages: [] });
+const emptyColorDraft = (): ColorVariant => ({ hex: { code: "#000000", colorName: "" }, images: [] });
 
 export type FormErrors = Partial<
    Record<keyof ProductFormData, string> & {
@@ -120,15 +114,18 @@ function toSlug(name: string) {
       .replace(/[^a-z0-9-]/g, "");
 }
 
+const makeId = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36));
+
+const previewOf = (x: any): string => (typeof x === "string" ? x : x?.preview ?? "");
+
+// Backend ko sirf { url, publicId } (ya purani string URL) jati hai
+const toRef = (x: any) => (typeof x === "string" ? x : x?.url ? { url: x.url, publicId: x.publicId ?? "" } : x);
+
 export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
    const [form, setForm] = useState<ProductFormData>(emptyForm());
    const [errors, setErrors] = useState<FormErrors>({});
    const [loading, setLoading] = useState(false);
-   const [imageURLs, setImageURLs] = useState<{
-      images: string[];
-      gallery: string[];
-      colorImages: string[]; // sab colors ke images
-   }>(emptyImageURLs());
+   const [submitError, setSubmitError] = useState<string | null>(null);
 
    const [singleVariant, setSingleVariant] = useState<SingleVariantForm>(emptySingleVariant());
    const [variantDraft, setVariantDraft] = useState<VariantDraft>(emptyVariantDraft());
@@ -137,20 +134,63 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
    const [regionDraft, setRegionDraft] = useState<RegionPriceDraft>(emptyRegionPriceDraft());
 
    // Color draft — shared for both single & multi mode
-   const [colorDraft, setColorDraft] = useState<ColorVariant>({
-      hex: { code: "#000000", colorName: "" },
-      images: [],
-   });
+   const [colorDraft, setColorDraft] = useState<ColorVariant>(emptyColorDraft());
 
-   const [showColorDraft, setShowColorDraft] = useState<{ hex: { code: string; colorName: string }; images?: string[] }>({
-      hex: { code: "#000000", colorName: "" },
-      images: [],
-   });
+   // Retry ke liye original File aur cancel ke liye AbortController
+   const filesRef = useRef(new Map<string, File>());
+   const controllersRef = useRef(new Map<string, AbortController>());
 
    // Get Category Tree From API
-   const { data, error, isError, isLoading, refetch } = useGetCategoryHandler();
-
+   const { data } = useGetCategoryHandler();
    const CATEGORY_TREE = data?.categories;
+
+   // ── Media helpers ─────────────────────────────────────────────────────────
+   // Item ka status/progress wahan update karta hai jahan wo mojood hai (id unique hai)
+   const patchItem = (id: string, patch: Partial<MediaItem>) => {
+      const map = (list: any[]) => list.map((i) => (i && typeof i !== "string" && i.id === id ? { ...i, ...patch } : i));
+      setForm((p) => ({ ...p, images: map(p.images as any[]) as any, gallery: map(p.gallery as any[]) as any }));
+      setColorDraft((p) => ({ ...p, images: map(p.images) }));
+   };
+
+   const startUpload = (id: string) => {
+      const file = filesRef.current.get(id);
+      if (!file) return;
+
+      const controller = new AbortController();
+      controllersRef.current.set(id, controller);
+      patchItem(id, { status: "uploading", progress: 0, error: undefined });
+
+      uploadImage(file, { signal: controller.signal, onProgress: (p) => patchItem(id, { progress: p }) })
+         .then((r) => patchItem(id, { status: "done", progress: 100, url: r.url, publicId: r.publicId }))
+         .catch((err) => {
+            if (err?.name === "AbortError") return; // user ne cross dabaya
+            patchItem(id, { status: "error", error: err?.message || "Upload failed" });
+         })
+         .finally(() => controllersRef.current.delete(id));
+   };
+
+   // Cross click: upload chal rahi ho to cancel, ho chuki ho to Cloudinary se delete
+   const discard = (item: any) => {
+      if (!item || typeof item === "string") return;
+      controllersRef.current.get(item.id)?.abort();
+      controllersRef.current.delete(item.id);
+      filesRef.current.delete(item.id);
+      if (typeof item.preview === "string" && item.preview.startsWith("blob:")) URL.revokeObjectURL(item.preview);
+      if (item.publicId) deleteImage(item.publicId);
+   };
+
+   const colorItems = (): any[] => [
+      ...colorDraft.images,
+      ...variantDraft.colors.flatMap((c) => c.images),
+      ...singleVariant.colors.flatMap((c) => c.images),
+      ...form.variants.flatMap((v: any) => (v.colors ?? []).flatMap((c: any) => c.images ?? [])),
+   ];
+
+   const allItems = (): any[] => [...(form.images as any[]), ...(form.gallery as any[]), ...colorItems()];
+
+   const mediaBusy = allItems().some((i) => i && typeof i !== "string" && i.status === "uploading");
+
+   const retryUpload = (id: string) => startUpload(id);
 
    // ── Product-level ─────────────────────────────────────────────────────────
    const setField = <K extends keyof ProductFormData>(key: K, value: ProductFormData[K]) => {
@@ -169,12 +209,12 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
    };
 
    const handleVariableToggle = () => {
+      colorItems().forEach(discard); // variant/color ki uploaded images hat jati hain
       setForm((prev) => ({ ...prev, isVariable: !prev.isVariable, variants: [] }));
       setSingleVariant(emptySingleVariant());
       setVariantDraft(emptyVariantDraft());
       setRegionDraft(emptyRegionPriceDraft());
-      setColorDraft({ hex: { code: "#000000", colorName: "" }, images: [] });
-      setShowColorDraft({ hex: { code: "#000000", colorName: "" }, images: [] });
+      setColorDraft(emptyColorDraft());
       setErrors({});
    };
 
@@ -191,7 +231,6 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       setRegionDraft((prev) => ({
          ...prev,
          [key]: value,
-         // reset discountedValue when mode changes
          ...(key === "discountMode" ? { discountValue: undefined } : {}),
       }));
       setErrors((prev) => ({ ...prev, regionRegion: undefined, regionPrice: undefined }));
@@ -262,22 +301,32 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
    };
 
    // ── Color draft (shared, target-aware) ───────────────────────────────────
-   const addColorImage = (url: string, file: string | File) => {
-      if (!url.trim()) return;
-      setColorDraft((prev) => ({ ...prev, images: [...prev.images, file] }));
-      setShowColorDraft((prev) => ({ ...prev, images: [...(prev?.images as any), url.trim()] }));
-      setImageURLs((prev) => ({ ...prev, colorImages: [...prev.colorImages, url.trim()] }));
+   const addColorImage = (url: string, file?: string | File) => {
+      if (!url.trim() || !(file instanceof File)) return;
+
+      const item: MediaItem = { id: makeId(), preview: url, status: "uploading", progress: 0 };
+      filesRef.current.set(item.id, file);
+      setColorDraft((prev) => ({ ...prev, images: [...prev.images, item] }));
+      setErrors((prev) => ({ ...prev, colorImage: undefined }));
+      startUpload(item.id);
    };
 
    const removeColorImage = (idx: number) => {
+      discard(colorDraft.images[idx]);
       setColorDraft((prev) => ({ ...prev, images: prev.images.filter((_, i) => i !== idx) }));
-      setShowColorDraft((prev) => ({ ...prev, images: prev?.images?.filter((_, i) => i !== idx) }));
-      setImageURLs((prev) => ({ ...prev, colorImages: prev.colorImages.filter((_, i) => i !== idx) }));
    };
 
    const addColorToTarget = (target: "single" | "draft") => {
       if (!colorDraft.images.length) {
          setErrors((prev) => ({ ...prev, colorImage: "Add at least one image" }));
+         return;
+      }
+      if (colorDraft.images.some((i) => i.status === "uploading")) {
+         setErrors((prev) => ({ ...prev, colorImage: "Images abhi upload ho rahi hain, thora intezar karo" }));
+         return;
+      }
+      if (colorDraft.images.some((i) => i.status === "error")) {
+         setErrors((prev) => ({ ...prev, colorImage: "Failed image ko Retry karo ya hata do" }));
          return;
       }
 
@@ -295,16 +344,17 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
          setVariantDraft((prev) => ({ ...prev, colors: [...prev.colors, { ...colorDraft }] }));
       }
 
-      setColorDraft({ hex: { code: "#000000", colorName: "" }, images: [] });
-      setShowColorDraft({ hex: { code: "#000000", colorName: "" }, images: [] });
+      setColorDraft(emptyColorDraft());
       setErrors((prev) => ({ ...prev, colorHex: undefined, colorImage: undefined }));
    };
 
    const removeSingleColor = (hex: string) => {
+      singleVariant.colors.find((c) => c.hex.code === hex)?.images.forEach(discard);
       setSingleVariant((prev) => ({ ...prev, colors: prev.colors.filter((c) => c.hex.code !== hex) }));
    };
 
    const removeSingleColorImage = (hex: string, idx: number) => {
+      discard(singleVariant.colors.find((c) => c.hex.code === hex)?.images[idx]);
       setSingleVariant((prev) => ({
          ...prev,
          colors: prev.colors.map((c) => (c.hex.code === hex ? { ...c, images: c.images.filter((_, i) => i !== idx) } : c)),
@@ -312,10 +362,12 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
    };
 
    const removeColorFromVariantDraft = (hex: string) => {
+      variantDraft.colors.find((c) => c.hex.code === hex)?.images.forEach(discard);
       setVariantDraft((prev) => ({ ...prev, colors: prev.colors.filter((c) => c.hex.code !== hex) }));
    };
 
    const removeColorImageFromVariantDraft = (hex: string, idx: number) => {
+      discard(variantDraft.colors.find((c) => c.hex.code === hex)?.images[idx]);
       setVariantDraft((prev) => ({
          ...prev,
          colors: prev.colors.map((c) => (c.hex.code === hex ? { ...c, images: c.images.filter((_, i) => i !== idx) } : c)),
@@ -328,9 +380,6 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       if (!variantDraft.material) e.variantMaterial = "Select a material";
       if (!variantDraft.price.length) e.variantPrice = "Add at least one region price";
       if (!variantDraft.colors.length) e.colorImage = "Add at least one color image";
-      // if (!variantDraft.colors.some(ch => ch.hex?.find(cn => cn.))) e.colorName = "Add color Name";
-      // if (!variantDraft.colors.length) e.colorHex = "Add color hex";
-      // if (variantDraft.stock === undefined || variantDraft.stock < 0) e.variantStock = "Stock is required";
       if (Object.keys(e).length) {
          setErrors((prev) => ({ ...prev, ...e }));
          return;
@@ -343,30 +392,33 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       const newVariant: VariantSchema = {
          material: variantDraft.material,
          price: variantDraft.price.map((r) => ({
-            _id: r.region._id, // ✅ yeh hai
+            _id: r.region._id,
             region: r.region.name,
             price: r.price,
             discountMode: r.discountMode,
             discountValue: r.discountValue,
             code: r.region.code,
          })),
-         // stock: variantDraft.stock,
-         colors: variantDraft.colors.map((c) => ({ hex: { code: c.hex.code, colorName: c.hex.colorName }, images: c.images })),
+         colors: variantDraft.colors.map((c) => ({ hex: { code: c.hex.code, colorName: c.hex.colorName }, images: c.images as any })),
       };
 
       setForm((prev) => ({ ...prev, variants: [...prev.variants, newVariant] }));
       setVariantDraft(emptyVariantDraft());
       setRegionDraft(emptyRegionPriceDraft());
-      setColorDraft({ hex: { code: "#000000", colorName: "" }, images: [] });
-      setShowColorDraft({ hex: { code: "#000000", colorName: "" }, images: [] });
+      setColorDraft(emptyColorDraft());
       setErrors((prev) => ({ ...prev, variantMaterial: undefined, variantPrice: undefined, variantStock: undefined }));
    };
 
    const removeVariant = (material: string) => {
+      form.variants.find((v) => v.material === material)?.colors?.forEach((c: any) => c.images?.forEach(discard));
       setForm((prev) => ({ ...prev, variants: prev.variants.filter((v) => v.material !== material) }));
    };
 
    const removeColorFromVariant = (material: string, hex: string) => {
+      form.variants
+         .find((v) => v.material === material)
+         ?.colors?.find((c: any) => c.hex.code === hex)
+         ?.images?.forEach(discard);
       setForm((prev) => ({
          ...prev,
          variants: prev.variants.map((v) => (v.material === material ? { ...v, colors: v.colors?.filter((c) => c.hex.code !== hex) } : v)),
@@ -374,24 +426,39 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
    };
 
    const removeColorVariantImage = (material: string, hex: string, idx: number) => {
+      discard(
+         form.variants
+            .find((v) => v.material === material)
+            ?.colors?.find((c: any) => c.hex.code === hex)?.images?.[idx]
+      );
       setForm((prev) => ({
          ...prev,
          variants: prev.variants.map((v) => (v.material === material ? { ...v, colors: v.colors?.map((c) => (c.hex.code === hex ? { ...c, images: c.images.filter((_, i) => i !== idx) } : c)) } : v)),
       }));
    };
 
-   // ── Product images ────────────────────────────────────────────────────────
+   // ── Product images (select hote hi upload) ───────────────────────────────
    const addImage = (key: "images" | "gallery", url: string, file?: File) => {
       if (!url.trim() || !file) return;
 
-      setForm((prev) => ({ ...prev, [key]: key === "images" ? [file] : [...(prev[key] as File[]), file] }));
-      setImageURLs((prev) => ({ ...prev, [key]: key === "images" ? [url.trim()] : [...prev[key], url.trim()] }));
+      const item: MediaItem = { id: makeId(), preview: url, status: "uploading", progress: 0 };
+      filesRef.current.set(item.id, file);
+
+      if (key === "images") {
+         // Main image sirf ek hoti hai: purani ko cancel/delete karo
+         (form.images as any[]).forEach(discard);
+         setForm((prev) => ({ ...prev, images: [item] as any }));
+      } else {
+         setForm((prev) => ({ ...prev, gallery: [...(prev.gallery as any[]), item] as any }));
+      }
+
       setErrors((prev) => ({ ...prev, [key]: undefined }));
+      startUpload(item.id);
    };
 
    const removeImage = (key: "images" | "gallery", idx: number) => {
-      setForm((prev) => ({ ...prev, [key]: (prev[key] as string[]).filter((_, i) => i !== idx) }));
-      setImageURLs((prev) => ({ ...prev, [key]: (prev[key] as string[]).filter((_, i) => i !== idx) }));
+      discard((form[key] as any[])[idx]);
+      setForm((prev) => ({ ...prev, [key]: (prev[key] as any[]).filter((_, i) => i !== idx) as any }));
    };
 
    // ── Validate ──────────────────────────────────────────────────────────────
@@ -404,7 +471,6 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       if (!form.images.length) e.images = "Add at least one image";
       if (!form.isVariable) {
          if (!singleVariant.price.length) e.singlePrice = "Add at least one region price";
-         // if (singleVariant.stock === undefined || singleVariant.stock < 0) e.singleStock = "Stock is required";
       } else {
          if (!form.variants.length) e.variants = "Add at least one variant";
       }
@@ -413,19 +479,16 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
    };
 
    // ── Handle API Calls ────────────────────────────────────────────────────────
-
-   // Create Product API
-   const { handleCreateProduct, isLoading: createProductLoading } = useCreateProductHandler();
-
-   // Update Product API
-   const { handleUpdateProduct, isLoading: updateProductLoading } = useUpdateProductHandler();
+   const { handleCreateProduct } = useCreateProductHandler();
+   const { handleUpdateProduct } = useUpdateProductHandler();
 
    // ── Submit ────────────────────────────────────────────────────────────────
    const handleSubmit = async ({ type }: { type: "create" | "update" }) => {
+      setSubmitError(null);
       if (!validate()) return;
-      setLoading(true);
+
       // finalForm mein form ke saath accessories (array of ids) bhi shamil hain
-      let finalForm = { ...form, accessories: form.accessories };
+      let finalForm: any = { ...form, accessories: form.accessories };
       if (!form.isVariable) {
          finalForm.variants = [
             {
@@ -435,46 +498,87 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
             },
          ];
       }
+
+      // Jo images product ke saath ja rahi hain wo sab upload ho chuki hon
+      const outgoing: any[] = [...finalForm.images, ...finalForm.gallery, ...finalForm.variants.flatMap((v: any) => (v.colors ?? []).flatMap((c: any) => c.images ?? []))];
+      if (outgoing.some((i) => i && typeof i !== "string" && i.status === "uploading")) {
+         setSubmitError("Images abhi upload ho rahi hain, thora intezar karo");
+         return;
+      }
+      if (outgoing.some((i) => i && typeof i !== "string" && i.status === "error")) {
+         setSubmitError("Kuch images upload nahi hui, Retry karo ya hata do");
+         return;
+      }
+
+      setLoading(true);
       try {
-         if (type === "create") {
-            await handleCreateProduct({ form: finalForm });
-         } else {
-            console.log(finalForm)
-            await handleUpdateProduct({ form: finalForm });
-         }
+         // MediaItem -> { url, publicId }
+         finalForm = {
+            ...finalForm,
+            images: finalForm.images.map(toRef),
+            gallery: finalForm.gallery.map(toRef),
+            variants: finalForm.variants.map((v: any) => ({
+               ...v,
+               colors: v.colors?.map((c: any) => ({ ...c, images: c.images.map(toRef) })),
+            })),
+         };
+
+         const res: any = type === "create" ? await handleCreateProduct({ form: finalForm }) : await handleUpdateProduct({ form: finalForm });
+
+         // Fail hone par form reset mat karo, warna user ka saara data chala jayega
+         if (res && res.success === false) return;
+
+         // Jo draft images save nahi huin (adhoore color/variant draft) unhe Cloudinary se hata do
+         [...colorDraft.images, ...variantDraft.colors.flatMap((c) => c.images)].forEach(discard);
+
          onSuccess?.(finalForm);
          setForm(emptyForm());
          setSingleVariant(emptySingleVariant());
-         setImageURLs(emptyImageURLs());
+         setVariantDraft(emptyVariantDraft());
+         setColorDraft(emptyColorDraft());
+      } catch (err) {
+         setSubmitError(err instanceof Error ? err.message : "Something went wrong, please try again");
       } finally {
          setLoading(false);
       }
    };
 
+   // Modal band/cancel: in-flight uploads cancel aur uploaded images Cloudinary se delete
    const reset = () => {
+      allItems().forEach(discard);
       setForm(emptyForm());
       setErrors({});
+      setSubmitError(null);
       setSingleVariant(emptySingleVariant());
       setVariantDraft(emptyVariantDraft());
       setRegionDraft(emptyRegionPriceDraft());
-      setColorDraft({ hex: { code: "#000000", colorName: "" }, images: [] });
-      setShowColorDraft({ hex: { code: "#000000", colorName: "" }, images: [] });
+      setColorDraft(emptyColorDraft());
    };
 
    const subCategories = CATEGORY_TREE?.find((c) => c?._id === form.categories)?.children ?? [];
+
+   // Purane code ke liye read-only previews (ab form items se nikalte hain)
+   const imageURLs = {
+      images: (form.images as any[]).map(previewOf),
+      gallery: (form.gallery as any[]).map(previewOf),
+      colorImages: colorDraft.images.map(previewOf),
+   };
+   const showColorDraft = { hex: colorDraft.hex, images: colorDraft.images.map(previewOf) };
 
    return {
       form,
       setForm,
       errors,
       loading,
+      mediaBusy,
+      submitError,
       setField,
       handleNameChange,
       handleCategoryChange,
       handleVariableToggle,
       addImage,
+      retryUpload,
       imageURLs,
-      setImageURLs,
       removeImage,
       // single
       singleVariant,
@@ -497,7 +601,6 @@ export function useProductForm(onSuccess?: (product: ProductFormData) => void) {
       // color draft (shared)
       colorDraft,
       setColorDraft,
-      setShowColorDraft,
       showColorDraft,
       addColorImage,
       removeColorImage,

@@ -1,5 +1,5 @@
 import { useNotification } from "@/context/NotificationContext";
-import { useCreateProductMutation, useDeleteProductMutation, useGetProductFilterQuery, useGetProductQuery, useGetSingleProductQuery, useUpdateProductMutation } from "@/redux/Product/ProductSlice";
+import { useBulkdeleteProductMutation, useCreateProductMutation, useDeleteProductMutation, useGetProductFilterQuery, useGetProductQuery, useGetSingleProductQuery, useUpdateProductMutation } from "@/redux/Product/ProductSlice";
 import { Product } from "@/Types/Collection/CollectionTypes";
 
 type AccessoryItem = NonNullable<Product["accessories"]>[number];
@@ -9,6 +9,10 @@ type UpdateProductForm = Omit<Product, "accessories"> & {
    accessories?: Array<string | AccessoryItem>;
 };
 
+// MediaItem / { url, publicId } / string, teeno se sirf URL string
+const toUrl = (x: any): string => (typeof x === "string" ? x : x?.url ?? "");
+const toUrls = (list: any[] | undefined): string[] => (list ?? []).map(toUrl).filter(Boolean);
+
 // Create Product API
 export const useCreateProductHandler = () => {
    const [CreateProduct, { isLoading }] = useCreateProductMutation();
@@ -16,85 +20,56 @@ export const useCreateProductHandler = () => {
 
    const handleCreateProduct = async ({ form, partialFields }: { form: UpdateProductForm; partialFields?: boolean }): Promise<{ success: boolean; data?: unknown }> => {
       try {
-         const { variants, gallery, images, stock, badge, categories, description, isVariable, name, slug, subCategory, accessories } = form
-
+         const { variants, gallery, images, stock, badge, categories, description, isVariable, name, slug, subCategory, accessories } = form as any;
          const formData = new FormData();
+         const catArray = subCategory ? [subCategory] : categories ? [categories] : [];
+
+         // Common fields
+         formData.append("name", name ?? "");
+         formData.append("slug", slug ?? "");
+         formData.append("description", description ?? "");
+         formData.append("categories", JSON.stringify(catArray));
+         formData.append("isVariable", isVariable ? "true" : "false");
+         formData.append("badge", badge ?? "");
+         formData.append("stock", stock ? String(stock) : "0");
+
+         // Sirf URL strings (Cloudinary links)
+         formData.append("thumbnail", toUrl(images?.[0]));
+         formData.append("productImages", JSON.stringify(toUrls(gallery)));
+
+         for (const accessory of accessories || []) {
+            formData.append("accessories", accessory as any);
+         }
 
          if (!isVariable) {
-            const priceObject = variants?.[0]?.price?.map((v) => ({
+            const priceObject = variants?.[0]?.price?.map((v: any) => ({
                region: v._id,
                price: v.price,
                discountMode: v.discountMode,
                discountValue: v.discountValue,
             }));
 
-            const catArray = subCategory ? [subCategory] : categories ? [categories] : [];
-
-            formData.append("name", name ?? "");
-            formData.append("slug", slug ?? "");
-            formData.append("description", description ?? "");
-            formData.append("categories", JSON.stringify(catArray));
-            formData.append("isVariable", isVariable ? "true" : "false");
-            formData.append("badge", badge ?? "");
-            formData.append("thumbnail", images?.[0] ?? "");
-            formData.append("stock", stock ? String(stock) : "0");
             formData.append("pricing", JSON.stringify(priceObject));
             formData.append("variants", JSON.stringify([]));
-            for (const img of gallery) {
-               formData.append("productImages", img);
-            }
-            for (const accessory of accessories || []) {
-               formData.append("accessories", accessory as any);
-            }
-         }
-
-         if (isVariable) {
-            const catArray = subCategory ? [subCategory] : categories ? [categories] : [];
-
-            formData.append("name", name ?? "");
-            formData.append("slug", slug ?? "");
-            formData.append("stock", stock ? String(stock) : "0");
-            formData.append("", slug ?? "");
-            formData.append("description", description ?? "");
-            formData.append("thumbnail", images?.[0] ?? "");
-            formData.append("categories", JSON.stringify(catArray));
-            formData.append("isVariable", "true");
-            formData.append("badge", badge ?? "");
-            for (const accessory of accessories || []) {
-               formData.append("accessories", accessory as any);
-            }
-            // remove files from variants
-            const cleanVariants = variants.map((v) => ({
+         } else {
+            const cleanVariants = (variants ?? []).map((v: any) => ({
                material: v.material,
-               price: v.price?.map((p) => ({
+               price: v.price?.map((p: any) => ({
                   region: p?._id,
                   price: p.price,
                   discountMode: p.discountMode,
                   discountValue: p.discountValue,
                })),
-               colors: v?.colors?.map((c) => ({
+               colors: v?.colors?.map((c: any) => ({
                   hex: { code: c.hex.code, colorName: c.hex.colorName },
-                  images: c.images,
+                  images: toUrls(c.images), // ["https://res.cloudinary.com/..."]
                })),
             }));
 
-            variants.forEach((v, vi) => {
-               v?.colors?.forEach((c, ci) => {
-                  c?.images?.forEach((file: any) => {
-                     formData.append(`v${vi}_c${ci}`, file);
-                  });
-               });
-            });
-
             formData.append("variants", JSON.stringify(cleanVariants));
-
-            gallery.forEach((img) => {
-               formData.append("productImages", img);
-            });
          }
 
          const res = await CreateProduct({ data: formData });
-         console.log({ form, res })
 
          if (res.error) {
             show({
@@ -103,14 +78,14 @@ export const useCreateProductHandler = () => {
                message: "Product is Not Created! Please try again.",
             });
             return { success: false };
-         } else {
-            show({
-               type: "banner",
-               variant: "success",
-               message: "Product created successfully.",
-            });
-            return { success: true, data: res.data };
          }
+
+         show({
+            type: "banner",
+            variant: "success",
+            message: "Product created successfully.",
+         });
+         return { success: true, data: res.data };
       } catch (error) {
          show({
             type: "banner",
@@ -140,90 +115,57 @@ export const useUpdateProductHandler = () => {
 
    const handleUpdateProduct = async ({ form }: { form: UpdateProductForm }): Promise<{ success: boolean; data?: unknown }> => {
       try {
-         const { variants, gallery, images, badge, categories, stock, description, isVariable, name, slug, subCategory, accessories, _id } = form;
-
+         const { variants, gallery, images, badge, categories, stock, description, isVariable, name, slug, subCategory, accessories, _id } = form as any;
          const formData = new FormData();
          const catArray = subCategory ? [subCategory] : categories ? [categories] : [];
 
+         // Common fields
+         formData.append("name", name ?? "");
+         formData.append("slug", slug ?? "");
+         formData.append("description", description ?? "");
+         formData.append("categories", JSON.stringify(catArray));
+         formData.append("isVariable", isVariable ? "true" : "false");
+         formData.append("badge", badge ?? "");
+         formData.append("stock", stock ? String(stock) : "0");
+
+         // Sirf URL strings (purani aur nayi, dono)
+         formData.append("thumbnail", toUrl(images?.[0]));
+         formData.append("productImages", JSON.stringify(toUrls(gallery)));
+
+         for (const accessory of accessories || []) {
+            formData.append("accessories", getAccessoryId(accessory));
+         }
+
          if (!isVariable) {
-            const priceObject = variants?.[0]?.price?.map((p) => ({
-               region: getRegionId(p),
+            const priceObject = variants?.[0]?.price?.map((p: any) => ({
+               region: p._id,
                price: p.price,
                discountMode: p.discountMode,
                discountValue: p.discountValue,
             }));
 
-            formData.append("name", name ?? "");
-            formData.append("slug", slug ?? "");
-            formData.append("description", description ?? "");
-            formData.append("categories", JSON.stringify(catArray));
-            formData.append("isVariable", "false");
-            formData.append("badge", badge ?? "");
-            formData.append("thumbnail", images?.[0] ?? "");
-            formData.append("stock", stock ? String(stock) : "0");
             formData.append("pricing", JSON.stringify(priceObject ?? []));
             formData.append("variants", JSON.stringify([]));
-
-            for (const img of gallery || []) {
-               formData.append("productImages", img);
-            }
-            for (const accessory of accessories || []) {
-               formData.append("accessories", getAccessoryId(accessory));
-            }
-         }
-
-         if (isVariable) {
-            formData.append("name", name ?? "");
-            formData.append("slug", slug ?? "");
-            formData.append("stock", stock ? String(stock) : "0");
-            formData.append("description", description ?? "");
-            formData.append("thumbnail", images?.[0] ?? "");
-            formData.append("categories", JSON.stringify(catArray));
-            formData.append("isVariable", "true");
-            formData.append("badge", badge ?? "");
-
-            for (const accessory of accessories || []) {
-               formData.append("accessories", getAccessoryId(accessory));
-            }
-
-            // remove files from variants
-            const cleanVariants = (variants || []).map((v) => ({
+         } else {
+            const cleanVariants = (variants || []).map((v: any) => ({
                material: v.material,
-               price: v.price?.map((p) => ({
+               price: v.price?.map((p: any) => ({
                   region: p?._id || (p?.region as any)?._id,
                   price: p.price,
                   discountMode: p.discountMode,
                   discountValue: p.discountValue,
                })),
-               colors: v?.colors?.map((c) => ({
+               colors: v?.colors?.map((c: any) => ({
                   hex: { code: c.hex.code, colorName: c.hex.colorName },
-                  images: c.images,
+                  images: toUrls(c.images),
                })),
             }));
 
-
-
-            (variants || []).forEach((v, vi) => {
-               v?.colors?.forEach((c, ci) => {
-                  c?.images?.forEach((file: any) => {
-                     formData.append(`v${vi}_c${ci}`, file);
-                  });
-               });
-            });
-            console.log(cleanVariants)
             formData.append("variants", JSON.stringify(cleanVariants));
-
-            for (const img of gallery || []) {
-               formData.append("productImages", img);
-            }
          }
 
          const res = await UpdateProduct({ data: formData, id: _id ?? "" });
 
-         console.log({ formData, res })
-         for (const a of formData) {
-            console.log(a)
-         }
          if (res.error) {
             show({
                type: "banner",
@@ -251,14 +193,14 @@ export const useUpdateProductHandler = () => {
 
    return { handleUpdateProduct, isLoading };
 };
+
 // Delete Product API
 export const useDeleteProductHandler = () => {
    const [DeleteProduct, { isLoading }] = useDeleteProductMutation();
    const { show } = useNotification();
 
-   const handleDeleteProduct = async ({ id }: { id: string }): Promise<{ success: boolean; }> => {
+   const handleDeleteProduct = async ({ id }: { id: string }): Promise<{ success: boolean }> => {
       try {
-
          if (!id) {
             show({
                type: "banner",
@@ -298,8 +240,63 @@ export const useDeleteProductHandler = () => {
    return { handleDeleteProduct, isLoading };
 };
 
+// Bulk Delete Product API
+
+export const useBulkDeleteProductHandler = () => {
+   const [BulkDeleteProduct, { isLoading }] =
+      useBulkdeleteProductMutation();
+
+   const { show } = useNotification();
+
+   const handleBulkDeleteProduct = async ({ ids }: { ids: string[]; }): Promise<{ success: boolean }> => {
+      try {
+         if (!ids || ids.length === 0) {
+            show({
+               type: "banner",
+               variant: "error",
+               message: "Please select products to delete.",
+            });
+
+            return { success: false };
+         }
+
+         const res = await BulkDeleteProduct({ ids });
+
+         if (res.error) {
+            show({
+               type: "banner",
+               variant: "error",
+               message: "Products are not deleted! Please try again.",
+            });
+
+            return { success: false };
+         }
+
+         show({
+            type: "banner",
+            variant: "success",
+            message: "Selected products deleted successfully.",
+         });
+
+         return { success: true };
+
+      } catch (error) {
+         show({
+            type: "banner",
+            variant: "error",
+            message: "Products are not deleted! Please try again.",
+         });
+
+         return { success: false };
+      }
+   };
+
+   return { handleBulkDeleteProduct, isLoading };
+};
+
+
 // Get Product API
-export const useGetProductHandler = ({ limit = 10, page = 1, badge, material, color, category, regionCode }: { limit: number; page: number, badge?: string, material?: string, color?: string, category?: string, regionCode?: string }) => {
+export const useGetProductHandler = ({ limit = 10, page = 1, badge, material, color, category, regionCode }: { limit: number; page: number; badge?: string; material?: string; color?: string; category?: string; regionCode?: string }) => {
    const { data, isLoading, isFetching, isError, error, refetch } = useGetProductQuery({ limit, page, badge, material, color, category, regionCode });
 
    return {
@@ -312,7 +309,7 @@ export const useGetProductHandler = ({ limit = 10, page = 1, badge, material, co
 };
 
 // Get Single Product API
-export const useGetSingleProductHandler = ({ id, regionCode }: { id: string, regionCode?: string }) => {
+export const useGetSingleProductHandler = ({ id, regionCode }: { id: string; regionCode?: string }) => {
    const { data, isLoading, isFetching, isError, error, refetch } = useGetSingleProductQuery({ id, regionCode }, { skip: !id });
 
    return {

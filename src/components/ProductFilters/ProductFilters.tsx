@@ -14,6 +14,7 @@ type ProductFiltersProps = {
    selectedCount: number;
    onDeleteSelected: () => void;
    onAddProduct: () => void;
+   deleteLoading?: boolean;
 };
 
 const stockOptions: { value: StockFilter; label: string }[] = [
@@ -23,7 +24,7 @@ const stockOptions: { value: StockFilter; label: string }[] = [
    { value: "out", label: "Out of Stock" },
 ];
 
-export default function ProductFilters({ search, onSearchChange, stockFilter, onStockChange, categoryFilter, onCategoryChange, categories, totalResults, selectedCount, onDeleteSelected, onAddProduct }: ProductFiltersProps) {
+export default function ProductFilters({ search, onSearchChange, stockFilter, onStockChange, categoryFilter, onCategoryChange, categories, totalResults, selectedCount, onDeleteSelected, onAddProduct, deleteLoading }: ProductFiltersProps) {
    return (
       <div className="flex flex-col gap-4">
          {/* ── Top row: search + add ── */}
@@ -88,11 +89,20 @@ export default function ProductFilters({ search, onSearchChange, stockFilter, on
 
             {/* Bulk delete — only when something selected */}
             {selectedCount > 0 && (
-               <button onClick={onDeleteSelected} className="flex items-center gap-1.5 px-3 py-2 bg-red-50 text-red-600 text-[12px] font-medium rounded-lg hover:bg-red-100 transition-colors">
-                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                     <path d="M2 4h9M5 4V2.5h3V4M4 4l.5 6.5h4L9 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  Delete ({selectedCount})
+               <button onClick={onDeleteSelected} disabled={deleteLoading} className="flex items-center gap-1.5 px-3 py-2 bg-red-50 text-red-600 text-[12px] font-medium rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                  {deleteLoading ? (
+                     <>
+                        <span className="w-3 h-3 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                        Deleting...
+                     </>
+                  ) : (
+                     <>
+                        <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                           <path d="M2 4h9M5 4V2.5h3V4M4 4l.5 6.5h4L9 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        Delete ({selectedCount})
+                     </>
+                  )}
                </button>
             )}
          </div>
